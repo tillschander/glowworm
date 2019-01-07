@@ -3,15 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "install": "electron-rebuild",
+    "postinstall": "electron-rebuild -f -w serialport",
+    "build": "vue-cli-service build && electron main.js",
+    "dev": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron main.js"
   },
   "dependencies": {
+    "electron": "^4.0.1",
+    "mainloop.js": "^1.0.4",
+    "serialport": "^7.1.1",
+    "three": "^0.100.0",
+    "three-orbit-controls": "^82.1.0",
+    "three-transform-controls": "^1.0.4",
     "vue": "^2.5.21",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
     "@vue/cli-service": "^3.2.0",
+    "electron-rebuild": "^1.8.2",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
     "vue-template-compiler": "^2.5.21"
@@ -20,10 +29,5 @@
     "plugins": {
       "autoprefixer": {}
     }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ]
+  }
 }
