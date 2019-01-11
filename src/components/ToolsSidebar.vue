@@ -1,7 +1,6 @@
 <template>
   <div class="tools-sidebar">
     <button v-on:click="addLed">Add LED</button>
-    <button>Connect</button>
   </div>
 </template>
 

@@ -1,11 +1,12 @@
 <template>
   <div id="app">
     <!--<img alt="Vue logo" src="./assets/logo.png">-->
-    <Header />
+    <Header/>
     <div>
       <ToolsSidebar/>
       <Viewport/>
-      <PropertiesSidebar v-bind:objectProperties="objectProperties"/>
+      <SceneSidebar/>
+      <PropertiesSidebar/>
     </div>
     <Footer/>
   </div>
@@ -15,6 +16,7 @@
 import Header from "./components/Header.vue";
 import ToolsSidebar from "./components/ToolsSidebar.vue";
 import Viewport from "./components/Viewport.vue";
+import SceneSidebar from "./components/SceneSidebar.vue";
 import PropertiesSidebar from "./components/PropertiesSidebar.vue";
 import Footer from "./components/Footer.vue";
 
@@ -24,16 +26,9 @@ export default {
     Header,
     ToolsSidebar,
     Viewport,
+    SceneSidebar,
     PropertiesSidebar,
     Footer
-  },
-  computed: {
-    objectProperties: function() {
-      if (this.selectedObject) {
-        console.log(this.selectedObject.material);
-      }
-      return "foobar";
-    }
   }
 };
 </script>
@@ -42,5 +37,6 @@ export default {
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 </style>

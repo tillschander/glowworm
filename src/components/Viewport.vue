@@ -5,16 +5,15 @@
 <script>
 import MainLoop from "mainloop.js";
 //import * as THREE from "three";
-let THREE = require("three");
-let OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
-let TransformControls = require("../assets/js/TransformControls.js")(THREE);
+const THREE = require("three");
+const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
+const TransformControls = require("../assets/js/TransformControls.js")(THREE);
 
 export default {
   name: "Viewport",
   data() {
     return {
       camera: null,
-      scene: null,
       renderer: null,
       light: null,
       orbit: null,
@@ -36,18 +35,17 @@ export default {
     },
     maxFps: function() {
       return this.$store.state.maxFps;
+    },
+    activeObject: function() {
+      return this.$store.state.activeObject;
     }
   },
   watch: {
-    /*
-    LEDs(newLEDs, oldLEDs) {
-      newLEDs.forEach(LED => {
-        this.addLED("0xffffff");
-      });
-    },
-    */
     maxFps(newMaxFps) {
       MainLoop.setMaxAllowedFPS(newMaxFps);
+    },
+    activeObject(object) {
+      this.control.attach(object);
     }
   },
   methods: {
@@ -59,8 +57,7 @@ export default {
       this.camera.position.set(1000, 500, 1000);
       this.camera.lookAt(0, 200, 0);
 
-      this.scene = new THREE.Scene();
-      this.scene.add(new THREE.GridHelper(1000, 10));
+      this.$store.state.scene.add(new THREE.GridHelper(1000, 10));
 
       this.renderer = new THREE.WebGLRenderer();
       this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -69,7 +66,7 @@ export default {
 
       this.light = new THREE.DirectionalLight(0xffffff, 2);
       this.light.position.set(1, 1, 1);
-      this.scene.add(this.light);
+      this.$store.state.scene.add(this.light);
 
       this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
       this.orbit.update();
@@ -79,11 +76,27 @@ export default {
         this.renderer.domElement
       );
       this.control.addEventListener("dragging-changed", this.onDraggingChanged);
-      this.scene.add(this.control);
+      this.control.addEventListener("objectChange", this.onObjectChanged);
+      this.$store.state.scene.add(this.control);
+
+      // TODO cleanup
+      this.$store.state.lineGeometry.addAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(this.$store.state.maxConnections * 3), 3)
+      );
+      this.$store.state.lineGeometry.setDrawRange(
+        0,
+        this.$store.state.lineConnections.length
+      );
+      this.$store.state.line = new THREE.Line(
+        this.$store.state.lineGeometry,
+        new THREE.LineBasicMaterial({color: 0xff0000})
+      );
+      this.$store.state.scene.add(this.$store.state.line);
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
-      this.renderer.render(this.scene, this.camera);
+      this.renderer.render(this.$store.state.scene, this.camera);
     },
     onResize: function() {
       this.camera.aspect = this.width / this.height;
@@ -94,12 +107,12 @@ export default {
       let raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(this.getPointer(event), this.camera);
 
-      let intersects = raycaster.intersectObjects(this.scene.children);
+      let intersects = raycaster.intersectObjects(
+        this.$store.state.scene.children
+      );
 
       if (intersects.length > 0) {
-        this.selectObject(intersects[0].object);
-      } else {
-        this.deselectObject();
+        this.$store.commit("setActiveObject", intersects[0].object);
       }
     },
     onKeydown: function(event) {
@@ -135,12 +148,16 @@ export default {
     onDraggingChanged: function(event) {
       this.orbit.enabled = !event.value;
     },
-    selectObject: function(object) {
-      //vueApp.selectObject = object;
-      this.control.attach(object);
-    },
-    deselectObject: function() {
-      this.control.detach();
+    onObjectChanged: function(event) {
+      let obj = event.target.object;
+      let position = [obj.position.x, obj.position.y, obj.position.z];
+      let color = [
+        obj.material.color.r,
+        obj.material.color.g,
+        obj.material.color.b
+      ];
+
+      this.$store.commit("updateLED", { uuid: obj.uuid, color, position });
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;
@@ -152,13 +169,33 @@ export default {
         button: event.button
       };
     },
-    addLED: function(color) {
-      let geometry = new THREE.OctahedronBufferGeometry(50, 0);
-      let material = new THREE.MeshBasicMaterial({ color: color });
-      let mesh = new THREE.Mesh(geometry, material);
+    update: function(delta) {
+      /*
+      vueApp.leds = vueApp.leds.map(led => [led[0] + delta/4, 0, 0]);
+      let output = [1].concat(vueApp.leds.reduce((acc, val) => acc.concat(val), [])); // Flat arr with 1 at the beginning
+      if (port != undefined) {
+          port.write(Buffer.from(output));
+      }
+      */
 
-      this.scene.add(mesh);
-      this.selectObject(mesh);
+      // TODO move inside mainloop
+      //console.log(this.$store.state.activeObject.material.color.r);
+      if (this.$store.state.activePort && this.$store.state.activeObject) {
+        this.$store.state.activePort.write(
+          Buffer.from([
+            1,
+            this.$store.state.activeObject.material.color.g * 255,
+            this.$store.state.activeObject.material.color.r * 255,
+            this.$store.state.activeObject.material.color.b * 255,
+            this.$store.state.activeObject.material.color.g * 255,
+            this.$store.state.activeObject.material.color.r * 255,
+            this.$store.state.activeObject.material.color.b * 255,
+            this.$store.state.activeObject.material.color.g * 255,
+            this.$store.state.activeObject.material.color.r * 255,
+            this.$store.state.activeObject.material.color.b * 255
+          ])
+        );
+      }
     }
   },
   mounted() {
@@ -167,12 +204,8 @@ export default {
     window.addEventListener("keyup", this.onKeyup);
 
     this.init();
-    //MainLoop.setUpdate(update); // was sendSerial()
+    MainLoop.setUpdate(this.update);
     MainLoop.setDraw(this.render).start();
-    console.log(this.scene);
-    this.$store.state.LEDs.forEach(LED => {
-      this.addLED('#009900');
-    });
   },
   beforeDestroy() {
     window.removeEventListener("resize", this.onResize);

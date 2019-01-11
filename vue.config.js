@@ -1,3 +1,6 @@
 module.exports = {
-    baseUrl: ''
+    baseUrl: '',
+    configureWebpack: {
+        target: 'electron-renderer'
+    }
 }
