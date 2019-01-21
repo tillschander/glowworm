@@ -170,30 +170,14 @@ export default {
       };
     },
     update: function(delta) {
-      /*
-      vueApp.leds = vueApp.leds.map(led => [led[0] + delta/4, 0, 0]);
-      let output = [1].concat(vueApp.leds.reduce((acc, val) => acc.concat(val), [])); // Flat arr with 1 at the beginning
-      if (port != undefined) {
-          port.write(Buffer.from(output));
-      }
-      */
-
-      // TODO move inside mainloop
-      //console.log(this.$store.state.activeObject.material.color.r);
-      if (this.$store.state.activePort && this.$store.state.activeObject) {
+      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
+        let index = this.$store.state.lineConnections.indexOf(uuid);
+        let r = ('' + Math.round(data.color[0] * 255)).padStart(3, "0");
+        let g = ('' + Math.round(data.color[1] * 255)).padStart(3, "0");
+        let b = ('' + Math.round(data.color[2] * 255)).padStart(3, "0");
+        let string = 'pixel,' + r + g + b + (index) + '\n';
         this.$store.state.activePort.write(
-          Buffer.from([
-            1,
-            this.$store.state.activeObject.material.color.g * 255,
-            this.$store.state.activeObject.material.color.r * 255,
-            this.$store.state.activeObject.material.color.b * 255,
-            this.$store.state.activeObject.material.color.g * 255,
-            this.$store.state.activeObject.material.color.r * 255,
-            this.$store.state.activeObject.material.color.b * 255,
-            this.$store.state.activeObject.material.color.g * 255,
-            this.$store.state.activeObject.material.color.r * 255,
-            this.$store.state.activeObject.material.color.b * 255
-          ])
+          Buffer.from(string, 'utf8')
         );
       }
     }

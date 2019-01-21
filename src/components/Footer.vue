@@ -13,9 +13,8 @@
         >{{ port.manufacturer }}</option>
       </select>
     </label>
-
-    FPS: {{ this.$store.state.fps }}
     
+    FPS: {{ this.$store.state.fps }}
     <label>
       Target FPS:
       <select v-model="maxFps">
@@ -52,13 +51,14 @@ export default {
     }
     */
     setPort: function(port) {
-      this.$store.commit(
-        "setActivePort",
-        new SerialPort(port.comName, {
-          baudRate: 1000000,
-          lock: false
-        })
-      );
+      const activePort = new SerialPort(port.comName, {
+        baudRate: 1000000,
+        lock: false
+      });
+      this.$store.commit("setActivePort", activePort);
+      const parser = new Readline();
+      activePort.pipe(parser);
+      parser.on("data", line => console.log(`> ${line}`));
     }
   },
   mounted() {

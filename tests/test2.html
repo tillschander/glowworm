@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>three.js app</title>
+	<style>
+		body {
+			margin: 0;
+			position: relative;
+		}
+
+		#twodee {
+			position: absolute;
+			z-index: 10;
+			width: 300px;
+			height: 180px;
+			background: #ffffff;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="twodee"></canvas>
+	<script src="js/three.min.js"></script>
+	<script src="js/OrbitControls.js"></script>
+	<script src="js/mainloop.js"></script>
+	<script>
+		var canvas = document.getElementById("twodee");
+		var context = canvas.getContext("2d");
+		var distance = 20;
+
+		function plotSine(ctx, step) {
+			var width = ctx.canvas.width;
+			var height = ctx.canvas.height;
+			var x = 0;
+
+			ctx.clearRect(0, 0, width, height);
+			while (x < width) {
+				ctx.strokeStyle = "rgba(0,0,0," + Math.sin(step + (x * 0.05)) + ")";
+				ctx.beginPath();
+				ctx.moveTo(x, 0);
+				ctx.lineTo(x, height);
+				ctx.stroke();
+				x++;
+			}
+
+			ctx.fillStyle = "red";
+			for (i = 0; i < CUBES.length; i++) {
+				ctx.rect(i * distance, Math.round(height / 2), 2, 2);
+				context.fill();
+			}
+		}
+		function draw() {
+
+			plotSine(context, step);
+			step += 0.05;
+			window.requestAnimationFrame(draw);
+		}
+		window.requestAnimationFrame(draw);
+		var step = 0;
+
+
+
+
+
+		var SCENE, CAMERA, RENDERER, CUBES;
+
+		var init = function () {
+			CUBES = [];
+			SCENE = new THREE.Scene();
+			CAMERA = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+			CAMERA.position.z = 10;
+
+			RENDERER = new THREE.WebGLRenderer();
+			RENDERER.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(RENDERER.domElement);
+
+			for (let i = -3; i < 5; i++) {
+				var geometry = new THREE.IcosahedronGeometry(0.5, 1);
+				var material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				var cube = new THREE.Mesh(geometry, material);
+				cube.position.x = Math.abs(i) * 2 - 3;
+				cube.position.y = Math.sin(i) * 2;
+				if (i == 3) {
+					cube.position.x = 0;
+					cube.position.y = 0;
+					cube.position.z = -2;
+				}
+				if (i == 4) {
+					cube.position.x = 0;
+					cube.position.y = 0;
+					cube.position.z = 2;
+				}
+				SCENE.add(cube);
+				CUBES.push(cube);
+			}
+
+			var controls = new THREE.OrbitControls(CAMERA, RENDERER.domElement);
+		}
+
+		var update = function () {
+			for (let i = 0; i < CUBES.length; i++) {
+				let color = 255 - context.getImageData(i * distance, 10, 1, 1).data[3];
+				CUBES[i].material.color = new THREE.Color(`rgb(${color}, ${color}, ${color})`);
+			}
+		};
+
+		var animate = function () {
+			RENDERER.render(SCENE, CAMERA);
+		}
+
+		init();
+		MainLoop.setUpdate(update).setDraw(animate).start();
+	</script>
+</body>
+
+</html
