@@ -39,19 +39,18 @@ export default {
 
 <style scoped lang="scss">
 .header {
-  width: 100%;
-  height: 60px;
+  justify-content: center;
   display: flex;
 }
 
 .tab {
   padding: 10px 20px;
-  margin: 20px 0 5px 0;
-  border-bottom: 1px solid #cccccc;
+  margin: 10px 0 5px 0;
+  cursor: pointer;
 
   &.active {
-    border: 1px solid #cccccc;
-    border-bottom: 0;
+    border-bottom: 3px solid cyan;
+    text-shadow: 0 0 20px #000;
   }
 }
 </style>

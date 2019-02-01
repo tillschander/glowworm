@@ -1,13 +1,16 @@
 <template>
-  <div class="properties-sidebar">
-    <div class="position">
-      <input v-model.number="x" type="number">
-      <input v-model.number="y" type="number">
-      <input v-model.number="z" type="number">
+  <div class="properties-sidebar">Properties:
+    <br>====
+    <div v-if="this.$store.state.activeObject">
+      <div class="position">
+        <input v-model.number="x" type="number">
+        <input v-model.number="y" type="number">
+        <input v-model.number="z" type="number">
+      </div>
+      <input v-model.number="r" type="range" min="0" max="1" step="0.01">
+      <input v-model.number="g" type="range" min="0" max="1" step="0.01">
+      <input v-model.number="b" type="range" min="0" max="1" step="0.01">
     </div>
-    <input v-model.number="r" type="range" min="0" max="1" step="0.01">
-    <input v-model.number="g" type="range" min="0" max="1" step="0.01">
-    <input v-model.number="b" type="range" min="0" max="1" step="0.01">
   </div>
 </template>
 
@@ -128,14 +131,11 @@ export default {
 
 <style scoped lang="scss">
 .properties-sidebar {
-  position: absolute;
-  top: 40%;
-  right: 0;
-  bottom: 30px;
-  width: 300px;
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
+  background: #424242;
+  overflow-y: auto;
 
   input {
     margin-bottom: 20px;

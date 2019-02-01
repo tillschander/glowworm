@@ -1,10 +1,7 @@
 <template>
-  <div class="scene-sidebar">
-    <SceneObject
-      v-for="(LED, uuid) in this.$store.state.LEDs"
-      v-bind:key="uuid"
-      v-bind:uuid="uuid"
-    ></SceneObject>
+  <div class="scene-sidebar">Scene:
+    <br>=====
+    <SceneObject v-for="(LED, uuid) in this.$store.state.LEDs" v-bind:key="uuid" v-bind:uuid="uuid"></SceneObject>
   </div>
 </template>
 
@@ -21,14 +18,14 @@ export default {
 
 <style scoped lang="scss">
 .scene-sidebar {
-  position: absolute;
-  top: 60px;
-  right: 0;
-  bottom: 60%;
-  width: 300px;
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  background: #424242;
+
+  :nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
 }
 </style>

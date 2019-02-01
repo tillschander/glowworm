@@ -1,5 +1,5 @@
 <template>
-  <div class="footer">
+  <div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
 
     <label>
@@ -13,7 +13,6 @@
         >{{ port.manufacturer }}</option>
       </select>
     </label>
-    
     FPS: {{ this.$store.state.fps }}
     <label>
       Target FPS:
@@ -82,13 +81,10 @@ export default {
 
 <style scoped lang="scss">
 .footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background-color: #333333;
+  padding: 0 6px;
 }
 </style>

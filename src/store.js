@@ -18,7 +18,7 @@ export default new Vuex.Store({
     lineGeometry: new THREE.BufferGeometry(),
     lineConnections: [],
     maxConnections: 512,
-    mode: "layout"
+    mode: 'layout'
   },
   mutations: {
     addLED: function (state, color = [1, 1, 1], position = [0, 0, 0]) {

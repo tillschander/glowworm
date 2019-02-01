@@ -1,5 +1,5 @@
 <template>
-  <div @mouseup="onMouseup" id="viewport" class="viewport"></div>
+  <div @mouseup="onMouseup" id="viewport"></div>
 </template>
 
 <script>
@@ -82,7 +82,10 @@ export default {
       // TODO cleanup
       this.$store.state.lineGeometry.addAttribute(
         "position",
-        new THREE.BufferAttribute(new Float32Array(this.$store.state.maxConnections * 3), 3)
+        new THREE.BufferAttribute(
+          new Float32Array(this.$store.state.maxConnections * 3),
+          3
+        )
       );
       this.$store.state.lineGeometry.setDrawRange(
         0,
@@ -90,7 +93,7 @@ export default {
       );
       this.$store.state.line = new THREE.Line(
         this.$store.state.lineGeometry,
-        new THREE.LineBasicMaterial({color: 0xff0000})
+        new THREE.LineBasicMaterial({ color: 0xff0000 })
       );
       this.$store.state.scene.add(this.$store.state.line);
     },
@@ -172,18 +175,18 @@ export default {
     update: function(delta) {
       for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
         let index = this.$store.state.lineConnections.indexOf(uuid);
-        let r = ('' + Math.round(data.color[0] * 255)).padStart(3, "0");
-        let g = ('' + Math.round(data.color[1] * 255)).padStart(3, "0");
-        let b = ('' + Math.round(data.color[2] * 255)).padStart(3, "0");
-        let string = 'pixel,' + r + g + b + (index) + '\n';
-        this.$store.state.activePort.write(
-          Buffer.from(string, 'utf8')
-        );
+        let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
+        let g = ("" + Math.round(data.color[1] * 255)).padStart(3, "0");
+        let b = ("" + Math.round(data.color[2] * 255)).padStart(3, "0");
+        let string = "pixel," + r + g + b + index + "\n";
+        this.$store.state.activePort.write(Buffer.from(string, "utf8"));
       }
     }
   },
   mounted() {
-    window.addEventListener("resize", this.onResize);
+    var ro = new ResizeObserver(this.onResize);
+
+    ro.observe( document.getElementById("viewport"));
     window.addEventListener("keydown", this.onKeydown);
     window.addEventListener("keyup", this.onKeyup);
 
@@ -200,11 +203,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.viewport {
-  position: absolute;
-  top: 60px;
-  left: 50px;
-  right: 300px;
-  bottom: 30px;
+#viewport {
+  overflow: hidden;
+  height: 100%;
 }
 </style>

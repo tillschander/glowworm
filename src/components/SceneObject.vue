@@ -18,7 +18,7 @@ export default {
     setActive: function() {
       this.$store.commit(
         "setActiveObject",
-        this.$store.state.scene.getObjectByProperty('uuid', this.uuid)
+        this.$store.state.scene.getObjectByProperty("uuid", this.uuid)
       );
     }
   }
@@ -27,10 +27,12 @@ export default {
 
 <style scoped lang="scss">
 .scene-object {
-    padding: 5px;
+  padding: 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  user-select: none;
 }
 .active {
-  background: rgb(51, 51, 51);
-  color: #ffffff;
+  border: 2px solid cyan;
 }
 </style>

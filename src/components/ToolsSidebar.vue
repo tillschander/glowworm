@@ -17,10 +17,6 @@ export default {
 
 <style scoped lang="scss">
 .tools-sidebar {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  bottom: 30px;
-  width: 50px;
+  background: #424242;
 }
 </style>

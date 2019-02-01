@@ -1,8 +1,6 @@
 <template>
   <div class="effects-sidebar">
-    <div>
-      Effects List
-    </div>
+      Effects List:<br>====
     <label>
       Choose Effect:
       <select v-model="chosenEffect">
@@ -45,14 +43,10 @@ export default {
 
 <style scoped lang="scss">
 .effects-sidebar {
-  position: absolute;
-  top: 40%;
-  right: 0;
-  bottom: 30px;
-  width: 300px;
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
+  background: #424242;
 }
 
 label {
