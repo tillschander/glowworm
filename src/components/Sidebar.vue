@@ -1,7 +1,6 @@
 <template>
   <div class="sidebar">
-    <slot name="top" ref="top"></slot>
-    <slot name="bottom" ref="bottom"></slot>
+    <slot></slot>
   </div>
 </template>
 
@@ -11,15 +10,26 @@ import Split from "split.js";
 
 export default {
   name: "Sidebar",
+  data() {
+    return {
+      elements: [],
+      instance: null
+    };
+  },
   mounted: function() {
-    let self = this;
-    Vue.nextTick(function() {
-      Split([self.$children[0].$el, self.$children[1].$el], {
+    this.elements = [];
+
+    this.$slots.default.forEach(vnode => {
+      this.elements.push(vnode.elm);
+    });
+
+    if (this.$slots.default.length > 1) {
+      this.instance = Split(this.elements, {
         direction: "vertical",
         sizes: [50, 50],
         snapOffset: 0
       });
-    });
+    }
   }
 };
 </script>
@@ -31,9 +41,7 @@ export default {
   height: 100%;
 }
 
-.sidebar > :not(.gutter) {
-  /*
-  height: calc(50% - 4.5px);
-  */
+.sidebar > * {
+  height: 100%;
 }
 </style>

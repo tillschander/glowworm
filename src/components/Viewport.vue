@@ -1,9 +1,14 @@
 <template>
-  <div @mouseup="onMouseup" id="viewport"></div>
+  <div @mousedown="onMouseDown" @mouseup="onMouseUp" id="viewport">
+    <ToolsSidebar class="tools-sidebar"/>
+    <ViewportTools class="viewport-tools"/>
+  </div>
 </template>
 
 <script>
 import MainLoop from "mainloop.js";
+import ToolsSidebar from "./ToolsSidebar.vue";
+import ViewportTools from "./ViewportTools.vue";
 //import * as THREE from "three";
 const THREE = require("three");
 const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
@@ -11,13 +16,20 @@ const TransformControls = require("../assets/js/TransformControls.js")(THREE);
 
 export default {
   name: "Viewport",
+  components: {
+    ToolsSidebar,
+    ViewportTools
+  },
   data() {
     return {
       camera: null,
       renderer: null,
-      light: null,
+      light1: null,
+      light2: null,
       orbit: null,
-      control: null
+      control: null,
+      downPosition: new THREE.Vector2(),
+      upPosition: new THREE.Vector2()
     };
   },
   computed: {
@@ -38,6 +50,12 @@ export default {
     },
     activeObject: function() {
       return this.$store.state.activeObject;
+    },
+    activeTool: function() {
+      return this.$store.state.activeTool;
+    },
+    snapToGrid: function() {
+      return this.$store.state.snapToGrid;
     }
   },
   watch: {
@@ -45,7 +63,45 @@ export default {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
     activeObject(object) {
-      this.control.attach(object);
+      if (object) {
+        this.$store.state.scene.add(this.highlighter);
+        this.highlighter.setFromObject(object);
+
+        if (this.activeTool !== "select") {
+          this.$store.state.scene.add(this.control);
+          this.control.attach(object);
+        }
+      } else {
+        this.$store.state.scene.remove(this.highlighter);
+        this.$store.state.scene.remove(this.control);
+      }
+    },
+    activeTool(tool) {
+      if (this.activeTool == "select") {
+        this.$store.state.scene.remove(this.control);
+      } else {
+        if (this.activeObject) {
+          this.$store.state.scene.add(this.control);
+          this.control.attach(this.activeObject);
+        }
+
+        if (this.activeTool == "move") {
+          this.control.setMode("translate");
+        } else if (this.activeTool == "scale") {
+          this.control.setMode("scale");
+        } else if (this.activeTool == "rotate") {
+          this.control.setMode("rotate");
+        }
+      }
+    },
+    snapToGrid(snapToGrid) {
+      if (snapToGrid) {
+        this.control.setTranslationSnap(5);
+        this.control.setRotationSnap(THREE.Math.degToRad(15));
+      } else {
+        this.control.setTranslationSnap(null);
+        this.control.setRotationSnap(null);
+      }
     }
   },
   methods: {
@@ -53,20 +109,24 @@ export default {
       let container = document.getElementById("viewport");
       let aspect = this.width / this.height;
 
-      this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 3000);
-      this.camera.position.set(1000, 500, 1000);
+      this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 99999);
+      this.camera.position.set(100, 100, 100);
       this.camera.lookAt(0, 200, 0);
-
-      this.$store.state.scene.add(new THREE.GridHelper(1000, 10));
 
       this.renderer = new THREE.WebGLRenderer();
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setSize(this.width, this.height);
       container.appendChild(this.renderer.domElement);
 
-      this.light = new THREE.DirectionalLight(0xffffff, 2);
-      this.light.position.set(1, 1, 1);
-      this.$store.state.scene.add(this.light);
+      this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
+      this.light1.position.set(1.2, 1.5, 1.0);
+      this.$store.state.scene.add(this.light1);
+      this.light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+      this.light2.position.set(-1.1, -0.4, -0.9);
+      this.$store.state.scene.add(this.light2);
+
+      this.highlighter = new THREE.BoxHelper(undefined, 0x00ffff);
+      this.$store.state.scene.add(this.highlighter);
 
       this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
       this.orbit.update();
@@ -96,6 +156,10 @@ export default {
         new THREE.LineBasicMaterial({ color: 0xff0000 })
       );
       this.$store.state.scene.add(this.$store.state.line);
+
+      this.$store.commit("addObject", {size: [1000, 10, 1000], position: [0, -250, 0]});
+      this.$store.commit("setActiveObject", null);
+      this.$store.commit("toggleSnapToGrid");
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
@@ -106,7 +170,18 @@ export default {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.width, this.height);
     },
-    onMouseup: function(event) {
+    onMouseDown: function(event) {
+      this.downPosition = this.getPointer(event);
+    },
+    onMouseUp: function(event) {
+      this.upPosition = this.getPointer(event);
+
+      if (this.downPosition.distanceTo(this.upPosition) !== 0)
+        return;
+
+      if (event.target !== this.renderer.domElement)
+        return;
+
       let raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(this.getPointer(event), this.camera);
 
@@ -116,27 +191,32 @@ export default {
 
       if (intersects.length > 0) {
         this.$store.commit("setActiveObject", intersects[0].object);
+      } else {
+        this.$store.commit("setActiveObject", undefined);
       }
     },
     onKeydown: function(event) {
       switch (event.keyCode) {
         case 81: // Q
-          this.control.setSpace(
-            this.control.space === "local" ? "world" : "local"
-          );
-          break;
-        case 17: // Ctrl
-          this.control.setTranslationSnap(100);
-          this.control.setRotationSnap(THREE.Math.degToRad(15));
+          this.$store.commit("setActiveTool", "select");
           break;
         case 87: // W
-          this.control.setMode("translate");
+          this.$store.commit("setActiveTool", "move");
           break;
         case 69: // E
-          this.control.setMode("rotate");
+          this.$store.commit("setActiveTool", "rotate");
           break;
         case 82: // R
-          this.control.setMode("scale");
+          this.$store.commit("setActiveTool", "scale");
+          break;
+        case 65: // A
+          this.$store.commit("addLED");
+          break;
+        case 83: // S
+          this.$store.commit("addObject");
+          break;
+        case 46: // Delete
+          if (this.activeObject) this.$store.commit("deleteObject", this.activeObject);
           break;
       }
     },
@@ -160,19 +240,20 @@ export default {
         obj.material.color.b
       ];
 
-      this.$store.commit("updateLED", { uuid: obj.uuid, color, position });
+      this.$store.commit("updateObject", { uuid: obj.uuid, position });
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;
       let rect = this.renderer.domElement.getBoundingClientRect();
 
-      return {
-        x: ((pointer.clientX - rect.left) / rect.width) * 2 - 1,
-        y: (-(pointer.clientY - rect.top) / rect.height) * 2 + 1,
-        button: event.button
-      };
+      return new THREE.Vector2(
+        ((pointer.clientX - rect.left) / rect.width) * 2 - 1,
+        (-(pointer.clientY - rect.top) / rect.height) * 2 + 1
+      );
     },
     update: function(delta) {
+      this.highlighter.update();
+
       for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
         let index = this.$store.state.lineConnections.indexOf(uuid);
         let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
@@ -186,7 +267,7 @@ export default {
   mounted() {
     var ro = new ResizeObserver(this.onResize);
 
-    ro.observe( document.getElementById("viewport"));
+    ro.observe(document.getElementById("viewport"));
     window.addEventListener("keydown", this.onKeydown);
     window.addEventListener("keyup", this.onKeyup);
 
@@ -206,5 +287,18 @@ export default {
 #viewport {
   overflow: hidden;
   height: 100%;
+  position: relative;
+}
+
+.tools-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.viewport-tools {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 </style>

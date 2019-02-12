@@ -13,7 +13,7 @@
         >{{ port.manufacturer }}</option>
       </select>
     </label>
-    FPS: {{ this.$store.state.fps }}
+    FPS: {{ Math.round(this.$store.state.fps) }}
     <label>
       Target FPS:
       <select v-model="maxFps">

@@ -1,13 +1,13 @@
 <template>
-  <div v-bind:class="[{ active: isActive }, 'scene-object ']" v-on:click="setActive">{{ uuid }}</div>
+  <li v-bind:class="[{ active: isActive }, 'scene-object ']" v-on:click="setActive">{{ this.name }}</li>
 </template>
 
 <script>
 export default {
   name: "SceneObject",
-  props: ["uuid"],
+  props: ["uuid", "name"],
   computed: {
-    isActive: function() {
+    isActive () {
       if (this.$store.state.activeObject) {
         return this.uuid === this.$store.state.activeObject.uuid;
       }
@@ -27,12 +27,10 @@ export default {
 
 <style scoped lang="scss">
 .scene-object {
-  padding: 3px;
   cursor: pointer;
-  border: 2px solid transparent;
   user-select: none;
 }
 .active {
-  border: 2px solid cyan;
+  color: cyan;
 }
 </style>
