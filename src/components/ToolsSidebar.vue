@@ -25,13 +25,8 @@
 </template>
 
 <script>
-import LedRingDialog from "./dialogs/LedRingDialog";
-
 export default {
   name: "ToolsSidebar",
-  components: {
-    LedRingDialog
-  },
   data() {
     return { showModal: false };
   },
