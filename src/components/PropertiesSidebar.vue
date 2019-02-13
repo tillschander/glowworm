@@ -14,11 +14,11 @@
 </template>
 
 <script>
-import NamePanel from "./panels/NamePanel.vue";
-import PositionPanel from "./panels/PositionPanel.vue";
-import RotationPanel from "./panels/RotationPanel.vue";
-import ScalePanel from "./panels/ScalePanel.vue";
-import ColorPanel from "./panels/ColorPanel.vue";
+import NamePanel from "./panels/NamePanel";
+import PositionPanel from "./panels/PositionPanel";
+import RotationPanel from "./panels/RotationPanel";
+import ScalePanel from "./panels/ScalePanel";
+import ColorPanel from "./panels/ColorPanel";
 
 export default {
   name: "PropertiesSidebar",

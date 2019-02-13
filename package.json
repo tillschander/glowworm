@@ -14,8 +14,6 @@
     "serialport": "^7.1.1",
     "split.js": "^1.5.10",
     "three": "^0.100.0",
-    "three-orbit-controls": "^82.1.0",
-    "three-transform-controls": "^1.0.4",
     "vue": "^2.5.21",
     "vuex": "^3.0.1"
   },

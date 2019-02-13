@@ -7,8 +7,8 @@
 
 <script>
 import MainLoop from "mainloop.js";
-import ToolsSidebar from "./ToolsSidebar.vue";
-import ViewportTools from "./ViewportTools.vue";
+import ToolsSidebar from "./ToolsSidebar";
+import ViewportTools from "./ViewportTools";
 //import * as THREE from "three";
 const THREE = require("three");
 const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
@@ -164,6 +164,15 @@ export default {
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
       this.renderer.render(this.$store.state.scene, this.camera);
+
+      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
+        let index = this.$store.state.lineConnections.indexOf(uuid);
+        let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
+        let g = ("" + Math.round(data.color[1] * 255)).padStart(3, "0");
+        let b = ("" + Math.round(data.color[2] * 255)).padStart(3, "0");
+        let string = "pixel," + r + g + b + index + "\n";
+        this.$store.state.activePort.write(Buffer.from(string, "utf8"));
+      }
     },
     onResize: function() {
       this.camera.aspect = this.width / this.height;
@@ -253,15 +262,6 @@ export default {
     },
     update: function(delta) {
       this.highlighter.update();
-
-      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
-        let index = this.$store.state.lineConnections.indexOf(uuid);
-        let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
-        let g = ("" + Math.round(data.color[1] * 255)).padStart(3, "0");
-        let b = ("" + Math.round(data.color[2] * 255)).padStart(3, "0");
-        let string = "pixel," + r + g + b + index + "\n";
-        this.$store.state.activePort.write(Buffer.from(string, "utf8"));
-      }
     }
   },
   mounted() {

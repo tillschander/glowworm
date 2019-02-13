@@ -8,11 +8,11 @@
         <SceneSidebar/>
         <PropertiesSidebar/>
       </Sidebar>
-      <Sidebar key="sidebar3" ref="sidebar2" v-if="this.mode == 'animations'">
+      <Sidebar key="sidebar2" ref="sidebar2" v-if="this.mode == 'animations'">
         <AnimationsSidebar/>
         <EffectsSidebar/>
       </Sidebar>
-      <Sidebar key="sidebar2" ref="sidebar3" v-if="this.mode == 'animations'">
+      <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'animations'">
         <SceneSidebar/>
       </Sidebar>
     </div>
@@ -65,9 +65,19 @@ export default {
   methods: {
     setView: function(mode) {
       let self = this;
+
       if (self.split) self.split.destroy();
+
       Vue.nextTick(function() {
-        if (mode == "animations") {
+        if (mode == "layout") {
+          self.split = Split(
+            [self.$refs.viewport.$el, self.$refs.sidebar1.$el],
+            {
+              direction: "horizontal",
+              sizes: [75, 25]
+            }
+          );
+        } else if (mode == "animations") {
           self.split = Split(
             [
               self.$refs.viewport.$el,
@@ -80,13 +90,7 @@ export default {
             }
           );
         } else {
-          self.split = Split(
-            [self.$refs.viewport.$el, self.$refs.sidebar1.$el],
-            {
-              direction: "horizontal",
-              sizes: [75, 25]
-            }
-          );
+          self.split = null;
         }
       });
     }
@@ -94,7 +98,7 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
 * {
   margin: 0;
   padding: 0;
@@ -109,6 +113,24 @@ body {
   height: 100%;
   font-family: sans-serif;
   font-size: 14px;
+  overflow: hidden;
+}
+
+button {
+  padding: 5px;
+  background: #cccccc;
+  border: none;
+  cursor: pointer;
+  border: 2px solid #cccccc;
+
+  &:hover {
+    background: #aaaaaa;
+  }
+
+  &.active {
+    border: 2px solid cyan;
+    background: #aaaaaa;
+  }
 }
 
 .app {

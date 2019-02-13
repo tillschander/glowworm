@@ -41,23 +41,9 @@ export default {
 .viewport-tools {
   display: flex;
   flex-flow: row;
+}
 
-  button {
-    padding: 5px;
-    margin-left: 5px;
-    background: #cccccc;
-    border: none;
-    cursor: pointer;
-    border: 2px solid #cccccc;
-
-    &:hover {
-      background: #aaaaaa;
-    }
-
-    &.active {
-      border: 2px solid cyan;
-      background: #aaaaaa;
-    }
-  }
+button {
+  margin-left: 5px;
 }
 </style>

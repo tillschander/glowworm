@@ -18,14 +18,23 @@
         v-bind:class="{ active: activeTool == 'scale' }"
       >Scale</button>
       <button v-on:click="addLed">Add LED</button>
-      <button v-on:click="addBox">Add Object</button>
+      <button v-on:click="addLedRing">Add LED-Ring</button>
+      <button v-on:click="addBox">Add Box</button>
     </template>
   </div>
 </template>
 
 <script>
+import LedRingDialog from "./dialogs/LedRingDialog";
+
 export default {
   name: "ToolsSidebar",
+  components: {
+    LedRingDialog
+  },
+  data() {
+    return { showModal: false };
+  },
   methods: {
     setActiveTool(tool) {
       this.$store.commit("setActiveTool", tool);
@@ -35,6 +44,29 @@ export default {
     },
     addBox: function() {
       this.$store.commit("addObject");
+    },
+    addLedRing: function() {
+      let self = this;
+
+      this.$myDialog({type: "ledRing", callback: function(options) {
+          let count = options.count;
+          let radius = options.radius;
+
+          for (let i = 0; i < count; i++) {
+            let x = radius * Math.cos((2 * i * Math.PI) / count);
+            let z = radius * Math.sin((2 * i * Math.PI) / count);
+
+            if (self.$store.state.snapToGrid) {
+              x = Math.round(x);
+              z = Math.round(z);
+            }
+
+            self.$store.commit("addLED", {
+              color: [1, 1, 1],
+              position: [x, 0, z]
+            });
+          }
+      }});
     }
   },
   computed: {

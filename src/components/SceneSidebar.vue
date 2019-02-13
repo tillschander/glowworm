@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import SceneObject from "./SceneObject.vue";
+import SceneObject from "./SceneObject";
 
 export default {
   name: "SceneSidebar",

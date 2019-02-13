@@ -29,7 +29,7 @@ export default new Vuex.Store({
     addLED: function (state, options = { color: [1, 1, 1], position: [0, 0, 0] }) {
       let geometry = new THREE.OctahedronBufferGeometry(5, 0);
       let material = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(options.color[0],options.color[1], options.color[2])
+        color: new THREE.Color(options.color[0], options.color[1], options.color[2])
       });
       let mesh = new THREE.Mesh(geometry, material);
 
