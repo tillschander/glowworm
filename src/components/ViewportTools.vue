@@ -1,7 +1,7 @@
 <template>
   <div class="viewport-tools">
     <button
-      v-if="this.mode == 'layout'"
+      v-if="this.mode == 'design'"
       v-on:click="toogleSnapToGrid()"
       v-bind:class="{ active: snapToGrid }"
     >Snap to Grid</button>

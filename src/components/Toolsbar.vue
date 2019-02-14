@@ -3,30 +3,29 @@
     <button
       v-on:click="setActiveTool('select')"
       v-bind:class="{ active: activeTool == 'select' }"
-    >Select</button>
-    <template v-if="this.mode == 'layout'">
-      <button
-        v-on:click="setActiveTool('move')"
-        v-bind:class="{ active: activeTool == 'move' }"
-      >Move</button>
-      <button
-        v-on:click="setActiveTool('rotate')"
-        v-bind:class="{ active: activeTool == 'rotate' }"
-      >Rotate</button>
-      <button
-        v-on:click="setActiveTool('scale')"
-        v-bind:class="{ active: activeTool == 'scale' }"
-      >Scale</button>
-      <button v-on:click="addLed">Add LED</button>
-      <button v-on:click="addLedRing">Add LED-Ring</button>
-      <button v-on:click="addBox">Add Box</button>
-    </template>
+    >Select (Q)</button>
+    <button
+      v-on:click="setActiveTool('move')"
+      v-bind:class="{ active: activeTool == 'move' }"
+    >Move (W)</button>
+    <button
+      v-on:click="setActiveTool('rotate')"
+      v-bind:class="{ active: activeTool == 'rotate' }"
+    >Rotate (R)</button>
+    <button
+      v-on:click="setActiveTool('scale')"
+      v-bind:class="{ active: activeTool == 'scale' }"
+    >Scale (S)</button>
+    <button v-on:click="addLed">Add LED (A)</button>
+    <button v-on:click="addLedRing">Add LED-Ring</button>
+    <button v-on:click="addBox">Add Box (S)</button>
+    <button v-on:click="addAnimation">Add Animation (D)</button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "ToolsSidebar",
+  name: "Toolsbar",
   data() {
     return { showModal: false };
   },
@@ -43,7 +42,7 @@ export default {
     addLedRing: function() {
       let self = this;
 
-      this.$myDialog({type: "ledRing", callback: function(options) {
+      this.$dialog({type: "ledRing", callback: function(options) {
           let count = options.count;
           let radius = options.radius;
 
@@ -62,6 +61,9 @@ export default {
             });
           }
       }});
+    },
+    addAnimation: function() {
+      this.$store.commit("addAnimation");
     }
   },
   computed: {

@@ -3,7 +3,7 @@ import BaseDialog from "./dialog/BaseDialog";
 export default {
   name: "Dialog",
   install(Vue) {
-    Vue.prototype.$myDialog = function (options) {
+    Vue.prototype.$dialog = function (options) {
       var ComponentClass = Vue.extend(BaseDialog);
       var instance = new ComponentClass({
         propsData: {

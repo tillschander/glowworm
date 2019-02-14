@@ -2,6 +2,17 @@
   <div class="scene-sidebar">
     <ul class="tree">
       <li class="root">Scene</li>
+      <li>Animations
+        <ul>
+          <SceneObject
+            v-for="animation in this.$store.state.animations"
+            v-bind:key="animation.uuid"
+            v-bind:uuid="animation.uuid"
+            v-bind:name="animation.name ? animation.name : 'Animation'"
+            class="scene-object"
+          ></SceneObject>
+        </ul>
+      </li>
       <li>LEDs
         <ul>
           <SceneObject
@@ -29,7 +40,7 @@
 </template>
 
 <script>
-import SceneObject from "./SceneObject";
+import SceneObject from "./sceneSidebar/SceneObject";
 
 export default {
   name: "SceneSidebar",

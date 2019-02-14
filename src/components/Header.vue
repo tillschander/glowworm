@@ -2,14 +2,9 @@
   <div class="header">
     <div
       class="tab"
-      v-on:click="setMode('layout')"
-      v-bind:class="{ active: this.$store.state.mode == 'layout' }"
-    >Layout</div>
-    <div
-      class="tab"
-      v-on:click="setMode('animations')"
-      v-bind:class="{ active: this.$store.state.mode == 'animations' }"
-    >Animations</div>
+      v-on:click="setMode('design')"
+      v-bind:class="{ active: this.$store.state.mode == 'design' }"
+    >Design</div>
     <div
       class="tab"
       v-on:click="setMode('live')"

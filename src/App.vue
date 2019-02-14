@@ -4,17 +4,20 @@
     <Header class="header"/>
     <div class="main">
       <Viewport ref="viewport"/>
-      <Sidebar key="sidebar1" ref="sidebar1" v-if="this.mode == 'layout'">
-        <SceneSidebar/>
+      <Sidebar key="sidebar1" ref="sidebar1" v-if="this.mode == 'design'">
         <PropertiesSidebar/>
       </Sidebar>
+      <Sidebar key="sidebar2" ref="sidebar2" v-if="this.mode == 'design'">
+        <SceneSidebar/>
+      </Sidebar>
+      <!--
       <Sidebar key="sidebar2" ref="sidebar2" v-if="this.mode == 'animations'">
         <AnimationsSidebar/>
-        <EffectsSidebar/>
       </Sidebar>
       <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'animations'">
         <SceneSidebar/>
       </Sidebar>
+      -->
     </div>
     <Footer class="footer"/>
   </div>
@@ -24,10 +27,8 @@
 import Vue from "vue";
 import Header from "./components/Header.vue";
 import Viewport from "./components/Viewport.vue";
-import SceneSidebar from "./components/SceneSidebar.vue";
-import PropertiesSidebar from "./components/PropertiesSidebar.vue";
-import EffectsSidebar from "./components/EffectsSidebar.vue";
-import AnimationsSidebar from "./components/AnimationsSidebar.vue";
+import SceneSidebar from "./components/sidebars/SceneSidebar.vue";
+import PropertiesSidebar from "./components/sidebars/PropertiesSidebar.vue";
 import Footer from "./components/Footer.vue";
 import Sidebar from "./components/Sidebar.vue";
 import Split from "split.js";
@@ -39,8 +40,6 @@ export default {
     Viewport,
     SceneSidebar,
     PropertiesSidebar,
-    EffectsSidebar,
-    AnimationsSidebar,
     Footer,
     Sidebar
   },
@@ -69,24 +68,16 @@ export default {
       if (self.split) self.split.destroy();
 
       Vue.nextTick(function() {
-        if (mode == "layout") {
-          self.split = Split(
-            [self.$refs.viewport.$el, self.$refs.sidebar1.$el],
-            {
-              direction: "horizontal",
-              sizes: [75, 25]
-            }
-          );
-        } else if (mode == "animations") {
+        if (mode == "design") {
           self.split = Split(
             [
               self.$refs.viewport.$el,
-              self.$refs.sidebar2.$el,
-              self.$refs.sidebar3.$el
+              self.$refs.sidebar1.$el,
+              self.$refs.sidebar2.$el
             ],
             {
               direction: "horizontal",
-              sizes: [50, 25, 25]
+              sizes: [60, 20, 20]
             }
           );
         } else {

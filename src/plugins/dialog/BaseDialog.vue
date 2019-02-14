@@ -11,17 +11,21 @@
 
 <script>
 import LedRingDialog from "./LedRingDialog.vue";
+import EffectsDialog from "./EffectsDialog.vue";
 
 export default {
   name: "BaseDialog",
   components: {
-    LedRingDialog
+    LedRingDialog,
+    EffectsDialog
   },
   props: ["type", "callback"],
   computed: {
     content: function() {
       if (this.type == "ledRing") {
         return LedRingDialog;
+      } else if (this.type == "effects") {
+        return EffectsDialog;
       } else {
         return "";
       }

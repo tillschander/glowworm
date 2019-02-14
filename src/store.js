@@ -19,7 +19,7 @@ export default new Vuex.Store({
     lineGeometry: new THREE.BufferGeometry(),
     lineConnections: [],
     maxConnections: 512,
-    mode: 'layout',
+    mode: 'design',
     objects: [],
     animations: [],
     snapToGrid: false,
@@ -70,11 +70,19 @@ export default new Vuex.Store({
       });
       this.commit('setActiveObject', mesh);
     },
+    addAnimation: function (state) {
+      let animation = new THREE.Object3D();
+
+      animation.userData.type = 'Animation';
+      animation.visble = false;
+      state.scene.add(animation);
+      state.animations.push({
+        uuid: animation.uuid
+      });
+      this.commit('setActiveObject', animation);
+    },
     addPort: function (state, port) {
       state.ports.push(port);
-    },
-    addAnimation: function (state) {
-      state.animations.push('Animation');
     },
     updateObject: function (state, updates) {
       let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
@@ -89,6 +97,12 @@ export default new Vuex.Store({
 
           newAttributes.name = updates.name;
           Vue.set(state.LEDs, index, newAttributes);
+        } else if (type == 'Animation') {
+          let index = state.animations.findIndex((elem) => elem.uuid == updates.uuid);
+          let newAttributes = Object.assign({}, state.animations[index]);
+
+          newAttributes.name = updates.name;
+          Vue.set(state.animations, index, newAttributes);
         } else {
           let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
           let newAttributes = Object.assign({}, state.objects[index]);

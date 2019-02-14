@@ -7,7 +7,7 @@
 
 <script>
 import MainLoop from "mainloop.js";
-import ToolsSidebar from "./ToolsSidebar";
+import ToolsSidebar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
 //import * as THREE from "three";
 const THREE = require("three");
@@ -63,7 +63,7 @@ export default {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
     activeObject(object) {
-      if (object) {
+      if (object && object.userData.type !== 'Animation') {
         this.$store.state.scene.add(this.highlighter);
         this.highlighter.setFromObject(object);
 
@@ -80,7 +80,7 @@ export default {
       if (this.activeTool == "select") {
         this.$store.state.scene.remove(this.control);
       } else {
-        if (this.activeObject) {
+        if (this.activeObject && this.activeObject.userData.type !== 'Animation') {
           this.$store.state.scene.add(this.control);
           this.control.attach(this.activeObject);
         }
@@ -158,13 +158,14 @@ export default {
       this.$store.state.scene.add(this.$store.state.line);
 
       this.$store.commit("addObject", {size: [1000, 10, 1000], position: [0, -250, 0]});
-      this.$store.commit("setActiveObject", null);
+      this.$store.commit("addLED");
       this.$store.commit("toggleSnapToGrid");
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
       this.renderer.render(this.$store.state.scene, this.camera);
 
+      /*
       for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
         let index = this.$store.state.lineConnections.indexOf(uuid);
         let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
@@ -173,6 +174,7 @@ export default {
         let string = "pixel," + r + g + b + index + "\n";
         this.$store.state.activePort.write(Buffer.from(string, "utf8"));
       }
+      */
     },
     onResize: function() {
       this.camera.aspect = this.width / this.height;
@@ -223,6 +225,9 @@ export default {
           break;
         case 83: // S
           this.$store.commit("addObject");
+          break;
+        case 68: // D
+          this.$store.commit("addAnimation");
           break;
         case 46: // Delete
           if (this.activeObject) this.$store.commit("deleteObject", this.activeObject);
