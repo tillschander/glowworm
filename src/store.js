@@ -11,6 +11,7 @@ export default new Vuex.Store({
     fps: 0,
     LEDs: {},
     scene: new THREE.Scene(),
+    camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
     activeObject: null,
     ports: [],
     activePort: null,
@@ -56,19 +57,15 @@ export default new Vuex.Store({
         );
       }
     },
-    addObject: function (state, options = {size: [10, 10, 10], position: [0, 0, 0]}) {
-      let geometry = new THREE.BoxBufferGeometry(options.size[0], options.size[1], options.size[2]);
-      let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
-      let mesh = new THREE.Mesh(geometry, material);
-
-      mesh.position.set(options.position[0], options.position[1], options.position[2]);
-      mesh.userData.type = 'Object';
-      state.scene.add(mesh);
+    addObject: function (state, options = {mesh: null, position: [0, 0, 0]}) {
+      options.mesh.position.set(options.position[0], options.position[1], options.position[2]);
+      options.mesh.userData.type = 'Object';
+      state.scene.add(options.mesh);
       state.objects.push({
-        uuid: mesh.uuid,
+        uuid: options.mesh.uuid,
         position: options.position
       });
-      this.commit('setActiveObject', mesh);
+      this.commit('setActiveObject', options.mesh);
     },
     addAnimation: function (state) {
       let animation = new THREE.Object3D();
@@ -80,6 +77,13 @@ export default new Vuex.Store({
         uuid: animation.uuid
       });
       this.commit('setActiveObject', animation);
+    },
+    addBox: function (state, options = {size: [10, 10, 10], position: [0, 0, 0]}) {
+      let geometry = new THREE.BoxBufferGeometry(options.size[0], options.size[1], options.size[2]);
+      let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
+      let mesh = new THREE.Mesh(geometry, material);
+
+      this.commit('addObject', {mesh, position: options.position});
     },
     addPort: function (state, port) {
       state.ports.push(port);

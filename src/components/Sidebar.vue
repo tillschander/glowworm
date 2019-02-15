@@ -1,4 +1,4 @@
-<template>
+<template v-on:contentChanged="refreshContent">
   <div class="sidebar">
     <slot></slot>
   </div>
@@ -12,23 +12,32 @@ export default {
   name: "Sidebar",
   data() {
     return {
-      elements: [],
-      instance: null
+      split: null
     };
   },
   mounted: function() {
-    this.elements = [];
+    this.splitIfRequired();
+  },
+  methods: {
+    refreshContent: function() {
+      this.splitIfRequired();
+    },
+    splitIfRequired: function() {
+      let visibleElements = this.$slots.default
+        .filter(element => !element.isComment)
+        .map(vnode => vnode.elm);
 
-    this.$slots.default.forEach(vnode => {
-      this.elements.push(vnode.elm);
-    });
+      if (this.split) this.split.destroy();
 
-    if (this.$slots.default.length > 1) {
-      this.instance = Split(this.elements, {
-        direction: "vertical",
-        sizes: [50, 50],
-        snapOffset: 0
-      });
+      if (visibleElements.length > 1) {
+        this.split = Split(visibleElements, {
+          direction: "vertical",
+          sizes: [50, 50],
+          snapOffset: 0
+        });
+      } else {
+        this.split = null;
+      }
     }
   }
 };

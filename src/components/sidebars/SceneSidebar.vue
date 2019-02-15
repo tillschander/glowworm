@@ -35,6 +35,11 @@
           ></SceneObject>
         </ul>
       </li>
+      <SceneObject
+        v-bind:uuid="this.$store.state.camera.uuid"
+        v-bind:name="'Camera'"
+        class="scene-object"
+      ></SceneObject>
     </ul>
   </div>
 </template>

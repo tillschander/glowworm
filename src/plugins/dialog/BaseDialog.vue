@@ -10,14 +10,16 @@
 </template>
 
 <script>
-import LedRingDialog from "./LedRingDialog.vue";
-import EffectsDialog from "./EffectsDialog.vue";
+import LedRingDialog from "./LedRingDialog";
+import EffectsDialog from "./EffectsDialog";
+import ObjectDialog from "./ObjectDialog";
 
 export default {
   name: "BaseDialog",
   components: {
     LedRingDialog,
-    EffectsDialog
+    EffectsDialog,
+    ObjectDialog
   },
   props: ["type", "callback"],
   computed: {
@@ -26,6 +28,8 @@ export default {
         return LedRingDialog;
       } else if (this.type == "effects") {
         return EffectsDialog;
+      } else if (this.type == "object") {
+        return ObjectDialog;
       } else {
         return "";
       }

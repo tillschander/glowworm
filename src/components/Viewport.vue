@@ -1,7 +1,7 @@
 <template>
   <div @mousedown="onMouseDown" @mouseup="onMouseUp" id="viewport">
-    <ToolsSidebar class="tools-sidebar"/>
-    <ViewportTools class="viewport-tools"/>
+    <ToolsSidebar class="tools-sidebar" v-if="this.mode == 'design'"/>
+    <ViewportTools class="viewport-tools" v-if="this.mode == 'design'"/>
   </div>
 </template>
 
@@ -22,7 +22,6 @@ export default {
   },
   data() {
     return {
-      camera: null,
       renderer: null,
       light1: null,
       light2: null,
@@ -56,6 +55,9 @@ export default {
     },
     snapToGrid: function() {
       return this.$store.state.snapToGrid;
+    },
+    mode: function() {
+      return this.$store.state.mode;
     }
   },
   watch: {
@@ -63,7 +65,7 @@ export default {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
     activeObject(object) {
-      if (object && object.userData.type !== 'Animation') {
+      if (object && object.userData.type !== "Animation") {
         this.$store.state.scene.add(this.highlighter);
         this.highlighter.setFromObject(object);
 
@@ -80,7 +82,10 @@ export default {
       if (this.activeTool == "select") {
         this.$store.state.scene.remove(this.control);
       } else {
-        if (this.activeObject && this.activeObject.userData.type !== 'Animation') {
+        if (
+          this.activeObject &&
+          this.activeObject.userData.type !== "Animation"
+        ) {
           this.$store.state.scene.add(this.control);
           this.control.attach(this.activeObject);
         }
@@ -107,11 +112,12 @@ export default {
   methods: {
     init: function() {
       let container = document.getElementById("viewport");
-      let aspect = this.width / this.height;
 
-      this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 99999);
-      this.camera.position.set(100, 100, 100);
-      this.camera.lookAt(0, 200, 0);
+      this.$store.state.camera.aspect = this.width / this.height;
+      this.$store.state.camera.position.set(100, 100, 100);
+      this.$store.state.camera.lookAt(0, 200, 0);
+      this.$store.state.camera.userData.type = "Camera";
+      this.$store.state.scene.add(this.$store.state.camera);
 
       this.renderer = new THREE.WebGLRenderer();
       this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -128,11 +134,14 @@ export default {
       this.highlighter = new THREE.BoxHelper(undefined, 0x00ffff);
       this.$store.state.scene.add(this.highlighter);
 
-      this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
+      this.orbit = new OrbitControls(
+        this.$store.state.camera,
+        this.renderer.domElement
+      );
       this.orbit.update();
 
       this.control = new TransformControls(
-        this.camera,
+        this.$store.state.camera,
         this.renderer.domElement
       );
       this.control.addEventListener("dragging-changed", this.onDraggingChanged);
@@ -157,13 +166,16 @@ export default {
       );
       this.$store.state.scene.add(this.$store.state.line);
 
-      this.$store.commit("addObject", {size: [1000, 10, 1000], position: [0, -250, 0]});
+      this.$store.commit("addBox", {
+        size: [1000, 10, 1000],
+        position: [0, -250, 0]
+      });
       this.$store.commit("addLED");
       this.$store.commit("toggleSnapToGrid");
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
-      this.renderer.render(this.$store.state.scene, this.camera);
+      this.renderer.render(this.$store.state.scene, this.$store.state.camera);
 
       /*
       for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
@@ -177,8 +189,8 @@ export default {
       */
     },
     onResize: function() {
-      this.camera.aspect = this.width / this.height;
-      this.camera.updateProjectionMatrix();
+      this.$store.state.camera.aspect = this.width / this.height;
+      this.$store.state.camera.updateProjectionMatrix();
       this.renderer.setSize(this.width, this.height);
     },
     onMouseDown: function(event) {
@@ -187,21 +199,23 @@ export default {
     onMouseUp: function(event) {
       this.upPosition = this.getPointer(event);
 
-      if (this.downPosition.distanceTo(this.upPosition) !== 0)
-        return;
+      if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
 
-      if (event.target !== this.renderer.domElement)
-        return;
+      if (event.target !== this.renderer.domElement) return;
 
       let raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(this.getPointer(event), this.camera);
+      raycaster.setFromCamera(this.getPointer(event), this.$store.state.camera);
 
       let intersects = raycaster.intersectObjects(
         this.$store.state.scene.children
       );
 
       if (intersects.length > 0) {
-        this.$store.commit("setActiveObject", intersects[0].object);
+        let type = intersects[0].object.userData.type;
+
+        if (type == "LED" || type == "Object") {
+          this.$store.commit("setActiveObject", intersects[0].object);
+        }
       } else {
         this.$store.commit("setActiveObject", undefined);
       }
@@ -224,13 +238,14 @@ export default {
           this.$store.commit("addLED");
           break;
         case 83: // S
-          this.$store.commit("addObject");
+          this.$store.commit("addBox");
           break;
         case 68: // D
           this.$store.commit("addAnimation");
           break;
         case 46: // Delete
-          if (this.activeObject) this.$store.commit("deleteObject", this.activeObject);
+          if (this.activeObject)
+            this.$store.commit("deleteObject", this.activeObject);
           break;
       }
     },

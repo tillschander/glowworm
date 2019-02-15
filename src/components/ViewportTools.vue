@@ -1,7 +1,6 @@
 <template>
   <div class="viewport-tools">
     <button
-      v-if="this.mode == 'design'"
       v-on:click="toogleSnapToGrid()"
       v-bind:class="{ active: snapToGrid }"
     >Snap to Grid</button>
@@ -24,9 +23,6 @@ export default {
     }
   },
   computed: {
-    mode: function() {
-      return this.$store.state.mode;
-    },
     snapToGrid: function() {
       return this.$store.state.snapToGrid;
     },

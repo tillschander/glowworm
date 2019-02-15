@@ -11,14 +11,15 @@
     <button
       v-on:click="setActiveTool('rotate')"
       v-bind:class="{ active: activeTool == 'rotate' }"
-    >Rotate (R)</button>
+    >Rotate (E)</button>
     <button
       v-on:click="setActiveTool('scale')"
       v-bind:class="{ active: activeTool == 'scale' }"
-    >Scale (S)</button>
+    >Scale (R)</button>
     <button v-on:click="addLed">Add LED (A)</button>
     <button v-on:click="addLedRing">Add LED-Ring</button>
     <button v-on:click="addBox">Add Box (S)</button>
+    <button v-on:click="addObject">Add .obj</button>
     <button v-on:click="addAnimation">Add Animation (D)</button>
   </div>
 </template>
@@ -37,12 +38,14 @@ export default {
       this.$store.commit("addLED");
     },
     addBox: function() {
-      this.$store.commit("addObject");
+      this.$store.commit("addBox");
     },
     addLedRing: function() {
       let self = this;
 
-      this.$dialog({type: "ledRing", callback: function(options) {
+      this.$dialog({
+        type: "ledRing",
+        callback: function(options) {
           let count = options.count;
           let radius = options.radius;
 
@@ -60,7 +63,22 @@ export default {
               position: [x, 0, z]
             });
           }
-      }});
+        }
+      });
+    },
+    addObject: function() {
+      let self = this;
+
+      this.$dialog({
+        type: "object",
+        callback: function(options) {
+          self.$store.commit("addObject", {
+            mesh: options.object,
+            position: [0, 0, 0]
+          });
+          console.log(options);
+        }
+      });
     },
     addAnimation: function() {
       this.$store.commit("addAnimation");

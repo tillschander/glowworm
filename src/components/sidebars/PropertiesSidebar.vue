@@ -11,13 +11,18 @@
       <template v-if="this.type == 'LED'">
         <NamePanel/>
         <PositionPanel/>
-        <ColorPanel v-if="this.type == 'LED'"/>
+        <ColorPanel/>
       </template>
       <template v-if="this.type == 'Object'">
         <NamePanel/>
         <PositionPanel/>
-        <RotationPanel v-if="this.type == 'Object'"/>
-        <ScalePanel v-if="this.type == 'Object'"/>
+        <RotationPanel/>
+        <ScalePanel/>
+      </template>
+      <template v-if="this.type == 'Camera'">
+        <PositionPanel/>
+        <RotationPanel/>
+        <CameraPanel/>
       </template>
     </template>
     <template v-else>Nothing selected</template>
@@ -31,6 +36,7 @@ import RotationPanel from "../panels/RotationPanel";
 import ScalePanel from "../panels/ScalePanel";
 import ColorPanel from "../panels/ColorPanel";
 import EffectsPanel from "../panels/EffectsPanel";
+import CameraPanel from "../panels/CameraPanel";
 
 export default {
   name: "PropertiesSidebar",
@@ -40,7 +46,8 @@ export default {
     RotationPanel,
     ScalePanel,
     ColorPanel,
-    EffectsPanel
+    EffectsPanel,
+    CameraPanel
   },
   computed: {
     type: function() {

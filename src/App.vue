@@ -3,21 +3,26 @@
     <!--<img alt="Vue logo" src="./assets/logo.png">-->
     <Header class="header"/>
     <div class="main">
-      <Viewport ref="viewport"/>
+      <Sidebar key="sidebar0" ref="sidebar0" v-if="this.mode == 'live'">
+        <AnimationsSidebar/>
+      </Sidebar>
+      <Sidebar ref="viewport" v-show="this.mode !== 'export'">
+        <Viewport/>
+        <AnimationsSidebar v-if="this.mode == 'live'"/>
+      </Sidebar>
       <Sidebar key="sidebar1" ref="sidebar1" v-if="this.mode == 'design'">
         <PropertiesSidebar/>
       </Sidebar>
       <Sidebar key="sidebar2" ref="sidebar2" v-if="this.mode == 'design'">
         <SceneSidebar/>
       </Sidebar>
-      <!--
-      <Sidebar key="sidebar2" ref="sidebar2" v-if="this.mode == 'animations'">
+      <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'live'">
         <AnimationsSidebar/>
       </Sidebar>
-      <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'animations'">
-        <SceneSidebar/>
+      <Sidebar key="sidebar4" ref="sidebar4" v-if="this.mode == 'export'">
+        <AnimationsSidebar/>
       </Sidebar>
-      -->
+      <Export ref="export" v-if="this.mode == 'export'"/>
     </div>
     <Footer class="footer"/>
   </div>
@@ -25,13 +30,15 @@
 
 <script>
 import Vue from "vue";
-import Header from "./components/Header.vue";
-import Viewport from "./components/Viewport.vue";
-import SceneSidebar from "./components/sidebars/SceneSidebar.vue";
-import PropertiesSidebar from "./components/sidebars/PropertiesSidebar.vue";
-import Footer from "./components/Footer.vue";
-import Sidebar from "./components/Sidebar.vue";
 import Split from "split.js";
+import Header from "./components/Header";
+import Viewport from "./components/Viewport";
+import SceneSidebar from "./components/sidebars/SceneSidebar";
+import PropertiesSidebar from "./components/sidebars/PropertiesSidebar";
+import AnimationsSidebar from "./components/sidebars/AnimationsSidebar";
+import Export from "./components/Export";
+import Footer from "./components/Footer";
+import Sidebar from "./components/Sidebar";
 
 export default {
   name: "app",
@@ -40,6 +47,8 @@ export default {
     Viewport,
     SceneSidebar,
     PropertiesSidebar,
+    AnimationsSidebar,
+    Export,
     Footer,
     Sidebar
   },
@@ -55,6 +64,10 @@ export default {
   },
   watch: {
     mode: function(newMode, oldMode) {
+      let self = this;
+      Vue.nextTick(function() {
+        self.$refs.viewport.refreshContent();
+      });
       this.setView(newMode);
     }
   },
@@ -80,8 +93,29 @@ export default {
               sizes: [60, 20, 20]
             }
           );
-        } else {
-          self.split = null;
+        } else if (mode == "live") {
+          self.split = Split(
+            [
+              self.$refs.sidebar0.$el,
+              self.$refs.viewport.$el,
+              self.$refs.sidebar3.$el
+            ],
+            {
+              direction: "horizontal",
+              sizes: [30, 40, 30]
+            }
+          );
+        } else if (mode == "export") {
+          self.split = Split(
+            [
+              self.$refs.sidebar4.$el,
+              self.$refs.export.$el
+            ],
+            {
+              direction: "horizontal",
+              sizes: [30, 70]
+            }
+          );
         }
       });
     }
