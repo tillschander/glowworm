@@ -35,6 +35,7 @@ export default {
       loader.load(
         "file://" + this.file.path,
         function(object) {
+          object.name = self.file.name;
           self.$parent.continue({ object });
         },
         null,

@@ -58,13 +58,16 @@ export default new Vuex.Store({
       }
     },
     addObject: function (state, options = {mesh: null, position: [0, 0, 0]}) {
+      let object = {
+        uuid: options.mesh.uuid,
+        position: options.position
+      };
+
+      if (options.name) object.name = options.name;
       options.mesh.position.set(options.position[0], options.position[1], options.position[2]);
       options.mesh.userData.type = 'Object';
       state.scene.add(options.mesh);
-      state.objects.push({
-        uuid: options.mesh.uuid,
-        position: options.position
-      });
+      state.objects.push(object);
       this.commit('setActiveObject', options.mesh);
     },
     addAnimation: function (state) {
@@ -74,7 +77,8 @@ export default new Vuex.Store({
       animation.visble = false;
       state.scene.add(animation);
       state.animations.push({
-        uuid: animation.uuid
+        uuid: animation.uuid,
+        effects: []
       });
       this.commit('setActiveObject', animation);
     },

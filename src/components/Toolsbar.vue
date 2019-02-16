@@ -74,9 +74,9 @@ export default {
         callback: function(options) {
           self.$store.commit("addObject", {
             mesh: options.object,
-            position: [0, 0, 0]
+            position: [0, 0, 0],
+            name: options.object.name
           });
-          console.log(options);
         }
       });
     },
