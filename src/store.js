@@ -24,21 +24,19 @@ export default new Vuex.Store({
     objects: [],
     animations: [],
     snapToGrid: false,
-    showHelpers: true
+    showHelpers: true,
+    activeLEDMaterial: null
   },
   mutations: {
-    addLED: function (state, options = { color: [1, 1, 1], position: [0, 0, 0] }) {
+    addLED: function (state, options = { position: [0, 0, 0] }) {
       let geometry = new THREE.OctahedronBufferGeometry(5, 0);
-      let material = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(options.color[0], options.color[1], options.color[2])
-      });
+      let material = state.activeLEDMaterial;
       let mesh = new THREE.Mesh(geometry, material);
 
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
       state.scene.add(mesh);
       Vue.set(state.LEDs, mesh.uuid, {
-        color: options.color,
         position: options.position
       });
       // TODO cleanup
@@ -57,7 +55,7 @@ export default new Vuex.Store({
         );
       }
     },
-    addObject: function (state, options = {mesh: null, position: [0, 0, 0]}) {
+    addObject: function (state, options = { mesh: null, position: [0, 0, 0] }) {
       let object = {
         uuid: options.mesh.uuid,
         position: options.position
@@ -82,12 +80,12 @@ export default new Vuex.Store({
       });
       this.commit('setActiveObject', animation);
     },
-    addBox: function (state, options = {size: [10, 10, 10], position: [0, 0, 0]}) {
+    addBox: function (state, options = { size: [10, 10, 10], position: [0, 0, 0] }) {
       let geometry = new THREE.BoxBufferGeometry(options.size[0], options.size[1], options.size[2]);
       let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
       let mesh = new THREE.Mesh(geometry, material);
 
-      this.commit('addObject', {mesh, position: options.position});
+      this.commit('addObject', { mesh, position: options.position });
     },
     addPort: function (state, port) {
       state.ports.push(port);
@@ -206,6 +204,55 @@ export default new Vuex.Store({
     },
     toggleShowHelpers: function (state) {
       state.showHelpers = !state.showHelpers;
+    },
+    applyLEDMaterial: function (state) {
+      let uniforms = { time: new THREE.Uniform(0.0) };
+      let shaderParameters = "";
+      let shader = "";
+      let activeAnimation = null;
+
+      if (state.activeObject) {
+        activeAnimation = state.animations.find(
+          animation => animation.uuid == state.activeObject.uuid
+        );
+      }
+
+      if (activeAnimation) {
+        activeAnimation.effects.forEach(effect => {
+          uniforms = THREE.UniformsUtils.merge([uniforms, effect.properties]);//Object.assign(uniforms, effect.properties);
+          shaderParameters += "\n" + effect.shaderParameters;
+          shader += "\n" + effect.shader;
+        });
+      }
+
+      let material = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: [
+          "uniform float time;",
+          "varying lowp vec4 vColor;",
+          shaderParameters,
+          "void main() {",
+          "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+          "vColor = vec4(0.0);",
+          shader,
+          "}"
+        ].join("\n"),
+        fragmentShader: [
+          "varying lowp vec4 vColor;",
+          "void main() {",
+          "gl_FragColor = vColor;",
+          "}"
+        ].join("\n")
+      });
+
+      for (let LED in state.LEDs) {
+        let object = state.scene.getObjectByProperty("uuid", LED);
+
+        object.material = material;
+        object.needsUpdate = true;
+      }
+
+      state.activeLEDMaterial = material;
     }
   },
   actions: {

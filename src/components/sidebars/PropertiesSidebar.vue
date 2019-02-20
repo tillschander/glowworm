@@ -6,12 +6,11 @@
     <template v-if="this.$store.state.activeObject">
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
-        <EffectsPanel/>
+        <AnimationPanel/>
       </template>
       <template v-if="this.type == 'LED'">
         <NamePanel/>
         <PositionPanel/>
-        <ColorPanel/>
       </template>
       <template v-if="this.type == 'Object'">
         <NamePanel/>
@@ -34,8 +33,7 @@ import NamePanel from "../panels/NamePanel";
 import PositionPanel from "../panels/PositionPanel";
 import RotationPanel from "../panels/RotationPanel";
 import ScalePanel from "../panels/ScalePanel";
-import ColorPanel from "../panels/ColorPanel";
-import EffectsPanel from "../panels/EffectsPanel";
+import AnimationPanel from "../panels/AnimationPanel";
 import CameraPanel from "../panels/CameraPanel";
 
 export default {
@@ -45,8 +43,7 @@ export default {
     PositionPanel,
     RotationPanel,
     ScalePanel,
-    ColorPanel,
-    EffectsPanel,
+    AnimationPanel,
     CameraPanel
   },
   computed: {

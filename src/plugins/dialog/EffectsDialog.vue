@@ -1,13 +1,19 @@
 <template>
-  <div>
-    Effects:
+  <div class="effects">Effects:
     <br>====
     <br>
-    <select v-model="chosenEffect">
-      <option value></option>
-      <option value="random">Random</option>
-      <option value="wave">Wave</option>
-    </select>
+    <br>
+    <div
+      class="effect"
+      v-for="effect in effects"
+      v-bind:key="effect.type"
+      v-bind:class="{ active: chosenEffect && chosenEffect.type == effect.type }"
+      v-on:click="chosenEffect = effect"
+    >
+      <span>{{ effect.name }}</span>
+    </div>
+    <br>
+    <br>
     <br>
     <br>
     <div class="buttons">
@@ -18,10 +24,41 @@
 </template>
 
 <script>
+const THREE = require("three");
+
+function SimpleColor() {
+  this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
+  this.type = "SimpleColor";
+  this.name = "Simple Color";
+  this.properties = {
+    color: new THREE.Uniform(new THREE.Color(0xff00ff)),
+    opacity: new THREE.Uniform(1.0)
+  };
+  this.shaderParameters = [
+    "uniform vec3 color;",
+    "uniform float opacity;"
+  ].join("\n");
+  this.shader = [
+    "vColor = vColor * (1.0 - opacity) + vec4(color, 1.0) * opacity;"
+  ].join("\n");
+}
+
+function Pulse() {
+  this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
+  this.type = "Pulse";
+  this.name = "Pulse";
+  this.properties = {
+    frequency: new THREE.Uniform(500.0)
+  };
+  this.shaderParameters = ["uniform float frequency;"].join("\n");
+  this.shader = ["vColor *= vec4(sin(time/frequency));"].join("\n");
+}
+
 export default {
   name: "EffectsDialog",
   data() {
     return {
+      effects: [new SimpleColor(), new Pulse()],
       chosenEffect: undefined
     };
   },
@@ -30,13 +67,64 @@ export default {
       this.$parent.close();
     },
     add() {
-      this.$parent.continue({ effect: this.chosenEffect });
+      this.$parent.continue({
+        effect: this.makeUniformsUnique(this.chosenEffect)
+      });
+    },
+    makeUniformsUnique(effect) {
+      for (const key in effect.properties) {
+        let uniqueKey = key + effect.uuid;
+        let regex = new RegExp(key, "g");
+
+        effect.shaderParameters = effect.shaderParameters.replace(
+          regex,
+          uniqueKey
+        );
+        effect.shader = effect.shader.replace(regex, uniqueKey);
+        effect.properties[uniqueKey] = effect.properties[key];
+        delete effect.properties[key];
+      }
+
+      return effect;
     }
   }
 };
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+.effects {
+  width: 350px;
+}
+
+.effect {
+  width: 100px;
+  height: 60px;
+  background: #585858;
+  border: 3px solid #585858;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  display: inline-block;
+  margin-right: 20px;
+
+  span {
+    width: 100%;
+    text-align: center;
+    padding-top: 3px;
+    font-weight: bold;
+  }
+
+  &.active,
+  &:hover {
+    border: 3px solid cyan;
+    color: #585858;
+
+    span {
+      background: cyan;
+    }
+  }
+}
 .buttons {
   display: flex;
   justify-content: space-between;

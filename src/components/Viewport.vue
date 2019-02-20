@@ -1,13 +1,13 @@
 <template>
   <div @mousedown="onMouseDown" @mouseup="onMouseUp" id="viewport">
-    <ToolsSidebar class="tools-sidebar" v-if="this.mode == 'design'"/>
+    <Toolsbar class="toolsbar" v-if="this.mode == 'design'"/>
     <ViewportTools class="viewport-tools" v-if="this.mode == 'design'"/>
   </div>
 </template>
 
 <script>
 import MainLoop from "mainloop.js";
-import ToolsSidebar from "./Toolsbar";
+import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
 //import * as THREE from "three";
 const THREE = require("three");
@@ -17,7 +17,7 @@ const TransformControls = require("../assets/js/TransformControls.js")(THREE);
 export default {
   name: "Viewport",
   components: {
-    ToolsSidebar,
+    Toolsbar,
     ViewportTools
   },
   data() {
@@ -65,13 +65,19 @@ export default {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
     activeObject(object) {
-      if (object && object.userData.type !== "Animation") {
-        this.$store.state.scene.add(this.highlighter);
-        this.highlighter.setFromObject(object);
+      if (object) {
+        if (object.userData.type == "Animation") {
+          this.$store.state.scene.remove(this.highlighter);
+          this.$store.state.scene.remove(this.control);
+          this.$store.commit("applyLEDMaterial");
+        } else {
+          this.$store.state.scene.add(this.highlighter);
+          this.highlighter.setFromObject(object);
 
-        if (this.activeTool !== "select") {
-          this.$store.state.scene.add(this.control);
-          this.control.attach(object);
+          if (this.activeTool !== "select") {
+            this.$store.state.scene.add(this.control);
+            this.control.attach(object);
+          }
         }
       } else {
         this.$store.state.scene.remove(this.highlighter);
@@ -166,6 +172,7 @@ export default {
       );
       this.$store.state.scene.add(this.$store.state.line);
 
+      this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
         size: [1000, 10, 1000],
         position: [0, -250, 0]
@@ -263,11 +270,6 @@ export default {
     onObjectChanged: function(event) {
       let obj = event.target.object;
       let position = [obj.position.x, obj.position.y, obj.position.z];
-      let color = [
-        obj.material.color.r,
-        obj.material.color.g,
-        obj.material.color.b
-      ];
 
       this.$store.commit("updateObject", { uuid: obj.uuid, position });
     },
@@ -282,6 +284,7 @@ export default {
     },
     update: function(delta) {
       this.highlighter.update();
+      this.$store.state.activeLEDMaterial.uniforms.time.value += delta;
     }
   },
   mounted() {
@@ -310,7 +313,7 @@ export default {
   position: relative;
 }
 
-.tools-sidebar {
+.toolsbar {
   position: absolute;
   top: 0;
   left: 0;

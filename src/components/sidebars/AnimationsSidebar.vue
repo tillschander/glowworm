@@ -2,7 +2,7 @@
   <div class="animations-sidebar">Animations:
     <br>====
     <div v-bind:key="animation.uuid" v-for="animation in this.$store.state.animations">
-      {{ animation }}
+      {{ animation.name || 'Animation' }}
       <br>
     </div>
   </div>
