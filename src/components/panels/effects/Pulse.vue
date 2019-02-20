@@ -15,7 +15,6 @@
 
 <script>
 import { default as Default } from "./Default";
-const THREE = require("three");
 
 export default {
   name: "Pulse",

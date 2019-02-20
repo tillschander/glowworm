@@ -3,7 +3,7 @@ import Vuex from 'vuex';
 
 const THREE = require("three");
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
@@ -231,6 +231,7 @@ export default new Vuex.Store({
           "uniform float time;",
           "varying lowp vec4 vColor;",
           "attribute vec3 LEDPosition;",
+          "attribute float LEDIndex;",
           "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
@@ -247,9 +248,12 @@ export default new Vuex.Store({
         ].join("\n")
       });
 
+      let index = 0;
       for (let LED in state.LEDs) {
         let object = state.scene.getObjectByProperty("uuid", LED);
         let LEDPosition = Float32Array.from(object.geometry.attributes.position.array);
+        let length = object.geometry.attributes.position.array.length / 3;
+        let LEDIndex = Float32Array.from({ length: length }, () => index);
 
         for (var i = 0; i < LEDPosition.length; i += 3) {
           LEDPosition[i] = object.position.x;
@@ -257,8 +261,10 @@ export default new Vuex.Store({
           LEDPosition[i + 2] = object.position.z;
         }
         object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
+        object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
         object.material = material;
         object.needsUpdate = true;
+        index++;
       }
 
       state.activeLEDMaterial = material;
