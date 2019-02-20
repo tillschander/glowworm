@@ -2,14 +2,13 @@
   <div class="effect">
     <div class="title">
       <span>{{name}}</span>
-      <span>❌</span>
+      <span v-on:click="deleteEffect" class="delete">❌</span>
     </div>
     <component
       class="properties"
       v-bind:is="component"
       v-bind:properties="properties"
       v-bind:uuid="uuid"
-      v-if="component"
     />
   </div>
 </template>
@@ -20,8 +19,16 @@ export default {
   props: ["type", "name", "properties", "uuid"],
   data() {
     return {
-      component: () => import(`./effects/${this.type}`)
+      component: () => import(`./effects/${this.type}.vue`)
     };
+  },
+  methods: {
+    deleteEffect: function() {
+      let index = this.$parent.animation.effects.findIndex(effect => effect.uuid == this.uuid);
+      
+      this.$parent.animation.effects.splice(index, 1);
+      this.$store.commit("applyLEDMaterial");
+    }
   }
 };
 </script>
@@ -45,6 +52,10 @@ export default {
     width: calc(100% + 20px);
     background: rgba(0, 0, 0, 0.5);
     line-height: 1em;
+  }
+
+  .delete {
+    cursor: pointer;
   }
 }
 </style>

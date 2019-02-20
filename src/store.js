@@ -230,6 +230,8 @@ export default new Vuex.Store({
         vertexShader: [
           "uniform float time;",
           "varying lowp vec4 vColor;",
+          "attribute vec3 LEDPosition;",
+          "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
           "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
@@ -247,7 +249,14 @@ export default new Vuex.Store({
 
       for (let LED in state.LEDs) {
         let object = state.scene.getObjectByProperty("uuid", LED);
+        let LEDPosition = Float32Array.from(object.geometry.attributes.position.array);
 
+        for (var i = 0; i < LEDPosition.length; i += 3) {
+          LEDPosition[i] = object.position.x;
+          LEDPosition[i + 1] = object.position.y;
+          LEDPosition[i + 2] = object.position.z;
+        }
+        object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
         object.material = material;
         object.needsUpdate = true;
       }

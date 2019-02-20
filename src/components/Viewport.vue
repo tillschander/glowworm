@@ -185,7 +185,7 @@ export default {
       this.renderer.render(this.$store.state.scene, this.$store.state.camera);
 
       /*
-      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
+      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {        
         let index = this.$store.state.lineConnections.indexOf(uuid);
         let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
         let g = ("" + Math.round(data.color[1] * 255)).padStart(3, "0");

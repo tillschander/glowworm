@@ -24,41 +24,15 @@
 </template>
 
 <script>
-const THREE = require("three");
-
-function SimpleColor() {
-  this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
-  this.type = "SimpleColor";
-  this.name = "Simple Color";
-  this.properties = {
-    color: new THREE.Uniform(new THREE.Color(0xff00ff)),
-    opacity: new THREE.Uniform(1.0)
-  };
-  this.shaderParameters = [
-    "uniform vec3 color;",
-    "uniform float opacity;"
-  ].join("\n");
-  this.shader = [
-    "vColor = vColor * (1.0 - opacity) + vec4(color, 1.0) * opacity;"
-  ].join("\n");
-}
-
-function Pulse() {
-  this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
-  this.type = "Pulse";
-  this.name = "Pulse";
-  this.properties = {
-    frequency: new THREE.Uniform(500.0)
-  };
-  this.shaderParameters = ["uniform float frequency;"].join("\n");
-  this.shader = ["vColor *= vec4(sin(time/frequency));"].join("\n");
-}
+import SimpleColor from '../../components/panels/effects/SimpleColor';
+import Pulse from '../../components/panels/effects/Pulse';
+import RandomPulses from '../../components/panels/effects/RandomPulses';
 
 export default {
   name: "EffectsDialog",
   data() {
     return {
-      effects: [new SimpleColor(), new Pulse()],
+      effects: [new SimpleColor(), new Pulse(), new RandomPulses()],
       chosenEffect: undefined
     };
   },
