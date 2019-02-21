@@ -21,6 +21,9 @@ export default {
       this.$store.state.activeLEDMaterial.uniforms[
         name + this.uuid
       ].value = converter(value);
+      this.$store.state.bufferMaterial.uniforms[
+        name + this.uuid
+      ].value = converter(value);
       this.activeEffect.properties[name + this.uuid].value = converter(value);
     }
   }

@@ -25,7 +25,17 @@ export default new Vuex.Store({
     animations: [],
     snapToGrid: false,
     showHelpers: true,
-    activeLEDMaterial: null
+    activeLEDMaterial: null,
+    bufferRenderer: new THREE.WebGLRenderer({ premultipliedAlpha: false }),
+    bufferCamera: null,
+    bufferScene: new THREE.Scene(),
+    bufferTexture: null,
+    bufferWidth: 4,
+    bufferHeight: 4,
+    bufferMaterial: null,
+    bufferGeometry: null,
+    bufferObject: null,
+    buffer: null
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
@@ -48,12 +58,14 @@ export default new Vuex.Store({
       state.line.geometry.setDrawRange(0, state.lineConnections.length);
       this.commit('setActiveObject', mesh);
 
+      /*
       if (state.activePort) {
         let n = Object.keys(state.LEDs).length;
         state.activePort.write(
           Buffer.from('count,' + n + '\n', 'utf8')
         );
       }
+      */
     },
     addObject: function (state, options = { mesh: null, position: [0, 0, 0] }) {
       let object = {
@@ -219,7 +231,7 @@ export default new Vuex.Store({
 
       if (activeAnimation) {
         activeAnimation.effects.forEach(effect => {
-          uniforms = THREE.UniformsUtils.merge([uniforms, effect.properties]);//Object.assign(uniforms, effect.properties);
+          uniforms = THREE.UniformsUtils.merge([uniforms, effect.properties]);
           shaderParameters += "\n" + effect.shaderParameters;
           shader += "\n" + effect.shader;
         });
@@ -248,6 +260,37 @@ export default new Vuex.Store({
         ].join("\n")
       });
 
+      state.bufferMaterial = new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.merge([uniforms, {
+          width: { value: state.bufferWidth },
+          height: { value: state.bufferHeight }
+        }]),
+        vertexShader: [
+          "attribute float LEDIndex;",
+          "attribute vec3 LEDPosition;",
+          "uniform float time;",
+          "uniform float width;",
+          "uniform float height;",
+          "varying vec4 vColor;",
+          "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
+          shaderParameters,
+          "void main() {",
+          "  vec2 pos = vec2(mod(LEDIndex, width) / width, floor(LEDIndex / width) / height) * 2.0 - 1.0;",
+          "  pos += 1.0 / width;",
+          "  gl_PointSize = 1.0;",
+          "  gl_Position = vec4(pos, 0.0, 1.0);",
+          "  vColor = vec4(0.0);",
+          shader,
+          "}",
+        ].join("\n"),
+        fragmentShader: [
+          "varying vec4 vColor;",
+          "void main() {",
+          "  gl_FragColor = vColor;",
+          "}",
+        ].join("\n")
+      });
+
       let index = 0;
       for (let LED in state.LEDs) {
         let object = state.scene.getObjectByProperty("uuid", LED);
@@ -264,7 +307,16 @@ export default new Vuex.Store({
         object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
         object.material = material;
         object.needsUpdate = true;
+        state.bufferGeometry.attributes.LEDPosition.array[index*3] = object.position.x;
+        state.bufferGeometry.attributes.LEDPosition.array[index*3 + 1] = object.position.y;
+        state.bufferGeometry.attributes.LEDPosition.array[index*3 + 2] = object.position.z;
         index++;
+      }
+
+      if (state.bufferObject) {
+        state.bufferObject.material = state.bufferMaterial;
+        state.bufferObject.needsUpdate = true;
+        state.bufferGeometry.attributes.LEDPosition.needsUpdate = true;
       }
 
       state.activeLEDMaterial = material;

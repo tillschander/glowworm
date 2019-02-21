@@ -55,9 +55,9 @@ export default {
         lock: false
       });
       this.$store.commit("setActivePort", activePort);
-      const parser = new Readline();
-      activePort.pipe(parser);
-      parser.on("data", line => console.log(`> ${line}`));
+      //const parser = new Readline();
+      //activePort.pipe(parser);
+      //parser.on("data", line => console.log(`> ${line}`));
     }
   },
   mounted() {

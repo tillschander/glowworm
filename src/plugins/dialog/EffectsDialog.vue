@@ -1,16 +1,18 @@
 <template>
-  <div class="effects">Effects:
+  <div class="dialog">Effects:
     <br>====
     <br>
     <br>
-    <div
-      class="effect"
-      v-for="effect in effects"
-      v-bind:key="effect.type"
-      v-bind:class="{ active: chosenEffect && chosenEffect.type == effect.type }"
-      v-on:click="chosenEffect = effect"
-    >
-      <span>{{ effect.name }}</span>
+    <div class="effects">
+      <div
+        class="effect"
+        v-for="effect in effects"
+        v-bind:key="effect.type"
+        v-bind:class="{ active: chosenEffect && chosenEffect.type == effect.type }"
+        v-on:click="chosenEffect = effect"
+      >
+        <span>{{ effect.name }}</span>
+      </div>
     </div>
     <br>
     <br>
@@ -24,9 +26,9 @@
 </template>
 
 <script>
-import SimpleColor from '../../components/panels/effects/SimpleColor';
-import Pulse from '../../components/panels/effects/Pulse';
-import RandomPulses from '../../components/panels/effects/RandomPulses';
+import SimpleColor from "../../components/panels/effects/SimpleColor";
+import Pulse from "../../components/panels/effects/Pulse";
+import RandomPulses from "../../components/panels/effects/RandomPulses";
 
 export default {
   name: "EffectsDialog",
@@ -66,8 +68,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.effects {
+.dialog {
   width: 350px;
+}
+
+.effects {
+  display: flex;
+  justify-content: space-between;
 }
 
 .effect {
@@ -78,9 +85,7 @@ export default {
   cursor: pointer;
   display: flex;
   align-items: flex-end;
-  position: relative;
   display: inline-block;
-  margin-right: 20px;
 
   span {
     width: 100%;

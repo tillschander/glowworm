@@ -8,5 +8,5 @@ export default function () {
         frequency: new THREE.Uniform(500.0)
     };
     this.shaderParameters = ["uniform float frequency;"].join("\n");
-    this.shader = ["vColor *= vec4(sin(time/frequency));"].join("\n");
+    this.shader = ["vColor *= vec4(abs(sin(time/frequency)));"].join("\n");
 }

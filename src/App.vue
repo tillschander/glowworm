@@ -199,4 +199,10 @@ button {
     url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=");
   cursor: row-resize;
 }
+
+body > canvas {
+  position: absolute;
+  bottom: var(--footer-height);
+  display: none;
+}
 </style>

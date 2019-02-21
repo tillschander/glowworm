@@ -184,16 +184,41 @@ export default {
       this.$store.commit("setFps", MainLoop.getFPS());
       this.renderer.render(this.$store.state.scene, this.$store.state.camera);
 
-      /*
-      for (let [uuid, data] of Object.entries(this.$store.state.LEDs)) {
-        let index = this.$store.state.lineConnections.indexOf(uuid);
-        let r = ("" + Math.round(data.color[0] * 255)).padStart(3, "0");
-        let g = ("" + Math.round(data.color[1] * 255)).padStart(3, "0");
-        let b = ("" + Math.round(data.color[2] * 255)).padStart(3, "0");
-        let string = "pixel," + r + g + b + index + "\n";
-        this.$store.state.activePort.write(Buffer.from(string, "utf8"));
+      this.$store.state.bufferRenderer.render(
+        this.$store.state.bufferScene,
+        this.$store.state.bufferCamera,
+        this.$store.state.bufferTexture,
+        true
+      );
+      this.$store.state.bufferRenderer.render(
+        this.$store.state.bufferScene,
+        this.$store.state.bufferCamera
+      );
+      this.$store.state.bufferRenderer.readRenderTargetPixels(
+        this.$store.state.bufferTexture,
+        0,
+        0,
+        this.$store.state.bufferWidth,
+        this.$store.state.bufferHeight,
+        this.$store.state.buffer
+      );
+
+      let buffer = this.$store.state.buffer;
+      let output = new Array(this.$store.state.bufferWidth * this.$store.state.bufferHeight * 3);
+      let index = 0;
+
+      for (let i = 0; i < buffer.length; i+=4) {
+        // Glediator output is GRB
+        output[index*3] = Math.round(buffer[i+1] * 255);
+        output[index*3+1] = Math.round(buffer[i] * 255);
+        output[index*3+2] = Math.round(buffer[i+2] * 255);
+        index++;
       }
-      */
+      output = [1].concat(output);
+
+      if (this.$store.state.activePort) {
+        this.$store.state.activePort.write(output);
+      }
     },
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
@@ -285,6 +310,61 @@ export default {
     update: function(delta) {
       this.highlighter.update();
       this.$store.state.activeLEDMaterial.uniforms.time.value += delta;
+      this.$store.state.bufferMaterial.uniforms.time.value += delta;
+    },
+    initBuffer: function() {
+      this.$store.state.bufferCamera = new THREE.OrthographicCamera(
+        this.$store.state.bufferWidth / -2,
+        this.$store.state.bufferWidth / 2,
+        this.$store.state.bufferHeight / 2,
+        this.$store.state.bufferHeight / -2,
+        -1,
+        1
+      );
+
+      this.$store.state.bufferRenderer.setSize(128, 128);
+      document
+        .querySelector("body")
+        .appendChild(this.$store.state.bufferRenderer.domElement);
+
+      this.$store.state.bufferTexture = new THREE.WebGLRenderTarget(
+        this.$store.state.bufferWidth,
+        this.$store.state.bufferHeight,
+        {
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.NearestFilter,
+          format: THREE.RGBAFormat,
+          type: THREE.FloatType
+        }
+      );
+
+      var bufferLength =
+        this.$store.state.bufferWidth * this.$store.state.bufferHeight;
+      var indices = Float32Array.from({ length: bufferLength }, (v, k) => k);
+      var positions = new Float32Array(bufferLength * 3);
+
+      this.$store.state.buffer = new Float32Array(4 * bufferLength);
+
+      this.$store.state.bufferGeometry = new THREE.PlaneBufferGeometry(
+        this.$store.state.bufferWidth - 1,
+        this.$store.state.bufferHeight - 1,
+        this.$store.state.bufferWidth - 1,
+        this.$store.state.bufferHeight - 1
+      );
+      this.$store.state.bufferGeometry.addAttribute(
+        "LEDIndex",
+        new THREE.BufferAttribute(indices, 1)
+      );
+      this.$store.state.bufferGeometry.addAttribute(
+        "LEDPosition",
+        new THREE.BufferAttribute(positions, 3)
+      );
+
+      this.$store.state.bufferObject = new THREE.Points(
+        this.$store.state.bufferGeometry,
+        this.$store.state.bufferMaterial
+      );
+      this.$store.state.bufferScene.add(this.$store.state.bufferObject);
     }
   },
   mounted() {
@@ -295,6 +375,7 @@ export default {
     window.addEventListener("keyup", this.onKeyup);
 
     this.init();
+    this.initBuffer();
     MainLoop.setUpdate(this.update);
     MainLoop.setDraw(this.render).start();
   },

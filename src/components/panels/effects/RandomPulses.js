@@ -22,6 +22,6 @@ export default function () {
         "float t = (time/1000.0)*speed + random(blocks_st);",
         "float time_i = floor(t);",
         "float time_f = fract(t);",
-        "vColor.rgb += random(blocks_st+time_i)*(1.0-time_f);",
+        "vColor.rgb *= random(blocks_st+time_i)*(1.0-time_f);",
     ].join("\n");
 }
