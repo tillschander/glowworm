@@ -19,6 +19,7 @@ OBJLoader(THREE);
 
 export default {
   name: "ObjectDialog",
+  props: ["$store"],
   data() {
     return {
       file: null
@@ -35,8 +36,13 @@ export default {
       loader.load(
         "file://" + this.file.path,
         function(object) {
-          object.name = self.file.name;
-          self.$parent.continue({ object });
+          self.$store.commit("addObject", {
+            mesh: object,
+            position: [0, 0, 0],
+            name:  self.file.name
+          });
+
+          self.$parent.continue();
         },
         null,
         function(error) {

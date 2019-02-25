@@ -3,7 +3,7 @@
     <div class="dialog-backdrop"></div>
     <div class="dialog-container">
       <div class="dialog-content">
-        <component v-bind:is="content"></component>
+        <component v-bind:is="content" v-bind:$store="store"></component>
       </div>
     </div>
   </div>
@@ -11,6 +11,8 @@
 
 <script>
 import LedRingDialog from "./LedRingDialog";
+import LedGridDialog from "./LedGridDialog";
+import LedLineDialog from "./LedLineDialog";
 import EffectsDialog from "./EffectsDialog";
 import ObjectDialog from "./ObjectDialog";
 
@@ -18,20 +20,33 @@ export default {
   name: "BaseDialog",
   components: {
     LedRingDialog,
+    LedGridDialog,
+    LedLineDialog,
     EffectsDialog,
     ObjectDialog
   },
-  props: ["type", "callback"],
+  props: ["type", "callback", "store"],
   computed: {
     content: function() {
-      if (this.type == "ledRing") {
-        return LedRingDialog;
-      } else if (this.type == "effects") {
-        return EffectsDialog;
-      } else if (this.type == "object") {
-        return ObjectDialog;
-      } else {
-        return "";
+      switch (this.type) {
+        case "ledRing":
+          return LedRingDialog;
+          break;
+        case "ledGrid":
+          return LedGridDialog;
+          break;
+        case "ledLine":
+          return LedLineDialog;
+          break;
+        case "effects":
+          return EffectsDialog;
+          break;
+        case "object":
+          return ObjectDialog;
+          break;
+        default:
+          return "";
+          break;
       }
     }
   },

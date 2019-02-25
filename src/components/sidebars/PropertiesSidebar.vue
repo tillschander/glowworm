@@ -17,6 +17,7 @@
         <PositionPanel/>
         <RotationPanel/>
         <ScalePanel/>
+        <TexturePanel v-if="this.threeType == 'PlaneBufferGeometry'"/>
       </template>
       <template v-if="this.type == 'Camera'">
         <PositionPanel/>
@@ -35,6 +36,7 @@ import RotationPanel from "../panels/RotationPanel";
 import ScalePanel from "../panels/ScalePanel";
 import AnimationPanel from "../panels/AnimationPanel";
 import CameraPanel from "../panels/CameraPanel";
+import TexturePanel from "../panels/TexturePanel";
 
 export default {
   name: "PropertiesSidebar",
@@ -44,11 +46,15 @@ export default {
     RotationPanel,
     ScalePanel,
     AnimationPanel,
-    CameraPanel
+    CameraPanel,
+    TexturePanel
   },
   computed: {
     type: function() {
       return this.$store.state.activeObject.userData.type;
+    },
+    threeType: function() {
+      return this.$store.state.activeObject.geometry.type;
     }
   }
 };

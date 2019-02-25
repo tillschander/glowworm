@@ -97,7 +97,14 @@ export default new Vuex.Store({
       let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
       let mesh = new THREE.Mesh(geometry, material);
 
-      this.commit('addObject', { mesh, position: options.position });
+      this.commit('addObject', { mesh, position: options.position, name: 'Box' });
+    },
+    addPlane: function (state, options = { size: [30, 30], position: [0, 0, 0] }) {
+      let geometry = new THREE.PlaneBufferGeometry(options.size[0], options.size[1]);
+      let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD, side: THREE.DoubleSide });
+      let mesh = new THREE.Mesh(geometry, material);
+
+      this.commit('addObject', { mesh, position: options.position, name: 'Plane' });
     },
     addPort: function (state, port) {
       state.ports.push(port);
@@ -183,7 +190,7 @@ export default new Vuex.Store({
     },
     deleteObject(state, object) {
       if (object.userData.type == 'LED') {
-        delete state.LEDs[object.uuid];
+        Vue.delete(state.LEDs, object.uuid);
       } else {
         let index = state.objects.findIndex((elem) => elem.uuid == object.uuid);
 

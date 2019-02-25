@@ -22,6 +22,7 @@
 <script>
 export default {
   name: "LedRingDialog",
+  props: ["$store"],
   data() {
     return {
       count: 16,
@@ -33,7 +34,21 @@ export default {
       this.$parent.close();
     },
     add() {
-      this.$parent.continue({ count: this.count, radius: this.radius });
+      for (let i = 0; i < this.count; i++) {
+        let x = this.radius * Math.cos((2 * i * Math.PI) / this.count);
+        let z = this.radius * Math.sin((2 * i * Math.PI) / this.count);
+
+        if (this.$store.state.snapToGrid) {
+          x = Math.round(x);
+          z = Math.round(z);
+        }
+
+        this.$store.commit("addLED", {
+          position: [x, 0, z]
+        });
+      }
+
+      this.$parent.continue();
     }
   }
 };

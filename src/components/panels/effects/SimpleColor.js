@@ -13,6 +13,6 @@ export default function () {
         "uniform float opacity;"
     ].join("\n");
     this.shader = [
-        "vColor = vColor * (1.0 - opacity) + vec4(color, 1.0) * opacity;"
+        "vColor *= (1.0 - opacity) + vec4(color, 1.0) * opacity;"
     ].join("\n");
 }

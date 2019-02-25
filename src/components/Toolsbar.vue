@@ -18,7 +18,10 @@
     >Scale (R)</button>
     <button v-on:click="addLed">Add LED (A)</button>
     <button v-on:click="addLedRing">Add LED-Ring</button>
+    <button v-on:click="addLedGrid">Add LED-Grid</button>
+    <button v-on:click="addLedLine">Add LED-Line</button>
     <button v-on:click="addBox">Add Box (S)</button>
+    <button v-on:click="addPlane">Add Plane</button>
     <button v-on:click="addObject">Add .obj</button>
     <button v-on:click="addAnimation">Add Animation (D)</button>
   </div>
@@ -40,44 +43,31 @@ export default {
     addBox: function() {
       this.$store.commit("addBox");
     },
+    addPlane: function() {
+      this.$store.commit("addPlane");
+    },
     addLedRing: function() {
-      let self = this;
-
       this.$dialog({
         type: "ledRing",
-        callback: function(options) {
-          let count = options.count;
-          let radius = options.radius;
-
-          for (let i = 0; i < count; i++) {
-            let x = radius * Math.cos((2 * i * Math.PI) / count);
-            let z = radius * Math.sin((2 * i * Math.PI) / count);
-
-            if (self.$store.state.snapToGrid) {
-              x = Math.round(x);
-              z = Math.round(z);
-            }
-
-            self.$store.commit("addLED", {
-              color: [1, 1, 1],
-              position: [x, 0, z]
-            });
-          }
-        }
+        store: this.$store
+      });
+    },
+    addLedGrid: function() {
+      this.$dialog({
+        type: "ledGrid",
+        store: this.$store
+      });
+    },
+    addLedLine: function() {
+      this.$dialog({
+        type: "ledLine",
+        store: this.$store
       });
     },
     addObject: function() {
-      let self = this;
-
       this.$dialog({
         type: "object",
-        callback: function(options) {
-          self.$store.commit("addObject", {
-            mesh: options.object,
-            position: [0, 0, 0],
-            name: options.object.name
-          });
-        }
+        store: this.$store
       });
     },
     addAnimation: function() {
@@ -101,21 +91,7 @@ export default {
   flex-flow: column;
 
   button {
-    padding: 5px;
     margin-bottom: 5px;
-    background: #cccccc;
-    border: none;
-    cursor: pointer;
-    border: 2px solid #cccccc;
-
-    &:hover {
-      background: #aaaaaa;
-    }
-
-    &.active {
-      border: 2px solid cyan;
-      background: #aaaaaa;
-    }
   }
 }
 </style>

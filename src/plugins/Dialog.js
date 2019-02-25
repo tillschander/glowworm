@@ -8,7 +8,8 @@ export default {
       var instance = new ComponentClass({
         propsData: {
           type: options.type,
-          callback: options.callback
+          callback: options.callback || function() {},
+          store: options.store
         }
       });
 

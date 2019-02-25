@@ -156,6 +156,16 @@ button {
     border: 2px solid cyan;
     background: #aaaaaa;
   }
+
+  &.small {
+    font-size: 0.75em;
+    padding: 2.5px 5px;
+  }
+
+  &[disabled]:hover {
+    background: #cccccc;
+    cursor: default;
+  }
 }
 
 .app {

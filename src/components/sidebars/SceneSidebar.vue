@@ -41,6 +41,10 @@
         class="scene-object"
       ></SceneObject>
     </ul>
+    <div class="buttons">
+      <button disabled class="small">Group</button>
+      <button disabled class="small">Ungroup</button>
+    </div>
   </div>
 </template>
 
@@ -62,6 +66,17 @@ export default {
   flex-direction: column;
   overflow-y: auto;
   background: #424242;
+  justify-content: space-between;
+
+  .buttons {
+    display: flex;
+    background: #333333;
+    padding: 10px;
+    position: relative;
+    left: -10px;
+    bottom: -10px;
+    width: calc(100% + 20px);
+  }
 
   ul {
     list-style: none;
