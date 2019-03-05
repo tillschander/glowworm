@@ -109,7 +109,9 @@ export default {
       }
     },
     activeTool(tool) {
-      if (this.selectionGroup.children[0].userData.type !== "Animation") {
+      let selectedObject0 = this.selectionGroup.children[0];
+
+      if (selectedObject0 && selectedObject0.userData.type !== "Animation") {
         this.$store.state.scene.add(this.control);
         this.control.attach(this.selectionGroup);
       }
