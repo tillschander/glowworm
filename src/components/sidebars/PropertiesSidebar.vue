@@ -3,7 +3,7 @@
     <br>====
     <br>
     <br>
-    <template v-if="this.$store.state.activeObject">
+    <template v-if="this.activeObjectsCount == 1">
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
         <AnimationPanel/>
@@ -24,6 +24,15 @@
         <RotationPanel/>
         <CameraPanel/>
       </template>
+      <template v-if="this.type == 'Group'">
+        <button>Ungroup</button>
+      </template>
+    </template>
+    <template v-else-if="this.activeObjectsCount > 1">
+      {{ this.activeObjectsCount }} selected
+      <br>
+      <br>
+      <button>Group</button>
     </template>
     <template v-else>Nothing selected</template>
   </div>
@@ -50,11 +59,20 @@ export default {
     TexturePanel
   },
   computed: {
+    uuid: function() {
+      return Object.keys(this.$store.state.activeObjects)[0];
+    },
+    object: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
+    },
     type: function() {
-      return this.$store.state.activeObject.userData.type;
+      return this.object.userData.type;
     },
     threeType: function() {
-      return this.$store.state.activeObject.geometry.type;
+      return this.object.geometry.type;
+    },
+    activeObjectsCount: function() {
+      return Object.keys(this.$store.state.activeObjects).length;
     }
   }
 };

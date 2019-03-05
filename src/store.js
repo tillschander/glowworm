@@ -12,7 +12,7 @@ export default new Vuex.Store({
     LEDs: {},
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
-    activeObject: null,
+    activeObjects: {},
     ports: [],
     activePort: null,
     activeTool: 'select',
@@ -35,7 +35,8 @@ export default new Vuex.Store({
     bufferMaterial: null,
     bufferGeometry: null,
     bufferObject: null,
-    buffer: null
+    buffer: null,
+    shiftPressed: false
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
@@ -56,7 +57,9 @@ export default new Vuex.Store({
       state.line.geometry.attributes.position.array[index * 3 + 1] = options.position[1];
       state.line.geometry.attributes.position.array[index * 3 + 2] = options.position[2];
       state.line.geometry.setDrawRange(0, state.lineConnections.length);
-      this.commit('setActiveObject', mesh);
+
+      this.commit("clearActiveObjects");
+      this.commit("addActiveObject", mesh.uuid);
 
       /*
       if (state.activePort) {
@@ -78,7 +81,8 @@ export default new Vuex.Store({
       options.mesh.userData.type = 'Object';
       state.scene.add(options.mesh);
       state.objects.push(object);
-      this.commit('setActiveObject', options.mesh);
+      this.commit("clearActiveObjects");
+      this.commit("addActiveObject", options.mesh.uuid);
     },
     addAnimation: function (state) {
       let animation = new THREE.Object3D();
@@ -90,7 +94,8 @@ export default new Vuex.Store({
         uuid: animation.uuid,
         effects: []
       });
-      this.commit('setActiveObject', animation);
+      this.commit("clearActiveObjects");
+      this.commit("addActiveObject", animation.uuid);
     },
     addBox: function (state, options = { size: [10, 10, 10], position: [0, 0, 0] }) {
       let geometry = new THREE.BoxBufferGeometry(options.size[0], options.size[1], options.size[2]);
@@ -161,7 +166,7 @@ export default new Vuex.Store({
           state.line.geometry.attributes.position.array[index * 3 + 2] = updates.position[2];
           state.line.geometry.setDrawRange(0, state.lineConnections.length);
           state.line.geometry.attributes.position.needsUpdate = true;
-        } else {
+        } else if (type !== 'Group') {
           let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
 
           state.objects[index].position = updates.position;
@@ -169,23 +174,27 @@ export default new Vuex.Store({
       }
 
       if (updates.scale !== undefined) {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
         threeObject.scale.x = updates.scale[0];
         threeObject.scale.y = updates.scale[1];
         threeObject.scale.z = updates.scale[2];
 
-        state.objects[index].scale = updates.scale;
+        if (type !== 'Group') {
+          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
+
+          state.objects[index].scale = updates.scale;
+        }
       }
 
       if (updates.rotation !== undefined) {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
         threeObject.rotation.x = updates.rotation[0];
         threeObject.rotation.y = updates.rotation[1];
         threeObject.rotation.z = updates.rotation[2];
 
-        state.objects[index].rotation = updates.rotation;
+        if (type !== 'Group') {
+          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
+
+          state.objects[index].rotation = updates.rotation;
+        }
       }
     },
     deleteObject(state, object) {
@@ -193,11 +202,8 @@ export default new Vuex.Store({
         Vue.delete(state.LEDs, object.uuid);
       } else {
         let index = state.objects.findIndex((elem) => elem.uuid == object.uuid);
-
         state.objects.splice(index, 1);
       }
-
-      this.commit('setActiveObject', null);
       state.scene.remove(object);
     },
     setActivePort(state, port) {
@@ -206,8 +212,13 @@ export default new Vuex.Store({
     setActiveTool: function (state, tool) {
       state.activeTool = tool;
     },
-    setActiveObject(state, object) {
-      state.activeObject = object;
+    addActiveObject(state, uuid) {
+      let newActiveObjects = Object.assign({}, state.activeObjects);
+      newActiveObjects[uuid] = true;
+      state.activeObjects = newActiveObjects;
+    },
+    clearActiveObjects(state) {
+      state.activeObjects = {};
     },
     setFps: function (state, fps) {
       state.fps = fps;
@@ -217,6 +228,9 @@ export default new Vuex.Store({
     },
     setMode: function (state, mode) {
       state.mode = mode;
+    },
+    setShiftPressed: function (state, bool) {
+      state.shiftPressed = bool;
     },
     toggleSnapToGrid: function (state) {
       state.snapToGrid = !state.snapToGrid;
@@ -230,9 +244,11 @@ export default new Vuex.Store({
       let shader = "";
       let activeAnimation = null;
 
-      if (state.activeObject) {
+      if (Object.keys(state.activeObjects).length == 1) {
+        let activeObjectUuid = Object.keys(state.activeObjects)[0];
+
         activeAnimation = state.animations.find(
-          animation => animation.uuid == state.activeObject.uuid
+          animation => animation.uuid == activeObjectUuid
         );
       }
 

@@ -13,14 +13,17 @@ export default {
   name: "RotationPanel",
   computed: {
     uuid: function() {
-      return this.$store.state.activeObject.uuid;
+      return Object.keys(this.$store.state.activeObjects)[0];
+    },
+    object: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
     },
     type: function() {
-      return this.$store.state.activeObject.userData.type;
+      return this.object.userData.type;
     },
     x: {
       get() {
-        return this.$store.state.activeObject.rotation.x;
+        return this.object.rotation.x;
       },
       set(value) {
         this.$store.commit("updateObject", {
@@ -31,7 +34,7 @@ export default {
     },
     y: {
       get() {
-        return this.$store.state.activeObject.rotation.y;
+        return this.object.rotation.y;
       },
       set(value) {
         this.$store.commit("updateObject", {
@@ -42,7 +45,7 @@ export default {
     },
     z: {
       get() {
-        return this.$store.state.activeObject.rotation.z;
+        return this.object.rotation.z;
       },
       set(value) {
         this.$store.commit("updateObject", {

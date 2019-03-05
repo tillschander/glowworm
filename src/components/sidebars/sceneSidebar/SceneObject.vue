@@ -7,19 +7,16 @@ export default {
   name: "SceneObject",
   props: ["uuid", "name"],
   computed: {
-    isActive () {
-      if (this.$store.state.activeObject) {
-        return this.uuid === this.$store.state.activeObject.uuid;
-      }
-      return false;
+    isActive() {
+      return this.$store.state.activeObjects[this.uuid];
     }
   },
   methods: {
     setActive: function() {
-      this.$store.commit(
-        "setActiveObject",
-        this.$store.state.scene.getObjectByProperty("uuid", this.uuid)
-      );
+      if (!this.$store.state.shiftPressed) {
+        this.$store.commit("clearActiveObjects");
+      }
+      this.$store.commit("addActiveObject", this.uuid);
     }
   }
 };

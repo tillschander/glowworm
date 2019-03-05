@@ -15,15 +15,21 @@ export default {
       file: null
     };
   },
+  computed: {
+    uuid: function() {
+      return Object.keys(this.$store.state.activeObjects)[0];
+    },
+    object: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
+    }
+  },
   methods: {
     processFile(event) {
-      let activeObject = this.$store.state.activeObject;
-
       this.file = event.target.files[0].path;
       new THREE.TextureLoader().load(
         "file://" + this.file,
         function(texture) {
-          activeObject.material = new THREE.MeshBasicMaterial({
+          this.object.material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.DoubleSide
           });

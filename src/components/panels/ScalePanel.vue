@@ -13,14 +13,17 @@ export default {
   name: "ScalePanel",
   computed: {
     uuid: function() {
-      return this.$store.state.activeObject.uuid;
+      return Object.keys(this.$store.state.activeObjects)[0];
+    },
+    object: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
     },
     type: function() {
-      return this.$store.state.activeObject.userData.type;
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid).userData.type;
     },
     x: {
       get() {
-        return this.$store.state.activeObject.scale.x;
+        return this.object.scale.x;
       },
       set(value) {
         this.$store.commit("updateObject", {
@@ -31,7 +34,7 @@ export default {
     },
     y: {
       get() {
-        return this.$store.state.activeObject.scale.y;
+        return this.object.scale.y;
       },
       set(value) {
         this.$store.commit("updateObject", {
@@ -42,7 +45,7 @@ export default {
     },
     z: {
       get() {
-        return this.$store.state.activeObject.scale.z;
+        return this.object.scale.z;
       },
       set(value) {
         this.$store.commit("updateObject", {

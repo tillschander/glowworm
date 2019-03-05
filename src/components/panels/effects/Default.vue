@@ -5,7 +5,7 @@ export default {
   computed: {
     activeAnimation: function() {
       return this.$store.state.animations.find(
-        animation => animation.uuid == this.$store.state.activeObject.uuid
+        // animation => animation.uuid == this.$store.state.activeObjects[0].uuid
       );
     },
     activeEffect: function() {

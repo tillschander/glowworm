@@ -10,10 +10,10 @@ export default {
   name: "NamePanel",
   computed: {
     uuid: function() {
-      return this.$store.state.activeObject.uuid;
+      return Object.keys(this.$store.state.activeObjects)[0];
     },
     type: function() {
-      return this.$store.state.activeObject.userData.type;
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid).userData.type;
     },
     name: {
       get() {

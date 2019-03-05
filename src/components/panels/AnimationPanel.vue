@@ -23,7 +23,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return this.$store.state.activeObject.uuid;
+      return Object.keys(this.$store.state.activeObjects)[0];
     },
     animation: function() {
       return this.$store.state.animations.find(

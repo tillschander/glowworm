@@ -13,17 +13,20 @@ export default {
   name: "PositionPanel",
   computed: {
     uuid: function() {
-      return this.$store.state.activeObject.uuid;
+      return Object.keys(this.$store.state.activeObjects)[0];
+    },
+    object: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
     },
     type: function() {
-      return this.$store.state.activeObject.userData.type;
+      return this.object.userData.type;
     },
     x: {
       get() {
         if (this.type == "LED") {
           return this.$store.state.LEDs[this.uuid].position[0];
         } else {
-          return this.$store.state.activeObject.position.x;
+          return this.object.position.x;
         }
       },
       set(value) {
@@ -38,7 +41,7 @@ export default {
         if (this.type == "LED") {
           return this.$store.state.LEDs[this.uuid].position[1];
         } else {
-          return this.$store.state.activeObject.position.y;
+          return this.object.position.y;
         }
       },
       set(value) {
@@ -53,7 +56,7 @@ export default {
         if (this.type == "LED") {
           return this.$store.state.LEDs[this.uuid].position[2];
         } else {
-          return this.$store.state.activeObject.position.z;
+          return this.object.position.z;
         }
       },
       set(value) {

@@ -9,7 +9,6 @@
 import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
-//import * as THREE from "three";
 const THREE = require("three");
 const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
 const TransformControls = require("../assets/js/TransformControls.js")(THREE);
@@ -28,7 +27,9 @@ export default {
       orbit: null,
       control: null,
       downPosition: new THREE.Vector2(),
-      upPosition: new THREE.Vector2()
+      upPosition: new THREE.Vector2(),
+      selectionGroup: new THREE.Group(),
+      highlighter: new THREE.BoxHelper(undefined, 0x00ffff)
     };
   },
   computed: {
@@ -47,8 +48,8 @@ export default {
     maxFps: function() {
       return this.$store.state.maxFps;
     },
-    activeObject: function() {
-      return this.$store.state.activeObject;
+    activeObjects: function() {
+      return this.$store.state.activeObjects;
     },
     activeTool: function() {
       return this.$store.state.activeTool;
@@ -64,20 +65,43 @@ export default {
     maxFps(newMaxFps) {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
-    activeObject(object) {
-      if (object) {
-        if (object.userData.type == "Animation") {
+    activeObjects(objects, oldObjects) {
+      // Clear the selection group...
+      this.emptySelectionGroup();
+
+      // ...and refill it.
+      Object.keys(objects).forEach(uuid => {
+        this.selectionGroup.add(
+          this.$store.state.scene.getObjectByProperty("uuid", uuid)
+        );
+      });
+
+      // Move the selection group and its children so that
+      // the origin of the selection group is it's center.
+      // We do this so that the control helper is positioned correctly.
+      let offset = new THREE.Vector3();
+      this.$store.state.scene.add(this.highlighter);
+      this.highlighter.setFromObject(this.selectionGroup);
+      this.highlighter.geometry.computeBoundingBox();
+      this.highlighter.geometry.boundingBox.getCenter(offset);
+      this.selectionGroup.applyMatrix(
+        new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)
+      );
+      this.selectionGroup.children.forEach(child => {
+        child.applyMatrix(
+          new THREE.Matrix4().makeTranslation(-offset.x, -offset.y, -offset.z)
+        );
+      });
+
+      // Show or hide helpers based on what's selected.
+      if (Object.keys(objects).length) {
+        if (this.selectionGroup.children[0].userData.type == "Animation") {
           this.$store.state.scene.remove(this.highlighter);
           this.$store.state.scene.remove(this.control);
           this.$store.commit("applyLEDMaterial");
-        } else {
-          this.$store.state.scene.add(this.highlighter);
-          this.highlighter.setFromObject(object);
-
-          if (this.activeTool !== "select") {
-            this.$store.state.scene.add(this.control);
-            this.control.attach(object);
-          }
+        } else if (this.activeTool !== "select") {
+          this.$store.state.scene.add(this.control);
+          this.control.attach(this.selectionGroup);
         }
       } else {
         this.$store.state.scene.remove(this.highlighter);
@@ -85,24 +109,19 @@ export default {
       }
     },
     activeTool(tool) {
+      if (this.selectionGroup.children[0].userData.type !== "Animation") {
+        this.$store.state.scene.add(this.control);
+        this.control.attach(this.selectionGroup);
+      }
+
       if (this.activeTool == "select") {
         this.$store.state.scene.remove(this.control);
-      } else {
-        if (
-          this.activeObject &&
-          this.activeObject.userData.type !== "Animation"
-        ) {
-          this.$store.state.scene.add(this.control);
-          this.control.attach(this.activeObject);
-        }
-
-        if (this.activeTool == "move") {
-          this.control.setMode("translate");
-        } else if (this.activeTool == "scale") {
-          this.control.setMode("scale");
-        } else if (this.activeTool == "rotate") {
-          this.control.setMode("rotate");
-        }
+      } else if (this.activeTool == "move") {
+        this.control.setMode("translate");
+      } else if (this.activeTool == "scale") {
+        this.control.setMode("scale");
+      } else if (this.activeTool == "rotate") {
+        this.control.setMode("rotate");
       }
     },
     snapToGrid(snapToGrid) {
@@ -137,7 +156,6 @@ export default {
       this.light2.position.set(-1.1, -0.4, -0.9);
       this.$store.state.scene.add(this.light2);
 
-      this.highlighter = new THREE.BoxHelper(undefined, 0x00ffff);
       this.$store.state.scene.add(this.highlighter);
 
       this.orbit = new OrbitControls(
@@ -172,6 +190,9 @@ export default {
       );
       this.$store.state.scene.add(this.$store.state.line);
 
+      this.selectionGroup.userData.type = "Group";
+      this.$store.state.scene.add(this.selectionGroup);
+
       this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
         size: [1000, 10, 1000],
@@ -190,10 +211,12 @@ export default {
         this.$store.state.bufferTexture,
         true
       );
+      /*
       this.$store.state.bufferRenderer.render(
         this.$store.state.bufferScene,
         this.$store.state.bufferCamera
       );
+      */
       this.$store.state.bufferRenderer.readRenderTargetPixels(
         this.$store.state.bufferTexture,
         0,
@@ -204,14 +227,16 @@ export default {
       );
 
       let buffer = this.$store.state.buffer;
-      let output = new Array(this.$store.state.bufferWidth * this.$store.state.bufferHeight * 3);
+      let output = new Array(
+        this.$store.state.bufferWidth * this.$store.state.bufferHeight * 3
+      );
       let index = 0;
 
-      for (let i = 0; i < buffer.length; i+=4) {
+      for (let i = 0; i < buffer.length; i += 4) {
         // Glediator output is GRB
-        output[index*3] = Math.round(buffer[i+1] * 255);
-        output[index*3+1] = Math.round(buffer[i] * 255);
-        output[index*3+2] = Math.round(buffer[i+2] * 255);
+        output[index * 3] = Math.round(buffer[i + 1] * 255);
+        output[index * 3 + 1] = Math.round(buffer[i] * 255);
+        output[index * 3 + 2] = Math.round(buffer[i + 2] * 255);
         index++;
       }
       output = [1].concat(output);
@@ -246,13 +271,20 @@ export default {
         let type = intersects[0].object.userData.type;
 
         if (type == "LED" || type == "Object") {
-          this.$store.commit("setActiveObject", intersects[0].object);
+          if (!this.$store.state.shiftPressed) {
+            this.emptySelectionGroup();
+            this.$store.commit("clearActiveObjects");
+          }
+          this.$store.commit("addActiveObject", intersects[0].object.uuid);
         }
       } else {
-        this.$store.commit("setActiveObject", undefined);
+        this.emptySelectionGroup();
+        this.$store.commit("clearActiveObjects");
       }
     },
     onKeydown: function(event) {
+      if (event.target.type == "text") return;
+
       switch (event.keyCode) {
         case 81: // Q
           this.$store.commit("setActiveTool", "select");
@@ -276,8 +308,17 @@ export default {
           this.$store.commit("addAnimation");
           break;
         case 46: // Delete
-          if (this.activeObject)
-            this.$store.commit("deleteObject", this.activeObject);
+          this.emptySelectionGroup();
+          for (const uuid in this.activeObjects) {
+            this.$store.commit(
+              "deleteObject",
+              this.$store.state.scene.getObjectByProperty("uuid", uuid)
+            );
+          }
+          this.$store.commit("clearActiveObjects");
+          break;
+        case 16: // Shift
+          this.$store.commit("setShiftPressed", true);
           break;
       }
     },
@@ -286,6 +327,9 @@ export default {
         case 17: // Ctrl
           this.control.setTranslationSnap(null);
           this.control.setRotationSnap(null);
+          break;
+        case 16: // Shift
+          this.$store.commit("setShiftPressed", false);
           break;
       }
     },
@@ -365,6 +409,24 @@ export default {
         this.$store.state.bufferMaterial
       );
       this.$store.state.bufferScene.add(this.$store.state.bufferObject);
+    },
+    emptySelectionGroup: function() {
+      let group = this.selectionGroup.children;
+
+      for (var i = group.length - 1; i >= 0; i--) {
+        let child = group[i];
+
+        child.applyMatrix(this.selectionGroup.matrixWorld);
+        this.selectionGroup.remove(child);
+        this.$store.state.scene.add(child);
+      }
+
+      this.$store.commit("updateObject", {
+        uuid: this.selectionGroup.uuid,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1]
+      });
     }
   },
   mounted() {
