@@ -12,58 +12,31 @@
 export default {
   name: "PositionPanel",
   computed: {
-    uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
-    },
-    object: function() {
-      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
-    },
-    type: function() {
-      return this.object.userData.type;
-    },
     x: {
       get() {
-        if (this.type == "LED") {
-          return this.$store.state.LEDs[this.uuid].position[0];
-        } else {
-          return this.object.position.x;
-        }
+        return this.$store.state.selectionGroup.position.x;
       },
       set(value) {
-        this.$store.commit("updateObjectPosition", {
-          uuid: this.uuid,
-          position: [value, this.y, this.z]
-        });
+        this.$store.state.selectionGroup.position.x = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     y: {
       get() {
-        if (this.type == "LED") {
-          return this.$store.state.LEDs[this.uuid].position[1];
-        } else {
-          return this.object.position.y;
-        }
+        return this.$store.state.selectionGroup.position.y;
       },
       set(value) {
-        this.$store.commit("updateObjectPosition", {
-          uuid: this.uuid,
-          position: [this.x, value, this.z]
-        });
+        this.$store.state.selectionGroup.position.y = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     z: {
       get() {
-        if (this.type == "LED") {
-          return this.$store.state.LEDs[this.uuid].position[2];
-        } else {
-          return this.object.position.z;
-        }
+        return this.$store.state.selectionGroup.position.z;
       },
       set(value) {
-        this.$store.commit("updateObjectPosition", {
-          uuid: this.uuid,
-          position: [this.x, this.y, value]
-        });
+        this.$store.state.selectionGroup.position.z = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     }
   }

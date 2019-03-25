@@ -12,46 +12,31 @@
 export default {
   name: "RotationPanel",
   computed: {
-    uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
-    },
-    object: function() {
-      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
-    },
-    type: function() {
-      return this.object.userData.type;
-    },
     x: {
       get() {
-        return this.object.rotation.x;
+        return this.$store.state.selectionGroup.rotation.x;
       },
       set(value) {
-        this.$store.commit("updateObjectRotation", {
-          uuid: this.uuid,
-          rotation: [value, this.y, this.z]
-        });
+        this.$store.state.selectionGroup.rotation.x = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     y: {
       get() {
-        return this.object.rotation.y;
+        return this.$store.state.selectionGroup.rotation.y;
       },
       set(value) {
-        this.$store.commit("updateObjectRotation", {
-          uuid: this.uuid,
-          rotation: [this.x, value, this.z]
-        });
+        this.$store.state.selectionGroup.rotation.y = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     z: {
       get() {
-        return this.object.rotation.z;
+        return this.$store.state.selectionGroup.rotation.z;
       },
       set(value) {
-        this.$store.commit("updateObjectRotation", {
-          uuid: this.uuid,
-          rotation: [this.x, this.y, value]
-        });
+        this.$store.state.selectionGroup.rotation.z = value;
+        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     }
   }

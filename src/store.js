@@ -51,16 +51,12 @@ export default new Vuex.Store({
       Vue.set(state.LEDs, mesh.uuid, {
         position: options.position
       });
-      // TODO cleanup
-      let index = state.lineConnections.length;
       state.lineConnections.push(mesh.uuid);
-      state.line.geometry.attributes.position.array[index * 3] = options.position[0];
-      state.line.geometry.attributes.position.array[index * 3 + 1] = options.position[1];
-      state.line.geometry.attributes.position.array[index * 3 + 2] = options.position[2];
       state.line.geometry.setDrawRange(0, state.lineConnections.length);
 
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", mesh.uuid);
+      this.commit("updateLEDConnections", [mesh]);
 
       /*
       if (state.activePort) {
@@ -154,107 +150,19 @@ export default new Vuex.Store({
         Vue.set(state.objects, index, newAttributes);
       }
     },
-    updateObjectPositionData: function (state, updates) {
-      if (updates.type == 'LED') {
-        let index = state.lineConnections.indexOf(updates.uuid);
+    updateLEDConnections: function (state, objects) {
+      objects.forEach(object => {
+        if (object.userData.type !== 'LED') return;
 
-        state.LEDs[updates.uuid].position = updates.position;
-        state.line.geometry.attributes.position.array[index * 3] = updates.position[0];
-        state.line.geometry.attributes.position.array[index * 3 + 1] = updates.position[1];
-        state.line.geometry.attributes.position.array[index * 3 + 2] = updates.position[2];
-        state.line.geometry.setDrawRange(0, state.lineConnections.length);
+        let index = state.lineConnections.indexOf(object.uuid);
+        let position = new THREE.Vector3();
+
+        object.getWorldPosition(position);
+        state.line.geometry.attributes.position.array[index * 3] = position.x;
+        state.line.geometry.attributes.position.array[index * 3 + 1] = position.y;
+        state.line.geometry.attributes.position.array[index * 3 + 2] = position.z;
         state.line.geometry.attributes.position.needsUpdate = true;
-      } else if (updates.type == 'Object') {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-        state.objects[index].position = updates.position;
-      } else if (updates.type == 'Group') {
-        /*
-        let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-
-        threeObject.children.forEach(child => {
-          let position = [
-            updates.position[0] + child.position.x,
-            updates.position[1] + child.position.y,
-            updates.position[2] + child.position.z
-          ];
-          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
-        });
-        */
-        console.log("error error");
-      }
-    },
-    updateObjectPosition: function (state, updates) {
-      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-      let type = threeObject.userData.type;
-
-      if (type == 'Group') {
-        // object is the selection group
-        threeObject.children.forEach(child => {
-          let position = [
-            updates.position[0] + child.position.x,
-            updates.position[1] + child.position.y,
-            updates.position[2] + child.position.z
-          ];
-          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
-        });
-      } else {
-        // parent is the selection group
-        threeObject.parent.position.x = updates.position[0];
-        threeObject.parent.position.y = updates.position[1];
-        threeObject.parent.position.z = updates.position[2];
-
-        this.commit("updateObjectPositionData", { uuid: updates.uuid, position: updates.position, type });
-      }
-    },
-    updateObjectRotation: function (state, updates) {
-      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-      let type = threeObject.userData.type;
-
-      if (type == 'Group') {
-        // object is the selection group
-        threeObject.children.forEach(child => {
-          let position = [
-            threeObject.position.x + child.position.x,
-            threeObject.position.x + child.position.y,
-            threeObject.position.x + child.position.z
-          ];
-          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
-        });
-      } else {
-        // parent is the selection group
-        threeObject.parent.rotation.x = updates.rotation[0];
-        threeObject.parent.rotation.y = updates.rotation[1];
-        threeObject.parent.rotation.z = updates.rotation[2];
-
-        //this.commit("updateObjectPositionData", { uuid: updates.uuid, position: updates.position, type });
-      }
-
-      /*
-      threeObject.rotation.x = updates.rotation[0];
-      threeObject.rotation.y = updates.rotation[1];
-      threeObject.rotation.z = updates.rotation[2];
-
-      if (type !== 'Group') {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-        state.objects[index].rotation = updates.rotation;
-      }
-      */
-    },
-    updateObjectScale: function (state, updates) {
-      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-      let type = threeObject.userData.type;
-
-      threeObject.scale.x = updates.scale[0];
-      threeObject.scale.y = updates.scale[1];
-      threeObject.scale.z = updates.scale[2];
-
-      if (type !== 'Group') {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-        state.objects[index].scale = updates.scale;
-      }
+      });
     },
     deleteObject(state, object) {
       if (object.userData.type == 'LED') {

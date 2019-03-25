@@ -342,18 +342,7 @@ export default {
       this.orbit.enabled = !event.value;
     },
     onObjectChanged: function(event) {
-      let obj = event.target.object;
-
-      if (this.activeTool == 'move') {
-        let position = [obj.position.x, obj.position.y, obj.position.z];
-        this.$store.commit("updateObjectPosition", { uuid: obj.uuid, position });
-      } else if (this.activeTool == 'rotate') {
-        let rotation = [obj.rotation.x, obj.rotation.y, obj.rotation.z];
-        this.$store.commit("updateObjectRotation", { uuid: obj.uuid, rotation });
-      } else if (this.activeTool == 'scale') {
-        let scale = [obj.scale.x, obj.scale.y, obj.scale.z];
-        this.$store.commit("updateObjectScale", { uuid: obj.uuid, scale });
-      }
+      this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;

@@ -26,10 +26,14 @@
       </template>
       <template v-if="this.type == 'Group'">
         <NamePanel/>
+        <PositionPanel/>
+        <RotationPanel/>
         <button v-on:click="ungroup">Ungroup</button>
       </template>
     </template>
     <template v-else-if="this.activeObjectsCount > 1">
+      <PositionPanel/>
+      <RotationPanel/>
       {{ this.activeObjectsCount }} selected
       <br>
       <br>
