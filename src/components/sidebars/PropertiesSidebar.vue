@@ -25,20 +25,22 @@
         <CameraPanel/>
       </template>
       <template v-if="this.type == 'Group'">
-        <button>Ungroup</button>
+        <NamePanel/>
+        <button v-on:click="ungroup">Ungroup</button>
       </template>
     </template>
     <template v-else-if="this.activeObjectsCount > 1">
       {{ this.activeObjectsCount }} selected
       <br>
       <br>
-      <button>Group</button>
+      <button v-on:click="group">Group</button>
     </template>
     <template v-else>Nothing selected</template>
   </div>
 </template>
 
 <script>
+import Vue from 'vue';
 import NamePanel from "../panels/NamePanel";
 import PositionPanel from "../panels/PositionPanel";
 import RotationPanel from "../panels/RotationPanel";
@@ -73,6 +75,39 @@ export default {
     },
     activeObjectsCount: function() {
       return Object.keys(this.$store.state.activeObjects).length;
+    }
+  },
+  methods: {
+    group: function() {
+      let newGroup = this.$store.state.selectionGroup.clone();
+      this.$store.commit("deleteActiveObjects");
+      this.$store.commit("addGroup", {group: newGroup, name: 'Group'});
+    },
+    ungroup: function() {
+      let children = this.object.children;
+
+      for (var i = children.length - 1; i >= 0; i--) {
+        let child = children[i];
+
+        child.applyMatrix(this.object.matrixWorld);
+        this.object.remove(child);
+        this.$store.state.scene.add(child);
+
+        if (child.userData.type == 'LED') {
+          Vue.set(this.$store.state.LEDs, child.uuid, {
+            position: [child.position.x, child.position.y, child.position.z]
+          });
+        } else {
+          this.$store.state.objects.push({
+            uuid: child.uuid,
+            position: [child.position.x, child.position.y, child.position.z]
+          });
+        }
+      }
+
+      this.$store.commit("deleteObject", this.object);
+      this.$store.commit("emptySelectionGroup");
+      this.$store.commit("clearActiveObjects");
     }
   }
 };

@@ -26,7 +26,7 @@ export default {
         return this.object.scale.x;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectScale", {
           uuid: this.uuid,
           scale: [value, this.y, this.z]
         });
@@ -37,7 +37,7 @@ export default {
         return this.object.scale.y;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectScale", {
           uuid: this.uuid,
           scale: [this.x, value, this.z]
         });
@@ -48,7 +48,7 @@ export default {
         return this.object.scale.z;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectScale", {
           uuid: this.uuid,
           scale: [this.x, this.y, value]
         });

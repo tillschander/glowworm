@@ -25,11 +25,12 @@ export default {
   },
   methods: {
     processFile(event) {
-      this.file = event.target.files[0].path;
+      var self = this;
+      self.file = event.target.files[0].path;
       new THREE.TextureLoader().load(
-        "file://" + this.file,
+        "file://" + self.file,
         function(texture) {
-          this.object.material = new THREE.MeshBasicMaterial({
+          self.object.material = new THREE.MeshBasicMaterial({
             map: texture,
             side: THREE.DoubleSide
           });

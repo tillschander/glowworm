@@ -34,7 +34,7 @@ export default {
         return name ? name : this.type;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectName", {
           uuid: this.uuid,
           name: value
         });

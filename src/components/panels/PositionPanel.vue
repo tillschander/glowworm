@@ -30,7 +30,7 @@ export default {
         }
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectPosition", {
           uuid: this.uuid,
           position: [value, this.y, this.z]
         });
@@ -45,7 +45,7 @@ export default {
         }
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectPosition", {
           uuid: this.uuid,
           position: [this.x, value, this.z]
         });
@@ -60,7 +60,7 @@ export default {
         }
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectPosition", {
           uuid: this.uuid,
           position: [this.x, this.y, value]
         });

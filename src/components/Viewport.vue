@@ -28,7 +28,6 @@ export default {
       control: null,
       downPosition: new THREE.Vector2(),
       upPosition: new THREE.Vector2(),
-      selectionGroup: new THREE.Group(),
       highlighter: new THREE.BoxHelper(undefined, 0x00ffff)
     };
   },
@@ -67,11 +66,11 @@ export default {
     },
     activeObjects(objects, oldObjects) {
       // Clear the selection group...
-      this.emptySelectionGroup();
+      this.$store.commit("emptySelectionGroup");
 
       // ...and refill it.
       Object.keys(objects).forEach(uuid => {
-        this.selectionGroup.add(
+        this.$store.state.selectionGroup.add(
           this.$store.state.scene.getObjectByProperty("uuid", uuid)
         );
       });
@@ -81,13 +80,13 @@ export default {
       // We do this so that the control helper is positioned correctly.
       let offset = new THREE.Vector3();
       this.$store.state.scene.add(this.highlighter);
-      this.highlighter.setFromObject(this.selectionGroup);
+      this.highlighter.setFromObject(this.$store.state.selectionGroup);
       this.highlighter.geometry.computeBoundingBox();
       this.highlighter.geometry.boundingBox.getCenter(offset);
-      this.selectionGroup.applyMatrix(
+      this.$store.state.selectionGroup.applyMatrix(
         new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)
       );
-      this.selectionGroup.children.forEach(child => {
+      this.$store.state.selectionGroup.children.forEach(child => {
         child.applyMatrix(
           new THREE.Matrix4().makeTranslation(-offset.x, -offset.y, -offset.z)
         );
@@ -95,13 +94,13 @@ export default {
 
       // Show or hide helpers based on what's selected.
       if (Object.keys(objects).length) {
-        if (this.selectionGroup.children[0].userData.type == "Animation") {
+        if (this.$store.state.selectionGroup.children[0].userData.type == "Animation") {
           this.$store.state.scene.remove(this.highlighter);
           this.$store.state.scene.remove(this.control);
           this.$store.commit("applyLEDMaterial");
         } else if (this.activeTool !== "select") {
           this.$store.state.scene.add(this.control);
-          this.control.attach(this.selectionGroup);
+          this.control.attach(this.$store.state.selectionGroup);
         }
       } else {
         this.$store.state.scene.remove(this.highlighter);
@@ -109,11 +108,11 @@ export default {
       }
     },
     activeTool(tool) {
-      let selectedObject0 = this.selectionGroup.children[0];
+      let selectedObject0 = this.$store.state.selectionGroup.children[0];
 
       if (selectedObject0 && selectedObject0.userData.type !== "Animation") {
         this.$store.state.scene.add(this.control);
-        this.control.attach(this.selectionGroup);
+        this.control.attach(this.$store.state.selectionGroup);
       }
 
       if (this.activeTool == "select") {
@@ -192,8 +191,9 @@ export default {
       );
       this.$store.state.scene.add(this.$store.state.line);
 
-      this.selectionGroup.userData.type = "Group";
-      this.$store.state.scene.add(this.selectionGroup);
+      this.$store.state.selectionGroup.userData.type = "Group";
+      this.$store.state.selectionGroup.userData.groupType = "Selection";
+      this.$store.state.scene.add(this.$store.state.selectionGroup);
 
       this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
@@ -266,21 +266,31 @@ export default {
       raycaster.setFromCamera(this.getPointer(event), this.$store.state.camera);
 
       let intersects = raycaster.intersectObjects(
-        this.$store.state.scene.children
+        this.$store.state.scene.children,
+        true
       );
 
-      if (intersects.length > 0) {
-        let type = intersects[0].object.userData.type;
+      intersects = intersects.filter(intersect => {
+        return ["LED", "Object", "Group"].includes(intersect.object.userData.type)
+      });
 
-        if (type == "LED" || type == "Object") {
-          if (!this.$store.state.shiftPressed) {
-            this.emptySelectionGroup();
-            this.$store.commit("clearActiveObjects");
-          }
-          this.$store.commit("addActiveObject", intersects[0].object.uuid);
+      if (intersects.length > 0) {
+        let object = intersects[0].object;
+        let type = object.userData.type;
+
+        if (object.parent.type == "Group") {
+          object = object.parent;
+          type = "Group";
         }
+
+        if (!this.$store.state.shiftPressed) {
+          this.$store.commit("emptySelectionGroup");
+          this.$store.commit("clearActiveObjects");
+        }
+
+        this.$store.commit("addActiveObject", object.uuid);
       } else {
-        this.emptySelectionGroup();
+        this.$store.commit("emptySelectionGroup");
         this.$store.commit("clearActiveObjects");
       }
     },
@@ -310,14 +320,7 @@ export default {
           this.$store.commit("addAnimation");
           break;
         case 46: // Delete
-          this.emptySelectionGroup();
-          for (const uuid in this.activeObjects) {
-            this.$store.commit(
-              "deleteObject",
-              this.$store.state.scene.getObjectByProperty("uuid", uuid)
-            );
-          }
-          this.$store.commit("clearActiveObjects");
+          this.$store.commit("deleteActiveObjects");
           break;
         case 16: // Shift
           this.$store.commit("setShiftPressed", true);
@@ -340,9 +343,17 @@ export default {
     },
     onObjectChanged: function(event) {
       let obj = event.target.object;
-      let position = [obj.position.x, obj.position.y, obj.position.z];
 
-      this.$store.commit("updateObject", { uuid: obj.uuid, position });
+      if (this.activeTool == 'move') {
+        let position = [obj.position.x, obj.position.y, obj.position.z];
+        this.$store.commit("updateObjectPosition", { uuid: obj.uuid, position });
+      } else if (this.activeTool == 'rotate') {
+        let rotation = [obj.rotation.x, obj.rotation.y, obj.rotation.z];
+        this.$store.commit("updateObjectRotation", { uuid: obj.uuid, rotation });
+      } else if (this.activeTool == 'scale') {
+        let scale = [obj.scale.x, obj.scale.y, obj.scale.z];
+        this.$store.commit("updateObjectScale", { uuid: obj.uuid, scale });
+      }
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;
@@ -411,24 +422,6 @@ export default {
         this.$store.state.bufferMaterial
       );
       this.$store.state.bufferScene.add(this.$store.state.bufferObject);
-    },
-    emptySelectionGroup: function() {
-      let group = this.selectionGroup.children;
-
-      for (var i = group.length - 1; i >= 0; i--) {
-        let child = group[i];
-
-        child.applyMatrix(this.selectionGroup.matrixWorld);
-        this.selectionGroup.remove(child);
-        this.$store.state.scene.add(child);
-      }
-
-      this.$store.commit("updateObject", {
-        uuid: this.selectionGroup.uuid,
-        position: [0, 0, 0],
-        rotation: [0, 0, 0],
-        scale: [1, 1, 1]
-      });
     }
   },
   mounted() {

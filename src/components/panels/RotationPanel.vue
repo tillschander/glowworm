@@ -26,7 +26,7 @@ export default {
         return this.object.rotation.x;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectRotation", {
           uuid: this.uuid,
           rotation: [value, this.y, this.z]
         });
@@ -37,7 +37,7 @@ export default {
         return this.object.rotation.y;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectRotation", {
           uuid: this.uuid,
           rotation: [this.x, value, this.z]
         });
@@ -48,7 +48,7 @@ export default {
         return this.object.rotation.z;
       },
       set(value) {
-        this.$store.commit("updateObject", {
+        this.$store.commit("updateObjectRotation", {
           uuid: this.uuid,
           rotation: [this.x, this.y, value]
         });

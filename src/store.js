@@ -36,7 +36,8 @@ export default new Vuex.Store({
     bufferGeometry: null,
     bufferObject: null,
     buffer: null,
-    shiftPressed: false
+    shiftPressed: false,
+    selectionGroup: new THREE.Group()
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
@@ -111,90 +112,148 @@ export default new Vuex.Store({
 
       this.commit('addObject', { mesh, position: options.position, name: 'Plane' });
     },
+    addGroup: function (state, options) {
+      let object = {
+        uuid: options.group.uuid,
+        position: options.position
+      };
+
+      if (options.name) object.name = options.name;
+      options.group.userData.type = 'Group';
+      state.scene.add(options.group);
+      state.objects.push(object);
+      this.commit("clearActiveObjects");
+      this.commit("addActiveObject", options.group.uuid);
+    },
     addPort: function (state, port) {
       state.ports.push(port);
     },
-    updateObject: function (state, updates) {
+    updateObjectName: function (state, updates) {
       let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
       let type = threeObject.userData.type;
 
-      if (updates.name !== undefined) {
-        threeObject.userData.name = updates.name;
+      threeObject.userData.name = updates.name;
 
-        if (type == 'LED') {
-          let index = updates.uuid;
-          let newAttributes = Object.assign({}, state.LEDs[index]);
+      if (type == 'LED') {
+        let index = updates.uuid;
+        let newAttributes = Object.assign({}, state.LEDs[index]);
 
-          newAttributes.name = updates.name;
-          Vue.set(state.LEDs, index, newAttributes);
-        } else if (type == 'Animation') {
-          let index = state.animations.findIndex((elem) => elem.uuid == updates.uuid);
-          let newAttributes = Object.assign({}, state.animations[index]);
+        newAttributes.name = updates.name;
+        Vue.set(state.LEDs, index, newAttributes);
+      } else if (type == 'Animation') {
+        let index = state.animations.findIndex((elem) => elem.uuid == updates.uuid);
+        let newAttributes = Object.assign({}, state.animations[index]);
 
-          newAttributes.name = updates.name;
-          Vue.set(state.animations, index, newAttributes);
-        } else {
-          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-          let newAttributes = Object.assign({}, state.objects[index]);
+        newAttributes.name = updates.name;
+        Vue.set(state.animations, index, newAttributes);
+      } else {
+        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
+        let newAttributes = Object.assign({}, state.objects[index]);
 
-          newAttributes.name = updates.name;
-          Vue.set(state.objects, index, newAttributes);
-        }
+        newAttributes.name = updates.name;
+        Vue.set(state.objects, index, newAttributes);
+      }
+    },
+    updateObjectPositionData: function (state, updates) {
+      if (updates.type == 'LED') {
+        let index = state.lineConnections.indexOf(updates.uuid);
+
+        state.LEDs[updates.uuid].position = updates.position;
+        state.line.geometry.attributes.position.array[index * 3] = updates.position[0];
+        state.line.geometry.attributes.position.array[index * 3 + 1] = updates.position[1];
+        state.line.geometry.attributes.position.array[index * 3 + 2] = updates.position[2];
+        state.line.geometry.setDrawRange(0, state.lineConnections.length);
+        state.line.geometry.attributes.position.needsUpdate = true;
+      } else if (updates.type == 'Object') {
+        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
+
+        state.objects[index].position = updates.position;
+      } else if (updates.type == 'Group') {
+        /*
+        let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
+
+        threeObject.children.forEach(child => {
+          let position = [
+            updates.position[0] + child.position.x,
+            updates.position[1] + child.position.y,
+            updates.position[2] + child.position.z
+          ];
+          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
+        });
+        */
+        console.log("error error");
+      }
+    },
+    updateObjectPosition: function (state, updates) {
+      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
+      let type = threeObject.userData.type;
+
+      if (type == 'Group') {
+        // object is the selection group
+        threeObject.children.forEach(child => {
+          let position = [
+            updates.position[0] + child.position.x,
+            updates.position[1] + child.position.y,
+            updates.position[2] + child.position.z
+          ];
+          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
+        });
+      } else {
+        // parent is the selection group
+        threeObject.parent.position.x = updates.position[0];
+        threeObject.parent.position.y = updates.position[1];
+        threeObject.parent.position.z = updates.position[2];
+
+        this.commit("updateObjectPositionData", { uuid: updates.uuid, position: updates.position, type });
+      }
+    },
+    updateObjectRotation: function (state, updates) {
+      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
+      let type = threeObject.userData.type;
+
+      if (type == 'Group') {
+        // object is the selection group
+        threeObject.children.forEach(child => {
+          let position = [
+            threeObject.position.x + child.position.x,
+            threeObject.position.x + child.position.y,
+            threeObject.position.x + child.position.z
+          ];
+          this.commit("updateObjectPositionData", { uuid: child.uuid, position, type: child.userData.type });
+        });
+      } else {
+        // parent is the selection group
+        threeObject.parent.rotation.x = updates.rotation[0];
+        threeObject.parent.rotation.y = updates.rotation[1];
+        threeObject.parent.rotation.z = updates.rotation[2];
+
+        //this.commit("updateObjectPositionData", { uuid: updates.uuid, position: updates.position, type });
       }
 
-      if (updates.color !== undefined) {
-        threeObject.material.color.r = updates.color[0];
-        threeObject.material.color.g = updates.color[1];
-        threeObject.material.color.b = updates.color[2];
+      /*
+      threeObject.rotation.x = updates.rotation[0];
+      threeObject.rotation.y = updates.rotation[1];
+      threeObject.rotation.z = updates.rotation[2];
 
-        if (type == 'LED') {
-          state.LEDs[updates.uuid].color = updates.color;
-        }
+      if (type !== 'Group') {
+        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
+
+        state.objects[index].rotation = updates.rotation;
       }
+      */
+    },
+    updateObjectScale: function (state, updates) {
+      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
+      let type = threeObject.userData.type;
 
-      if (updates.position !== undefined) {
-        threeObject.position.x = updates.position[0];
-        threeObject.position.y = updates.position[1];
-        threeObject.position.z = updates.position[2];
+      threeObject.scale.x = updates.scale[0];
+      threeObject.scale.y = updates.scale[1];
+      threeObject.scale.z = updates.scale[2];
 
-        if (type == 'LED') {
-          let index = state.lineConnections.indexOf(updates.uuid);
+      if (type !== 'Group') {
+        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
 
-          state.LEDs[updates.uuid].position = updates.position;
-          state.line.geometry.attributes.position.array[index * 3] = updates.position[0];
-          state.line.geometry.attributes.position.array[index * 3 + 1] = updates.position[1];
-          state.line.geometry.attributes.position.array[index * 3 + 2] = updates.position[2];
-          state.line.geometry.setDrawRange(0, state.lineConnections.length);
-          state.line.geometry.attributes.position.needsUpdate = true;
-        } else if (type !== 'Group') {
-          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-          state.objects[index].position = updates.position;
-        }
-      }
-
-      if (updates.scale !== undefined) {
-        threeObject.scale.x = updates.scale[0];
-        threeObject.scale.y = updates.scale[1];
-        threeObject.scale.z = updates.scale[2];
-
-        if (type !== 'Group') {
-          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-          state.objects[index].scale = updates.scale;
-        }
-      }
-
-      if (updates.rotation !== undefined) {
-        threeObject.rotation.x = updates.rotation[0];
-        threeObject.rotation.y = updates.rotation[1];
-        threeObject.rotation.z = updates.rotation[2];
-
-        if (type !== 'Group') {
-          let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-
-          state.objects[index].rotation = updates.rotation;
-        }
+        state.objects[index].scale = updates.scale;
       }
     },
     deleteObject(state, object) {
@@ -237,6 +296,29 @@ export default new Vuex.Store({
     },
     toggleShowHelpers: function (state) {
       state.showHelpers = !state.showHelpers;
+    },
+    emptySelectionGroup: function (state) {
+      let group = state.selectionGroup.children;
+
+      for (var i = group.length - 1; i >= 0; i--) {
+        let child = group[i];
+
+        child.applyMatrix(state.selectionGroup.matrixWorld);
+        state.selectionGroup.remove(child);
+        state.scene.add(child);
+      }
+
+      state.selectionGroup.position.set(0, 0, 0);
+      state.selectionGroup.rotation.set(0, 0, 0);
+      state.selectionGroup.scale.set(1, 1, 1);
+      state.selectionGroup.updateMatrix();
+    },
+    deleteActiveObjects: function (state) {
+      this.commit("emptySelectionGroup");
+      for (const uuid in state.activeObjects) {
+        this.commit("deleteObject", state.scene.getObjectByProperty("uuid", uuid));
+      }
+      this.commit("clearActiveObjects");
     },
     applyLEDMaterial: function (state) {
       let uniforms = { time: new THREE.Uniform(0.0) };
@@ -330,9 +412,9 @@ export default new Vuex.Store({
         object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
         object.material = material;
         object.needsUpdate = true;
-        state.bufferGeometry.attributes.LEDPosition.array[index*3] = object.position.x;
-        state.bufferGeometry.attributes.LEDPosition.array[index*3 + 1] = object.position.y;
-        state.bufferGeometry.attributes.LEDPosition.array[index*3 + 2] = object.position.z;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3] = object.position.x;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = object.position.y;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = object.position.z;
         index++;
       }
 
