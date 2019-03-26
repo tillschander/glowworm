@@ -2,7 +2,7 @@
   <div class="animations-sidebar">Animations:
     <br>====
     <div v-bind:key="animation.uuid" v-for="animation in this.$store.state.animations">
-      {{ animation.name || 'Animation' }}
+      {{ getNameFromUuid(animation.uuid) }}
       <br>
     </div>
   </div>
@@ -10,7 +10,13 @@
 
 <script>
 export default {
-  name: "AnimationsSidebar"
+  name: "AnimationsSidebar",
+  methods: {
+    getNameFromUuid: function(uuid) {
+      let animation = this.$store.state.scene.getObjectByProperty("uuid", uuid);
+      return animation.name ? animation.name : animation.userData.type;
+    }
+  }
 };
 </script>
 

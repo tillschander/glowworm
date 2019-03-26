@@ -8,7 +8,7 @@
             v-for="animation in this.$store.state.animations"
             v-bind:key="animation.uuid"
             v-bind:uuid="animation.uuid"
-            v-bind:name="animation.name ? animation.name : 'Animation'"
+            v-bind:type="'Animation'"
             class="scene-object"
           ></SceneObject>
         </ul>
@@ -16,10 +16,10 @@
       <li>LEDs
         <ul>
           <SceneObject
-            v-for="(LED, uuid) in this.$store.state.LEDs"
-            v-bind:key="uuid"
-            v-bind:uuid="uuid"
-            v-bind:name="LED.name ? LED.name : 'LED'"
+            v-for="LED in this.$store.state.LEDs"
+            v-bind:key="LED.uuid"
+            v-bind:uuid="LED.uuid"
+            v-bind:type="'LED'"
             class="scene-object"
           ></SceneObject>
         </ul>
@@ -30,14 +30,15 @@
             v-for="object in this.$store.state.objects"
             v-bind:key="object.uuid"
             v-bind:uuid="object.uuid"
-            v-bind:name="object.name ? object.name : 'Object'"
+            v-bind:type="'Object'"
             class="scene-object"
           ></SceneObject>
         </ul>
       </li>
       <SceneObject
+        v-if="this.$store.state.camera.parent"
         v-bind:uuid="this.$store.state.camera.uuid"
-        v-bind:name="'Camera'"
+        v-bind:type="'Camera'"
         class="scene-object"
       ></SceneObject>
     </ul>

@@ -9,7 +9,7 @@ export default new Vuex.Store({
   state: {
     maxFps: 60,
     fps: 0,
-    LEDs: {},
+    LEDs: [],
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
     activeObjects: {},
@@ -48,9 +48,7 @@ export default new Vuex.Store({
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
       state.scene.add(mesh);
-      Vue.set(state.LEDs, mesh.uuid, {
-        position: options.position
-      });
+      state.LEDs.push({ uuid: mesh.uuid });
       state.lineConnections.push(mesh.uuid);
       state.line.geometry.setDrawRange(0, state.lineConnections.length);
 
@@ -69,11 +67,10 @@ export default new Vuex.Store({
     },
     addObject: function (state, options = { mesh: null, position: [0, 0, 0] }) {
       let object = {
-        uuid: options.mesh.uuid,
-        position: options.position
+        uuid: options.mesh.uuid
       };
 
-      if (options.name) object.name = options.name;
+      if (options.name) options.mesh.name = options.name;
       options.mesh.position.set(options.position[0], options.position[1], options.position[2]);
       options.mesh.userData.type = 'Object';
       state.scene.add(options.mesh);
@@ -110,14 +107,17 @@ export default new Vuex.Store({
     },
     addGroup: function (state, options) {
       let object = {
-        uuid: options.group.uuid,
-        position: options.position
+        uuid: options.group.uuid
       };
 
-      if (options.name) object.name = options.name;
+      options.group.userData.groupType = options.groupType;
       options.group.userData.type = 'Group';
       state.scene.add(options.group);
-      state.objects.push(object);
+      if (options.groupType == 'LED') {
+        state.LEDs.push(object);
+      } else {
+        state.objects.push(object);
+      }
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", options.group.uuid);
     },
@@ -126,29 +126,7 @@ export default new Vuex.Store({
     },
     updateObjectName: function (state, updates) {
       let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-      let type = threeObject.userData.type;
-
-      threeObject.userData.name = updates.name;
-
-      if (type == 'LED') {
-        let index = updates.uuid;
-        let newAttributes = Object.assign({}, state.LEDs[index]);
-
-        newAttributes.name = updates.name;
-        Vue.set(state.LEDs, index, newAttributes);
-      } else if (type == 'Animation') {
-        let index = state.animations.findIndex((elem) => elem.uuid == updates.uuid);
-        let newAttributes = Object.assign({}, state.animations[index]);
-
-        newAttributes.name = updates.name;
-        Vue.set(state.animations, index, newAttributes);
-      } else {
-        let index = state.objects.findIndex((elem) => elem.uuid == updates.uuid);
-        let newAttributes = Object.assign({}, state.objects[index]);
-
-        newAttributes.name = updates.name;
-        Vue.set(state.objects, index, newAttributes);
-      }
+      threeObject.name = updates.name;
     },
     updateLEDConnections: function (state, objects) {
       objects.forEach(object => {
@@ -165,8 +143,9 @@ export default new Vuex.Store({
       });
     },
     deleteObject(state, object) {
-      if (object.userData.type == 'LED') {
-        Vue.delete(state.LEDs, object.uuid);
+      if (object.userData.type == 'LED' || (object.userData.type == "Group" && object.userData.groupType == 'LED')) {
+        let index = state.LEDs.findIndex((elem) => elem.uuid == object.uuid);
+        state.LEDs.splice(index, 1);
       } else {
         let index = state.objects.findIndex((elem) => elem.uuid == object.uuid);
         state.objects.splice(index, 1);
@@ -304,9 +283,7 @@ export default new Vuex.Store({
         ].join("\n")
       });
 
-      let index = 0;
-      for (let LED in state.LEDs) {
-        let object = state.scene.getObjectByProperty("uuid", LED);
+      function applyAttributes(object, index) {
         let LEDPosition = Float32Array.from(object.geometry.attributes.position.array);
         let length = object.geometry.attributes.position.array.length / 3;
         let LEDIndex = Float32Array.from({ length: length }, () => index);
@@ -323,7 +300,18 @@ export default new Vuex.Store({
         state.bufferGeometry.attributes.LEDPosition.array[index * 3] = object.position.x;
         state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = object.position.y;
         state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = object.position.z;
-        index++;
+      }
+
+      for (let i = 0; i < state.LEDs.length; i++) {
+        const threeObject = state.scene.getObjectByProperty("uuid", state.LEDs[i].uuid);
+
+        if (threeObject.userData.type == 'Group') {
+          for (let j = 0; j < threeObject.children.length; j++) {
+            applyAttributes(threeObject.children[j], i+j);
+          }
+        } else {
+          applyAttributes(threeObject, i);
+        }
       }
 
       if (state.bufferObject) {

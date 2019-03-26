@@ -12,24 +12,15 @@ export default {
     uuid: function() {
       return Object.keys(this.$store.state.activeObjects)[0];
     },
+    element: function() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
+    },
     type: function() {
-      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid).userData.type;
+      return this.element.userData.type;
     },
     name: {
       get() {
-        let name = undefined;
-
-        if (this.type == "LED") {
-          name = this.$store.state.LEDs[this.uuid].name;
-        } else if (this.type == "Object") {
-          name = this.$store.state.objects.find(
-            object => object.uuid == this.uuid
-          ).name;
-        } else if (this.type == "Animation") {
-          name = this.$store.state.animations.find(
-            animation => animation.uuid == this.uuid
-          ).name;
-        }
+        let name = this.element.name;
 
         return name ? name : this.type;
       },

@@ -3,7 +3,7 @@
     <br>====
     <br>
     <br>
-    <template v-if="this.activeObjectsCount == 1">
+    <template v-if="this.activeCount == 1">
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
         <AnimationPanel/>
@@ -31,13 +31,25 @@
         <button v-on:click="ungroup">Ungroup</button>
       </template>
     </template>
-    <template v-else-if="this.activeObjectsCount > 1">
+    <template v-else-if="this.activeCount > 1">
       <PositionPanel/>
       <RotationPanel/>
-      {{ this.activeObjectsCount }} selected
+      <div v-if="this.activeLEDs.length > 0">
+        {{ this.activeLEDs.length }} LEDs selected
+      </div>
+      <div v-if="this.activeObjects.length > 0">
+        {{ this.activeObjects.length }} Objects selected
+      </div>
+      <div v-if="this.activeGroups.length > 0">
+        {{ this.activeGroups.length }} Groups selected
+      </div>
       <br>
-      <br>
-      <button v-on:click="group">Group</button>
+      <template v-if="this.activeLEDs.length == 0 || this.activeObjects.length == 0 ">
+        <button v-on:click="group">Group</button>
+      </template>
+      <template v-else>
+        <button disabled>Group</button>
+      </template>
     </template>
     <template v-else>Nothing selected</template>
   </div>
@@ -77,20 +89,37 @@ export default {
     threeType: function() {
       return this.object.geometry.type;
     },
-    activeObjectsCount: function() {
+    activeCount: function() {
       return Object.keys(this.$store.state.activeObjects).length;
+    },
+    activeLEDs: function() {
+      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'LED');
+    },
+    activeObjects: function() {
+      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'Object');
+    },
+    activeGroups: function() {
+      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'Group');
+    },
+    canGroup: function() {
+      if (false) {
+        
+      }
     }
   },
   methods: {
     group: function() {
       let newGroup = this.$store.state.selectionGroup.clone();
+      let groupType = (this.activeLEDs.length === 0) ? 'Object' : 'LED';
+
       this.$store.commit("deleteActiveObjects");
-      this.$store.commit("addGroup", {group: newGroup, name: 'Group'});
+      this.$store.commit("addGroup", {group: newGroup, name: 'Group', groupType: groupType});
     },
     ungroup: function() {
       let children = this.object.children;
 
       for (var i = children.length - 1; i >= 0; i--) {
+        let elements;
         let child = children[i];
 
         child.applyMatrix(this.object.matrixWorld);
@@ -98,15 +127,12 @@ export default {
         this.$store.state.scene.add(child);
 
         if (child.userData.type == 'LED') {
-          Vue.set(this.$store.state.LEDs, child.uuid, {
-            position: [child.position.x, child.position.y, child.position.z]
-          });
+          elements = this.$store.state.LEDs;
         } else {
-          this.$store.state.objects.push({
-            uuid: child.uuid,
-            position: [child.position.x, child.position.y, child.position.z]
-          });
+          elements = this.$store.state.objects;
         }
+
+        elements.push({ uuid: child.uuid });
       }
 
       this.$store.commit("deleteObject", this.object);
