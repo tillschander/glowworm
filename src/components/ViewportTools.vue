@@ -16,10 +16,10 @@ export default {
   name: "ViewportTool",
   methods: {
     toogleSnapToGrid() {
-      this.$store.commit("toggleSnapToGrid");
+      this.$store.commit("setSnapToGrid", !this.$store.state.snapToGrid);
     },
     toggleShowHelpers() {
-      this.$store.commit("toggleShowHelpers");
+      this.$store.commit("setShowHelpers", !this.$store.state.showHelpers);
     }
   },
   computed: {

@@ -10,8 +10,7 @@ export default {
   name: "ColorPanel",
   methods: {
     resetCamera: function() {
-      this.$store.state.camera.position.set(100, 100, 100);
-      this.$store.state.camera.lookAt(0, 200, 0);
+      this.$store.state.orbit.reset();
     }
   }
 };

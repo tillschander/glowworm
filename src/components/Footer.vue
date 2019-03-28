@@ -32,13 +32,17 @@ export default {
   name: "Footer",
   data() {
     return {
-      maxFps: 60,
       errorMessage: ""
     };
   },
-  watch: {
-    maxFps: function() {
-      this.$store.commit("setMaxFps", this.maxFps);
+  computed: {
+    maxFps: {
+      get() {
+        return this.$store.state.maxFps;
+      },
+      set(value) {
+        this.$store.commit("setMaxFps", value);
+      }
     }
   },
   methods: {

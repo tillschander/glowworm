@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import persistence from './modules/persistence'
 
 const THREE = require("three");
 
@@ -12,6 +13,7 @@ export default new Vuex.Store({
     LEDs: [],
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
+    orbit: null,
     activeObjects: {},
     ports: [],
     activePort: null,
@@ -39,12 +41,17 @@ export default new Vuex.Store({
     shiftPressed: false,
     selectionGroup: new THREE.Group()
   },
+  modules: {
+    persistence
+  },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
       let geometry = new THREE.OctahedronBufferGeometry(5, 0);
       let material = state.activeLEDMaterial;
       let mesh = new THREE.Mesh(geometry, material);
 
+      if (options.name) mesh.name = options.name;
+      if (options.uuid) mesh.uuid = options.uuid;
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
       state.scene.add(mesh);
@@ -70,33 +77,51 @@ export default new Vuex.Store({
         uuid: options.mesh.uuid
       };
 
-      if (options.name) options.mesh.name = options.name;
       options.mesh.position.set(options.position[0], options.position[1], options.position[2]);
+      if (options.name) options.mesh.name = options.name;
+      //if (options.uuid) options.mesh.uuid = options.uuid;
+      if (options.rotation) {
+        options.mesh.rotateX(options.rotation[0]);
+        options.mesh.rotateY(options.rotation[1]);
+        options.mesh.rotateZ(options.rotation[2]);
+      }
+      if (options.scale) options.mesh.scale.set(options.scale[0], options.scale[1], options.scale[2]);
       options.mesh.userData.type = 'Object';
       state.scene.add(options.mesh);
       state.objects.push(object);
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", options.mesh.uuid);
     },
-    addAnimation: function (state) {
+    addAnimation: function (state, options = {}) {
       let animation = new THREE.Object3D();
 
+      if (options.name) animation.name = options.name;
+      if (options.uuid) animation.uuid = options.uuid;
       animation.userData.type = 'Animation';
       animation.visble = false;
       state.scene.add(animation);
       state.animations.push({
         uuid: animation.uuid,
-        effects: []
+        effects: options.effects || []
       });
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", animation.uuid);
     },
-    addBox: function (state, options = { size: [10, 10, 10], position: [0, 0, 0] }) {
-      let geometry = new THREE.BoxBufferGeometry(options.size[0], options.size[1], options.size[2]);
+    addBox: function (state, options = { position: [0, 0, 0], scale: [10, 10, 10] }) {
+      let geometry = new THREE.BoxBufferGeometry(1, 1, 1);
       let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
       let mesh = new THREE.Mesh(geometry, material);
+      let object = {
+        mesh,
+        name: 'Box',
+        position: options.position, 
+        scale: options.scale
+      }
 
-      this.commit('addObject', { mesh, position: options.position, name: 'Box' });
+      if (options.rotation) object.rotation = options.rotation;
+      if (options.name) object.name = options.name;
+      if (options.uuid) object.uuid = options.uuid;
+      this.commit('addObject', object);
     },
     addPlane: function (state, options = { size: [30, 30], position: [0, 0, 0] }) {
       let geometry = new THREE.PlaneBufferGeometry(options.size[0], options.size[1]);
@@ -146,6 +171,9 @@ export default new Vuex.Store({
       if (object.userData.type == 'LED' || (object.userData.type == "Group" && object.userData.groupType == 'LED')) {
         let index = state.LEDs.findIndex((elem) => elem.uuid == object.uuid);
         state.LEDs.splice(index, 1);
+      } else if (object.userData.type == 'Animation') {
+        let index = state.animations.findIndex((elem) => elem.uuid == object.uuid);
+        state.animations.splice(index, 1);
       } else {
         let index = state.objects.findIndex((elem) => elem.uuid == object.uuid);
         state.objects.splice(index, 1);
@@ -178,11 +206,11 @@ export default new Vuex.Store({
     setShiftPressed: function (state, bool) {
       state.shiftPressed = bool;
     },
-    toggleSnapToGrid: function (state) {
-      state.snapToGrid = !state.snapToGrid;
+    setSnapToGrid: function (state, bool) {
+      state.snapToGrid = bool;
     },
-    toggleShowHelpers: function (state) {
-      state.showHelpers = !state.showHelpers;
+    setShowHelpers: function (state, bool) {
+      state.showHelpers = bool;
     },
     emptySelectionGroup: function (state) {
       let group = state.selectionGroup.children;
@@ -322,8 +350,5 @@ export default new Vuex.Store({
 
       state.activeLEDMaterial = material;
     }
-  },
-  actions: {
-
   }
 })

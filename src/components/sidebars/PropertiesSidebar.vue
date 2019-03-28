@@ -20,8 +20,6 @@
         <TexturePanel v-if="this.threeType == 'PlaneBufferGeometry'"/>
       </template>
       <template v-if="this.type == 'Camera'">
-        <PositionPanel/>
-        <RotationPanel/>
         <CameraPanel/>
       </template>
       <template v-if="this.type == 'Group'">

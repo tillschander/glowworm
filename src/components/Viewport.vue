@@ -24,7 +24,6 @@ export default {
       renderer: null,
       light1: null,
       light2: null,
-      orbit: null,
       control: null,
       downPosition: new THREE.Vector2(),
       upPosition: new THREE.Vector2(),
@@ -159,11 +158,11 @@ export default {
 
       this.$store.state.scene.add(this.highlighter);
 
-      this.orbit = new OrbitControls(
+      this.$store.state.orbit = new OrbitControls(
         this.$store.state.camera,
         this.renderer.domElement
       );
-      this.orbit.update();
+      this.$store.state.orbit.update();
 
       this.control = new TransformControls(
         this.$store.state.camera,
@@ -197,11 +196,11 @@ export default {
 
       this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
-        size: [1000, 10, 1000],
-        position: [0, -250, 0]
+        position: [0, -250, 0],
+        scale: [1000, 10, 1000]
       });
       this.$store.commit("addLED");
-      this.$store.commit("toggleSnapToGrid");
+      this.$store.commit("setSnapToGrid", true);
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
@@ -339,7 +338,7 @@ export default {
       }
     },
     onDraggingChanged: function(event) {
-      this.orbit.enabled = !event.value;
+      this.$store.state.orbit.enabled = !event.value;
     },
     onObjectChanged: function(event) {
       this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);

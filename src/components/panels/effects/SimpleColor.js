@@ -5,7 +5,7 @@ export default function () {
     this.type = "SimpleColor";
     this.name = "Simple Color";
     this.properties = {
-        color: new THREE.Uniform(new THREE.Color(0x00ffff)),
+        color: new THREE.Uniform(new THREE.Vector3(0,1,1)),
         opacity: new THREE.Uniform(1.0)
     };
     this.shaderParameters = [

@@ -29,13 +29,20 @@ export default {
   mixins: [Default],
   data() {
     return {
-      color: "#" + this.properties["color" + this.uuid].value.getHexString(),
+      color:
+        "#" +
+        new THREE.Color(
+          this.properties["color" + this.uuid].value.x,
+          this.properties["color" + this.uuid].value.y,
+          this.properties["color" + this.uuid].value.z
+        ).getHexString(),
       opacity: this.properties["opacity" + this.uuid].value
     };
   },
   methods: {
     hexToThreeColor: function(color) {
-      return new THREE.Color(parseInt("0x" + color.slice(1)));
+      let threeColor = new THREE.Color(color);
+      return new THREE.Vector3(threeColor.r, threeColor.g, threeColor.b);
     }
   }
 };
