@@ -39,7 +39,8 @@ export default {
           self.$store.commit("addObject", {
             mesh: object,
             position: [0, 0, 0],
-            name: self.file.name
+            name: self.file.name,
+            type: 'model'
           });
 
           self.$parent.continue();

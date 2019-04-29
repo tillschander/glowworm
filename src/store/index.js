@@ -72,7 +72,7 @@ export default new Vuex.Store({
       }
       */
     },
-    addObject: function (state, options = { mesh: null, position: [0, 0, 0] }) {
+    addObject: function (state, options = { mesh: null, position: [0, 0, 0], type: 'box' }) {
       let object = {
         uuid: options.mesh.uuid
       };
@@ -87,6 +87,7 @@ export default new Vuex.Store({
       }
       if (options.scale) options.mesh.scale.set(options.scale[0], options.scale[1], options.scale[2]);
       options.mesh.userData.type = 'Object';
+      options.mesh.userData.objectType = options.type;
       state.scene.add(options.mesh);
       state.objects.push(object);
       this.commit("clearActiveObjects");
@@ -115,7 +116,8 @@ export default new Vuex.Store({
         mesh,
         name: 'Box',
         position: options.position, 
-        scale: options.scale
+        scale: options.scale,
+        type: 'box'
       }
 
       if (options.rotation) object.rotation = options.rotation;
@@ -128,7 +130,7 @@ export default new Vuex.Store({
       let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD, side: THREE.DoubleSide });
       let mesh = new THREE.Mesh(geometry, material);
 
-      this.commit('addObject', { mesh, position: options.position, name: 'Plane' });
+      this.commit('addObject', { mesh, position: options.position, name: 'Plane', type: 'plane' });
     },
     addGroup: function (state, options) {
       let object = {

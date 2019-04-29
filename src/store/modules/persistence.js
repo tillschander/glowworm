@@ -65,6 +65,7 @@ export default {
               return {
                 uuid: object.uuid,
                 name: threeObject.name,
+                type: threeObject.userData.objectType,
                 position: threeObject.position,
                 rotation: threeObject.rotation,
                 scale: threeObject.scale,
@@ -87,6 +88,21 @@ export default {
         }
       }
 
+      Object.keys(rootState.activeObjects).forEach(uuid => {
+        let threeObject = rootState.scene.getObjectByProperty("uuid", uuid);
+        let type = threeObject.userData.type;
+        let newPosition = threeObject.position.clone();
+        let elements = (type == 'LED') ? saveState['LEDs'] : saveState['objects'];
+
+        newPosition.add(threeObject.parent.position);
+        elements[elements.findIndex(elem => elem.uuid == uuid)].position = newPosition;
+
+        // TODO:
+        // - rotation: threeObject.rotation,
+        // - scale: threeObject.scale,
+        // - selected groups
+      });
+
       if (state.savePath) {
         fs.writeFile(state.savePath, JSON.stringify(saveState, null, 2), (error) => {
           if (error) console.log(error);
@@ -97,8 +113,6 @@ export default {
         // TODO: enable ctrl+s
         console.log('Error: No save path defined.');
       }
-
-      console.log(rootState);
     },
     load: function ({ rootState }, path) {
       let data = JSON.parse(fs.readFileSync(path, 'utf8'));
@@ -127,13 +141,22 @@ export default {
             break;
           case 'objects':
             data.objects.forEach(object => {
-              this.commit('addBox', {
+              let properties = {
                 uuid: object.uuid,
                 name: object.name,
+                type: object.type,
                 position: [object.position.x, object.position.y, object.position.z],
                 rotation: [object.rotation._x, object.rotation._y, object.rotation._z],
                 scale: [object.scale.x, object.scale.y, object.scale.z]
-              });
+              };
+
+              if (object.type == 'box') {
+                this.commit('addBox', properties);
+              } else if (object.type == 'plane') {
+                this.commit('addPlane', properties);
+              } else if (object.type == 'model') {
+                this.commit('addObject', properties);
+              }
             });
             break;
           case 'animations':
