@@ -4,10 +4,10 @@
       v-on:click="toogleSnapToGrid()"
       v-bind:class="{ active: snapToGrid }"
     >Snap to Grid</button>
-    <!--<button
-      v-on:click="toggleShowHelpers()"
-      v-bind:class="{ active: showHelpers }"
-    >Show Helpers</button>-->
+    <button
+      v-on:click="toggleShowConnections()"
+      v-bind:class="{ active: showConnections }"
+    >Show Connections</button>
   </div>
 </template>
 
@@ -18,16 +18,16 @@ export default {
     toogleSnapToGrid() {
       this.$store.commit("setSnapToGrid", !this.$store.state.snapToGrid);
     },
-    toggleShowHelpers() {
-      this.$store.commit("setShowHelpers", !this.$store.state.showHelpers);
+    toggleShowConnections() {
+      this.$store.commit("setShowConnections", !this.$store.state.showConnections);
     }
   },
   computed: {
     snapToGrid: function() {
       return this.$store.state.snapToGrid;
     },
-    showHelpers: function() {
-      return this.$store.state.showHelpers;
+    showConnections: function() {
+      return this.$store.state.showConnections;
     }
   }
 };

@@ -21,19 +21,19 @@ export default new Vuex.Store({
     line: null,
     lineGeometry: new THREE.BufferGeometry(),
     lineConnections: [],
-    maxConnections: 512,
+    maxConnections: 256,
     mode: 'design',
     objects: [],
     animations: [],
     snapToGrid: false,
-    showHelpers: true,
+    showConnections: true,
     activeLEDMaterial: null,
     bufferRenderer: new THREE.WebGLRenderer({ premultipliedAlpha: false }),
     bufferCamera: null,
     bufferScene: new THREE.Scene(),
     bufferTexture: null,
-    bufferWidth: 4,
-    bufferHeight: 4,
+    bufferWidth: 16,
+    bufferHeight: 16,
     bufferMaterial: null,
     bufferGeometry: null,
     bufferObject: null,
@@ -46,7 +46,7 @@ export default new Vuex.Store({
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
-      let geometry = new THREE.OctahedronBufferGeometry(5, 0);
+      let geometry = new THREE.PlaneBufferGeometry(10, 10);
       let material = state.activeLEDMaterial;
       let mesh = new THREE.Mesh(geometry, material);
 
@@ -115,7 +115,7 @@ export default new Vuex.Store({
       let object = {
         mesh,
         name: 'Box',
-        position: options.position, 
+        position: options.position,
         scale: options.scale,
         type: 'box'
       }
@@ -211,8 +211,9 @@ export default new Vuex.Store({
     setSnapToGrid: function (state, bool) {
       state.snapToGrid = bool;
     },
-    setShowHelpers: function (state, bool) {
-      state.showHelpers = bool;
+    setShowConnections: function (state, bool) {
+      state.showConnections = bool;
+      state.line.material.visible = bool;
     },
     emptySelectionGroup: function (state) {
       let group = state.selectionGroup.children;
@@ -238,7 +239,13 @@ export default new Vuex.Store({
       this.commit("clearActiveObjects");
     },
     applyLEDMaterial: function (state) {
-      let uniforms = { time: new THREE.Uniform(0.0) };
+      let ledTexture = new THREE.TextureLoader().load(location.origin + '/led.png');
+      let shineTexture = new THREE.TextureLoader().load(location.origin + '/shine.png');
+      let uniforms = {
+        time: new THREE.Uniform(0.0),
+        ledTexture: new THREE.Uniform(ledTexture),
+        shineTexture: new THREE.Uniform(shineTexture),
+      };
       let shaderParameters = "";
       let shader = "";
       let activeAnimation = null;
@@ -253,7 +260,7 @@ export default new Vuex.Store({
 
       if (activeAnimation) {
         activeAnimation.effects.forEach(effect => {
-          uniforms = THREE.UniformsUtils.merge([uniforms, effect.properties]);
+          uniforms = Object.assign(uniforms, effect.properties);
           shaderParameters += "\n" + effect.shaderParameters;
           shader += "\n" + effect.shader;
         });
@@ -261,32 +268,49 @@ export default new Vuex.Store({
 
       let material = new THREE.ShaderMaterial({
         uniforms: uniforms,
+        side: THREE.DoubleSide,
+        transparent: true,
+        //blending: THREE.AdditiveBlending,
+        defines: {
+          USE_MAP: true
+        },
         vertexShader: [
           "uniform float time;",
           "varying lowp vec4 vColor;",
           "attribute vec3 LEDPosition;",
           "attribute float LEDIndex;",
-          "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
+          "varying vec2 vUv;",
+          "float random(in vec2 st){ return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
-          "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
-          "vColor = vec4(0.0);",
+          "  vUv = uv;",
+          "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",
+          "  gl_Position = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);",
+          "  gl_Position.xy += position.xy;",
+          "  gl_Position = projectionMatrix * gl_Position;",
           shader,
-          "}"
+          "}",
         ].join("\n"),
         fragmentShader: [
           "varying lowp vec4 vColor;",
+          "uniform sampler2D ledTexture;",
+          "uniform sampler2D shineTexture;",
+          "varying vec2 vUv;",
           "void main() {",
-          "gl_FragColor = vColor;",
+          "  float brightness = max(max(vColor.r, vColor.g), vColor.b);",
+          "  vec4 led = texture2D(ledTexture, vUv);",
+          "  vec4 shine = texture2D(shineTexture, vUv);",
+          "  gl_FragColor = led * vColor;",
+          "  gl_FragColor.rgb += brightness * shine.a;",
           "}"
         ].join("\n")
       });
 
       state.bufferMaterial = new THREE.ShaderMaterial({
-        uniforms: THREE.UniformsUtils.merge([uniforms, {
+        uniforms: Object.assign(uniforms, {
           width: { value: state.bufferWidth },
           height: { value: state.bufferHeight }
-        }]),
+        }),
         vertexShader: [
           "attribute float LEDIndex;",
           "attribute vec3 LEDPosition;",
@@ -297,11 +321,11 @@ export default new Vuex.Store({
           "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
+          "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",
           "  vec2 pos = vec2(mod(LEDIndex, width) / width, floor(LEDIndex / width) / height) * 2.0 - 1.0;",
           "  pos += 1.0 / width;",
           "  gl_PointSize = 1.0;",
           "  gl_Position = vec4(pos, 0.0, 1.0);",
-          "  vColor = vec4(0.0);",
           shader,
           "}",
         ].join("\n"),
@@ -337,7 +361,7 @@ export default new Vuex.Store({
 
         if (threeObject.userData.type == 'Group') {
           for (let j = 0; j < threeObject.children.length; j++) {
-            applyAttributes(threeObject.children[j], i+j);
+            applyAttributes(threeObject.children[j], i + j);
           }
         } else {
           applyAttributes(threeObject, i);

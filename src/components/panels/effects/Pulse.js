@@ -11,6 +11,6 @@ export default function () {
         "uniform float frequency;"
     ].join("\n");
     this.shader = [
-        "vColor = vec4(abs(sin(time/frequency)));"
+        "vColor.rgb *= abs(sin(time/frequency));"
     ].join("\n");
 }

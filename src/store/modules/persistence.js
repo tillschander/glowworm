@@ -180,8 +180,8 @@ export default {
           case 'snapToGrid':
             this.commit('setSnapToGrid', data[key]);
             break;
-          case 'showHelpers':
-            this.commit('setShowHelpers', data[key]);
+          case 'showConnections':
+            this.commit('setShowConnections', data[key]);
             break;
           case 'activeObjects':
             // skip and handle last so it won't be overridden

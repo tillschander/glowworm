@@ -18,10 +18,10 @@ export default function () {
         "vec2 st = worldCoord.xz/resolution.xy;",
         "st.x *= resolution.x/resolution.y;",
 
-        "vec2 blocks_st = floor(st*6.);",
+        "vec2 blocks_st = floor(st*6.0);",
         "float t = (time/1000.0)*speed + random(blocks_st);",
         "float time_i = floor(t);",
         "float time_f = fract(t);",
-        "vColor = vec4(vec3(random(blocks_st+time_i)*(1.0-time_f)), 1.0);",
+        "vColor.rgb *= random(blocks_st+time_i)*(1.0-time_f);",
     ].join("\n");
 }
