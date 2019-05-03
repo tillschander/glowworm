@@ -35,12 +35,12 @@ export default {
   props: ["$store"],
   data() {
     return {
-      count: 0,
+      count: 10,
       startX: 0,
-      startY: 0,
+      startY: -50,
       startZ: 0,
       endX: 0,
-      endY: 0,
+      endY: 50,
       endZ: 0
     };
   },
@@ -49,12 +49,14 @@ export default {
       this.$parent.close();
     },
     add() {
+      let group = new THREE.Group();
       let line = new THREE.LineCurve3(
         new THREE.Vector3(this.startX, this.startY, this.startZ),
         new THREE.Vector3(this.endX,this.endY,this.endZ)
       );
 
       for (let i = 0; i < this.count; i++) {
+        let uuid = THREE.Math.generateUUID();
         let point = line.getPoint(i/this.count);
 
         if (this.$store.state.snapToGrid) {
@@ -62,10 +64,16 @@ export default {
         }
 
         this.$store.commit("addLED", {
-          position: [point.x, point.y, point.z]
+          position: [point.x, point.y, point.z],
+          uuid: uuid
         });
+
+        let led = this.$store.state.scene.getObjectByProperty("uuid", uuid);
+        group.add(led);
+        this.$store.commit("deleteObject", led);
       }
 
+      this.$store.commit("addGroup", {group: group, name: 'Line', groupType: 'LED'});
       this.$parent.continue();
     }
   }

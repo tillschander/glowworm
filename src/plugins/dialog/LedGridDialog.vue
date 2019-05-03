@@ -53,6 +53,8 @@ export default {
       this.$parent.close();
     },
     add() {
+      let group = new THREE.Group();
+
       for (let x = 0; x < this.countX; x++) {
         let line = new THREE.LineCurve3(
           new THREE.Vector3(x*this.gapX, 0, 0),
@@ -60,6 +62,7 @@ export default {
         );
           
         for (let y = 0; y < this.countY; y++) {
+          let uuid = THREE.Math.generateUUID();
           let point = line.getPoint(y / this.countY);
 
           if (this.$store.state.snapToGrid) {
@@ -67,11 +70,17 @@ export default {
           }
 
           this.$store.commit("addLED", {
-            position: [point.x, point.y, point.z]
+            position: [point.x, point.y, point.z],
+            uuid: uuid
           });
+
+          let led = this.$store.state.scene.getObjectByProperty("uuid", uuid);
+          group.add(led);
+          this.$store.commit("deleteObject", led);
         }
       }
 
+      this.$store.commit("addGroup", {group: group, name: 'Grid', groupType: 'LED'});
       this.$parent.continue();
     }
   }

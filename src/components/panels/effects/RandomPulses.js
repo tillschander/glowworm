@@ -12,16 +12,9 @@ export default function () {
     ].join("\n");
     this.shader = [
         // based on https://thebookofshaders.com/edit.php#10/ikeda-simple-grid.frag
-        "vec4 worldCoord = modelMatrix * vec4( LEDPosition, 1.0 );",
-
-        "vec2 resolution = vec2(30.0, 30.0);",
-        "vec2 st = worldCoord.xz/resolution.xy;",
-        "st.x *= resolution.x/resolution.y;",
-
-        "vec2 blocks_st = floor(st*6.0);",
-        "float t = (time/1000.0)*speed + random(blocks_st);",
+        "float t = (time/1000.0)*speed + random(LEDIndex);",
         "float time_i = floor(t);",
         "float time_f = fract(t);",
-        "vColor.rgb *= random(blocks_st+time_i)*(1.0-time_f);",
+        "vColor.rgb *= random(LEDIndex+time_i) * (1.0-time_f);",
     ].join("\n");
 }

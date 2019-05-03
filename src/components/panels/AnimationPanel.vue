@@ -13,7 +13,6 @@
 </template>
 
 <script>
-const THREE = require("three");
 import Effect from "./Effect";
 
 export default {

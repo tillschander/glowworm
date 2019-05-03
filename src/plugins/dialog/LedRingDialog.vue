@@ -20,6 +20,8 @@
 </template>
 
 <script>
+const THREE = require("three");
+
 export default {
   name: "LedRingDialog",
   props: ["$store"],
@@ -34,7 +36,10 @@ export default {
       this.$parent.close();
     },
     add() {
+      let group = new THREE.Group();
+
       for (let i = 0; i < this.count; i++) {
+        let uuid = THREE.Math.generateUUID();
         let x = this.radius * Math.cos((2 * i * Math.PI) / this.count);
         let z = this.radius * Math.sin((2 * i * Math.PI) / this.count);
 
@@ -44,10 +49,16 @@ export default {
         }
 
         this.$store.commit("addLED", {
-          position: [x, 0, z]
+          position: [x, 0, z],
+          uuid: uuid
         });
-      }
 
+        let led = this.$store.state.scene.getObjectByProperty("uuid", uuid);
+        group.add(led);
+        this.$store.commit("deleteObject", led);
+      }
+      
+      this.$store.commit("addGroup", {group: group, name: 'Ring', groupType: 'LED'});
       this.$parent.continue();
     }
   }

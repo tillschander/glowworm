@@ -8,7 +8,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    maxFps: 60,
+    maxFps: 61,
     fps: 0,
     LEDs: [],
     scene: new THREE.Scene(),
@@ -28,7 +28,7 @@ export default new Vuex.Store({
     snapToGrid: false,
     showConnections: true,
     activeLEDMaterial: null,
-    bufferRenderer: new THREE.WebGLRenderer({ premultipliedAlpha: false }),
+    bufferRenderer: new THREE.WebGLRenderer(),
     bufferCamera: null,
     bufferScene: new THREE.Scene(),
     bufferTexture: null,
@@ -137,6 +137,7 @@ export default new Vuex.Store({
         uuid: options.group.uuid
       };
 
+      if (options.name) options.group.name = options.name;
       options.group.userData.groupType = options.groupType;
       options.group.userData.type = 'Group';
       state.scene.add(options.group);
@@ -280,7 +281,9 @@ export default new Vuex.Store({
           "attribute vec3 LEDPosition;",
           "attribute float LEDIndex;",
           "varying vec2 vUv;",
-          "float random(in vec2 st){ return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453); }",
+          // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+          "float random(float n){ return fract(sin(n) * 43758.5453123); }",
+          "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
           "  vUv = uv;",
@@ -318,7 +321,9 @@ export default new Vuex.Store({
           "uniform float width;",
           "uniform float height;",
           "varying vec4 vColor;",
-          "float random(in vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898,78.233))) * 43758.5453); }",
+          // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+          "float random(float n){ return fract(sin(n) * 43758.5453123); }",
+          "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
           shaderParameters,
           "void main() {",
           "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",
@@ -356,15 +361,18 @@ export default new Vuex.Store({
         state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = object.position.z;
       }
 
+      let index = 0;
       for (let i = 0; i < state.LEDs.length; i++) {
         const threeObject = state.scene.getObjectByProperty("uuid", state.LEDs[i].uuid);
 
         if (threeObject.userData.type == 'Group') {
           for (let j = 0; j < threeObject.children.length; j++) {
-            applyAttributes(threeObject.children[j], i + j);
+            applyAttributes(threeObject.children[j], index);
+            index++;
           }
         } else {
-          applyAttributes(threeObject, i);
+          applyAttributes(threeObject, index);
+          index++;
         }
       }
 

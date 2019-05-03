@@ -13,17 +13,7 @@
         >{{ port.manufacturer }}</option>
       </select>
     </label>
-    FPS: {{ Math.round(this.$store.state.fps) }}
-    <label>
-      Target FPS:
-      <select v-model="maxFps">
-        <option>1</option>
-        <option>5</option>
-        <option>15</option>
-        <option>30</option>
-        <option>60</option>
-      </select>
-    </label>
+    {{ this.$store.state.fps.toFixed(2) }} FPS
   </div>
 </template>
 
@@ -34,16 +24,6 @@ export default {
     return {
       errorMessage: ""
     };
-  },
-  computed: {
-    maxFps: {
-      get() {
-        return this.$store.state.maxFps;
-      },
-      set(value) {
-        this.$store.commit("setMaxFps", value);
-      }
-    }
   },
   methods: {
     /*
