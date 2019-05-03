@@ -1,14 +1,13 @@
 <template>
   <div id="app" class="app">
-    <!--<img alt="Vue logo" src="./assets/logo.png">-->
     <Header class="header"/>
     <div class="main">
       <Sidebar key="sidebar0" ref="sidebar0" v-if="this.mode == 'live'">
         <AnimationsSidebar/>
       </Sidebar>
-      <Sidebar ref="viewport" v-show="this.mode !== 'export'">
+      <Sidebar ref="viewport" v-show="this.mode !== 'io'">
         <Viewport/>
-        <AnimationsSidebar v-if="this.mode == 'live'"/>
+        <FaderSidebar v-if="this.mode == 'live'"/>
       </Sidebar>
       <Sidebar key="sidebar1" ref="sidebar1" v-if="this.mode == 'design'">
         <PropertiesSidebar/>
@@ -19,10 +18,7 @@
       <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'live'">
         <AnimationsSidebar/>
       </Sidebar>
-      <Sidebar key="sidebar4" ref="sidebar4" v-if="this.mode == 'export'">
-        <AnimationsSidebar/>
-      </Sidebar>
-      <Export ref="export" v-if="this.mode == 'export'"/>
+      <IO ref="io" v-if="this.mode == 'io'"/>
     </div>
     <Footer class="footer"/>
   </div>
@@ -36,7 +32,8 @@ import Viewport from "./components/Viewport";
 import SceneSidebar from "./components/sidebars/SceneSidebar";
 import PropertiesSidebar from "./components/sidebars/PropertiesSidebar";
 import AnimationsSidebar from "./components/sidebars/AnimationsSidebar";
-import Export from "./components/Export";
+import FaderSidebar from "./components/sidebars/FaderSidebar";
+import IO from "./components/IO";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 
@@ -48,7 +45,8 @@ export default {
     SceneSidebar,
     PropertiesSidebar,
     AnimationsSidebar,
-    Export,
+    FaderSidebar,
+    IO,
     Footer,
     Sidebar
   },
@@ -105,15 +103,14 @@ export default {
               sizes: [30, 40, 30]
             }
           );
-        } else if (mode == "export") {
+        } else if (mode == "io") {
           self.split = Split(
             [
-              self.$refs.sidebar4.$el,
-              self.$refs.export.$el
+              self.$refs.io.$el
             ],
             {
               direction: "horizontal",
-              sizes: [30, 70]
+              sizes: [100]
             }
           );
         }

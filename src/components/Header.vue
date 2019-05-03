@@ -25,9 +25,9 @@
     >Live</div>
     <div
       class="tab"
-      v-on:click="setMode('export')"
-      v-bind:class="{ active: this.$store.state.mode == 'export' }"
-    >Export</div>
+      v-on:click="setMode('io')"
+      v-bind:class="{ active: this.$store.state.mode == 'io' }"
+    >IO Settings</div>
   </div>
 </template>
 
