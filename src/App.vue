@@ -3,11 +3,11 @@
     <Header class="header"/>
     <div class="main">
       <Sidebar key="sidebar0" ref="sidebar0" v-if="this.mode == 'live'">
-        <AnimationsSidebar/>
+        <AnimationsSidebar :side="'left'"/>
       </Sidebar>
       <Sidebar ref="viewport" v-show="this.mode !== 'io'">
         <Viewport/>
-        <FaderSidebar v-if="this.mode == 'live'"/>
+        <MixerSidebar v-if="this.mode == 'live'"/>
       </Sidebar>
       <Sidebar key="sidebar1" ref="sidebar1" v-if="this.mode == 'design'">
         <PropertiesSidebar/>
@@ -16,7 +16,7 @@
         <SceneSidebar/>
       </Sidebar>
       <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'live'">
-        <AnimationsSidebar/>
+        <AnimationsSidebar :side="'right'"/>
       </Sidebar>
       <IO ref="io" v-if="this.mode == 'io'"/>
     </div>
@@ -32,7 +32,7 @@ import Viewport from "./components/Viewport";
 import SceneSidebar from "./components/sidebars/SceneSidebar";
 import PropertiesSidebar from "./components/sidebars/PropertiesSidebar";
 import AnimationsSidebar from "./components/sidebars/AnimationsSidebar";
-import FaderSidebar from "./components/sidebars/FaderSidebar";
+import MixerSidebar from "./components/sidebars/MixerSidebar";
 import IO from "./components/IO";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
@@ -45,7 +45,7 @@ export default {
     SceneSidebar,
     PropertiesSidebar,
     AnimationsSidebar,
-    FaderSidebar,
+    MixerSidebar,
     IO,
     Footer,
     Sidebar
@@ -91,6 +91,8 @@ export default {
               sizes: [60, 20, 20]
             }
           );
+          self.$store.commit("applyLEDMaterial");
+          self.$store.commit("setShowConnections", true);
         } else if (mode == "live") {
           self.split = Split(
             [
@@ -103,16 +105,14 @@ export default {
               sizes: [30, 40, 30]
             }
           );
+          self.$store.commit("clearActiveObjects");
+          self.$store.commit("applyLEDMaterial");
+          self.$store.commit("setShowConnections", false);
         } else if (mode == "io") {
-          self.split = Split(
-            [
-              self.$refs.io.$el
-            ],
-            {
-              direction: "horizontal",
-              sizes: [100]
-            }
-          );
+          self.split = Split([self.$refs.io.$el], {
+            direction: "horizontal",
+            sizes: [100]
+          });
         }
       });
     }

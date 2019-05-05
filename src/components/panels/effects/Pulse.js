@@ -4,6 +4,7 @@ export default function () {
     this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
     this.type = "Pulse";
     this.name = "Pulse";
+    this.variables = [];
     this.properties = {
         frequency: new THREE.Uniform(500.0)
     };

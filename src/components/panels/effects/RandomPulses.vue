@@ -21,9 +21,8 @@ export default {
   mixins: [Default],
   data() {
     return {
-      speed: this.properties["speed" + this.uuid].value
+      speed: this.properties["speed"].value
     };
-  },
-  methods: {}
+  }
 };
 </script>

@@ -21,9 +21,8 @@ export default {
   mixins: [Default],
   data() {
     return {
-      frequency: this.properties["frequency" + this.uuid].value
+      frequency: this.properties["frequency"].value
     };
-  },
-  methods: {}
+  }
 };
 </script>

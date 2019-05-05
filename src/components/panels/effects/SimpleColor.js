@@ -4,8 +4,9 @@ export default function () {
     this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
     this.type = "SimpleColor";
     this.name = "Simple Color";
+    this.variables = [];
     this.properties = {
-        color: new THREE.Uniform(new THREE.Vector3(0,1,1)),
+        color: new THREE.Uniform(new THREE.Vector3(Math.random(), Math.random(), Math.random())),
         opacity: new THREE.Uniform(1.0)
     };
     this.shaderParameters = [

@@ -4,6 +4,7 @@ export default function () {
     this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
     this.type = "RandomPulses";
     this.name = "Random Pulses";
+    this.variables = ["ledTime", "timeInt", "timeFract"];
     this.properties = {
         speed: new THREE.Uniform(0.8)
     };
@@ -12,9 +13,9 @@ export default function () {
     ].join("\n");
     this.shader = [
         // based on https://thebookofshaders.com/edit.php#10/ikeda-simple-grid.frag
-        "float t = (time/1000.0)*speed + random(LEDIndex);",
-        "float time_i = floor(t);",
-        "float time_f = fract(t);",
-        "vColor.rgb *= random(LEDIndex+time_i) * (1.0-time_f);",
+        "float ledTime = (time/1000.0)*speed + random(LEDIndex);",
+        "float timeInt = floor(ledTime);",
+        "float timeFract = fract(ledTime);",
+        "vColor.rgb *= random(LEDIndex+timeInt) * (1.0-timeFract);",
     ].join("\n");
 }

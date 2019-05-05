@@ -39,7 +39,11 @@ export default new Vuex.Store({
     bufferObject: null,
     buffer: null,
     shiftPressed: false,
-    selectionGroup: new THREE.Group()
+    selectionGroup: new THREE.Group(),
+    leftAnimation: null,
+    rightAnimation: null,
+    mixValue: 0.5,
+    globalOpacity: 1.0
   },
   modules: {
     persistence
@@ -99,7 +103,7 @@ export default new Vuex.Store({
       if (options.name) animation.name = options.name;
       if (options.uuid) animation.uuid = options.uuid;
       animation.userData.type = 'Animation';
-      animation.visble = false;
+      animation.visible = false;
       state.scene.add(animation);
       state.animations.push({
         uuid: animation.uuid,
@@ -216,6 +220,15 @@ export default new Vuex.Store({
       state.showConnections = bool;
       state.line.material.visible = bool;
     },
+    setLiveAnimation: function (state, options) {
+      state[options.side + 'Animation'] = options.animation.uuid;
+    },
+    setMixValue: function (state, value) {
+      state.mixValue = value;
+    },
+    setGlobalOpacity: function (state, value) {
+      state.globalOpacity = value;
+    },
     emptySelectionGroup: function (state) {
       let group = state.selectionGroup.children;
 
@@ -242,29 +255,101 @@ export default new Vuex.Store({
     applyLEDMaterial: function (state) {
       let ledTexture = new THREE.TextureLoader().load(location.origin + '/led.png');
       let shineTexture = new THREE.TextureLoader().load(location.origin + '/shine.png');
+      let shaderParameters = "";
+      let shader = "";
+      let activeAnimation = null;
       let uniforms = {
         time: new THREE.Uniform(0.0),
         ledTexture: new THREE.Uniform(ledTexture),
         shineTexture: new THREE.Uniform(shineTexture),
+        mixValue: new THREE.Uniform(state.mixValue),
+        globalOpacity: new THREE.Uniform(state.globalOpacity),
       };
-      let shaderParameters = "";
-      let shader = "";
-      let activeAnimation = null;
 
-      if (Object.keys(state.activeObjects).length == 1) {
-        let activeObjectUuid = Object.keys(state.activeObjects)[0];
+      function makeEffectUnique(originalEffect, suffix, side) {
+        let effect = JSON.parse(JSON.stringify(originalEffect));
 
-        activeAnimation = state.animations.find(
-          animation => animation.uuid == activeObjectUuid
-        );
-      }
+        for (const key in effect.properties) {
+          let uniqueKey = key + suffix;
+          let regex = new RegExp(key, "g");
 
-      if (activeAnimation) {
-        activeAnimation.effects.forEach(effect => {
-          uniforms = Object.assign(uniforms, effect.properties);
-          shaderParameters += "\n" + effect.shaderParameters;
-          shader += "\n" + effect.shader;
+          effect.shaderParameters = effect.shaderParameters.replace(
+            regex,
+            uniqueKey
+          );
+          effect.shader = effect.shader.replace(regex, uniqueKey);
+          effect.properties[uniqueKey] = effect.properties[key];
+          delete effect.properties[key];
+        }
+
+        effect.variables.forEach(key => {
+          let uniqueKey = key + suffix;
+          let regex = new RegExp(key, "g");
+
+          effect.shader = effect.shader.replace(regex, uniqueKey);
         });
+
+        if (side) {
+          effect.shader = effect.shader.replace(new RegExp("vColor", "g"), side + "VColor");
+        }
+
+        return effect;
+      };
+
+      if (state.mode == 'design') {
+        if (Object.keys(state.activeObjects).length == 1) {
+          let activeObjectUuid = Object.keys(state.activeObjects)[0];
+
+          activeAnimation = state.animations.find(
+            animation => animation.uuid == activeObjectUuid
+          );
+        }
+
+        if (activeAnimation) {
+          activeAnimation.effects.forEach(effect => {
+            let uniqueEffect = makeEffectUnique(effect, effect.uuid);
+
+            uniforms = Object.assign(uniforms, uniqueEffect.properties);
+            shaderParameters += "\n" + uniqueEffect.shaderParameters;
+            shader += "\n" + uniqueEffect.shader;
+          });
+        }
+      } else if (state.mode == 'live') {
+        if (state.leftAnimation) {
+          activeAnimation = state.animations.find(
+            animation => animation.uuid == state.leftAnimation
+          );
+          
+          activeAnimation.effects.forEach(effect => {
+            let uniqueEffect = makeEffectUnique(effect, 'left' + effect.uuid, 'left');
+
+            uniforms = Object.assign(uniforms, uniqueEffect.properties);
+            shaderParameters += "\n" + uniqueEffect.shaderParameters;
+            shader += "\n" + uniqueEffect.shader;
+          });
+        }
+
+        if (state.rightAnimation) {
+          activeAnimation = state.animations.find(
+            animation => animation.uuid == state.rightAnimation
+          );
+          
+          activeAnimation.effects.forEach(effect => {
+            let uniqueEffect = makeEffectUnique(effect, 'right' + effect.uuid, 'right');
+
+            uniforms = Object.assign(uniforms, uniqueEffect.properties);
+            shaderParameters += "\n" + uniqueEffect.shaderParameters;
+            shader += "\n" + uniqueEffect.shader;
+          });
+        }
+
+        shader = [
+          "vec4 leftVColor = vec4(0.0, 0.0, 0.0, 1.0);",
+          "vec4 rightVColor = vec4(0.0, 0.0, 0.0, 1.0);",
+          shader,
+          "vColor = mix(leftVColor, rightVColor, mixValue);",
+          "vColor.rgb *= globalOpacity;"
+        ].join("\n");
       }
 
       let material = new THREE.ShaderMaterial({
@@ -276,6 +361,8 @@ export default new Vuex.Store({
           USE_MAP: true
         },
         vertexShader: [
+          "uniform float mixValue;",
+          "uniform float globalOpacity;",
           "uniform float time;",
           "varying lowp vec4 vColor;",
           "attribute vec3 LEDPosition;",
@@ -315,6 +402,8 @@ export default new Vuex.Store({
           height: { value: state.bufferHeight }
         }),
         vertexShader: [
+          "uniform float mixValue;",
+          "uniform float globalOpacity;",
           "attribute float LEDIndex;",
           "attribute vec3 LEDPosition;",
           "uniform float time;",

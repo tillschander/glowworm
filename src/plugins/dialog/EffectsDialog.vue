@@ -1,5 +1,6 @@
 <template>
-  <div class="dialog">Effects:
+  <div class="dialog">
+    Effects:
     <br>====
     <br>
     <br>
@@ -14,13 +15,9 @@
         <span>{{ effect.name }}</span>
       </div>
     </div>
-    <br>
-    <br>
-    <br>
-    <br>
     <div class="buttons">
-      <button v-on:click="cancel()">Cancel</button>
-      <button v-on:click="add()">Add</button>
+      <button v-on:click="$parent.close()">Cancel</button>
+      <button v-on:click="$parent.continue({ effect: chosenEffect })">Add</button>
     </div>
   </div>
 </template>
@@ -37,32 +34,6 @@ export default {
       effects: [new SimpleColor(), new Pulse(), new RandomPulses()],
       chosenEffect: undefined
     };
-  },
-  methods: {
-    cancel() {
-      this.$parent.close();
-    },
-    add() {
-      this.$parent.continue({
-        effect: this.makeUniformsUnique(this.chosenEffect)
-      });
-    },
-    makeUniformsUnique(effect) {
-      for (const key in effect.properties) {
-        let uniqueKey = key + effect.uuid;
-        let regex = new RegExp(key, "g");
-
-        effect.shaderParameters = effect.shaderParameters.replace(
-          regex,
-          uniqueKey
-        );
-        effect.shader = effect.shader.replace(regex, uniqueKey);
-        effect.properties[uniqueKey] = effect.properties[key];
-        delete effect.properties[key];
-      }
-
-      return effect;
-    }
   }
 };
 </script>
@@ -75,6 +46,7 @@ export default {
 .effects {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 2rem;
 }
 
 .effect {

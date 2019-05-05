@@ -148,6 +148,7 @@ export default {
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setSize(this.width, this.height);
       container.appendChild(this.renderer.domElement);
+      //container.appendChild(this.$store.state.bufferRenderer.domElement);
 
       this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
       this.light1.position.set(1.2, 1.5, 1.0);
@@ -257,8 +258,8 @@ export default {
     onMouseUp: function(event) {
       this.upPosition = this.getPointer(event);
 
+      if (this.$store.state.mode !== 'design') return;
       if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
-
       if (event.target !== this.renderer.domElement) return;
 
       let raycaster = new THREE.Raycaster();
@@ -295,6 +296,7 @@ export default {
     },
     onKeydown: function(event) {
       if (event.target.type == "text") return;
+      if (this.$store.state.mode !== 'design') return;
 
       switch (event.keyCode) {
         case 81: // Q
@@ -328,10 +330,6 @@ export default {
     },
     onKeyup: function(event) {
       switch (event.keyCode) {
-        case 17: // Ctrl
-          this.control.setTranslationSnap(null);
-          this.control.setRotationSnap(null);
-          break;
         case 16: // Shift
           this.$store.commit("setShiftPressed", false);
           break;

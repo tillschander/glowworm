@@ -32,11 +32,11 @@ export default {
       color:
         "#" +
         new THREE.Color(
-          this.properties["color" + this.uuid].value.x,
-          this.properties["color" + this.uuid].value.y,
-          this.properties["color" + this.uuid].value.z
+          this.properties["color"].value.x,
+          this.properties["color"].value.y,
+          this.properties["color"].value.z
         ).getHexString(),
-      opacity: this.properties["opacity" + this.uuid].value
+      opacity: this.properties["opacity"].value
     };
   },
   methods: {
