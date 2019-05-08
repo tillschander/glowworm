@@ -183,6 +183,18 @@ export default {
           case 'showConnections':
             this.commit('setShowConnections', data[key]);
             break;
+          case 'leftAnimation':
+            this.commit('setLiveAnimation', {side: 'left', uuid: data[key]});
+            break;
+          case 'rightAnimation':
+            this.commit('setLiveAnimation', {side: 'right', uuid: data[key]});
+            break;
+          case 'mixValue':
+            this.commit('setMixValue', data[key]);
+            break;
+          case 'globalOpacity':
+            this.commit('setGlobalOpacity', data[key]);
+            break;
           case 'activeObjects':
             // skip and handle last so it won't be overridden
             break;
@@ -201,6 +213,8 @@ export default {
       Object.keys(data.activeObjects).forEach(uuid => {
         this.commit("addActiveObject", uuid);
       });
+
+      console.log(rootState);
     }
   }
 }

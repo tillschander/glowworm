@@ -21,7 +21,7 @@ export default {
       return animation.name ? animation.name : animation.userData.type;
     },
     setAnimation: function(animation) {
-      this.$store.commit("setLiveAnimation", { side: this.side, animation });
+      this.$store.commit("setLiveAnimation", { side: this.side, uuid: animation.uuid });
       this.$store.commit("applyLEDMaterial");
     },
     isActive: function(animation) {

@@ -126,7 +126,7 @@ export default new Vuex.Store({
 
       if (options.rotation) object.rotation = options.rotation;
       if (options.name) object.name = options.name;
-      if (options.uuid) object.uuid = options.uuid;
+      if (options.uuid) mesh.uuid = options.uuid;
       this.commit('addObject', object);
     },
     addPlane: function (state, options = { size: [30, 30], position: [0, 0, 0] }) {
@@ -221,7 +221,7 @@ export default new Vuex.Store({
       state.line.material.visible = bool;
     },
     setLiveAnimation: function (state, options) {
-      state[options.side + 'Animation'] = options.animation.uuid;
+      state[options.side + 'Animation'] = options.uuid;
     },
     setMixValue: function (state, value) {
       state.mixValue = value;
