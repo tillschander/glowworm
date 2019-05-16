@@ -103,8 +103,13 @@ export default {
           this.$store.state.scene.add(this.control);
           this.control.attach(this.$store.state.selectionGroup);
         } else {
-          this.$store.state.scene.remove(this.highlighter);
           this.$store.state.scene.remove(this.control);
+
+
+          if (this.activeTool != "select") {
+            this.$store.state.scene.remove(this.highlighter);
+          }
+
           if (
             this.$store.state.selectionGroup.children[0].userData.type ==
             "Animation"
@@ -113,6 +118,7 @@ export default {
           }
         }
       } else {
+          console.log("removed2");
         this.$store.state.scene.remove(this.highlighter);
         this.$store.state.scene.remove(this.control);
       }
