@@ -36,7 +36,7 @@ export default {
       this.$parent.close();
     },
     add() {
-      let group = new THREE.Group();
+      let group = [];
 
       for (let i = 0; i < this.count; i++) {
         let uuid = THREE.Math.generateUUID();
@@ -54,11 +54,10 @@ export default {
         });
 
         let led = this.$store.state.scene.getObjectByProperty("uuid", uuid);
-        group.add(led);
-        this.$store.commit("deleteObject", led);
+        group.push(led);
       }
       
-      this.$store.commit("addGroup", {group: group, name: 'Ring', groupType: 'LED'});
+      this.$store.commit("addGroup", {children: group, name: 'Ring', groupType: 'LED'});
       this.$parent.continue();
     }
   }

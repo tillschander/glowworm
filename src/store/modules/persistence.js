@@ -17,7 +17,6 @@ export default {
         switch (key) {
           case 'fps':
           case 'scene':
-          case 'lineGeometry':
           case 'bufferRenderer':
           case 'bufferCamera':
           case 'bufferScene':
@@ -28,7 +27,6 @@ export default {
           case 'bufferGeometry':
           case 'bufferObject':
           case 'buffer':
-          case 'line':
           case 'persistence':
           case 'shiftPressed':
           case 'maxConnections':
@@ -36,9 +34,6 @@ export default {
           case 'selectionGroup':
           case 'orbit':
           case 'ports':
-            continue;
-          case 'lineConnections':
-            // TODO ?
             continue;
           case 'activePort':
             // TODO ?
@@ -50,6 +45,7 @@ export default {
             }
             continue;
           case 'LEDs':
+            // TODO: prev next
             saveState[key] = rootState[key].map(LED => {
               let threeObject = rootState.scene.getObjectByProperty("uuid", LED.uuid);
               return {

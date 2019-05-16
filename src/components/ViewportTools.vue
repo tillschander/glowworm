@@ -16,10 +16,10 @@ export default {
   name: "ViewportTool",
   methods: {
     toogleSnapToGrid() {
-      this.$store.commit("setSnapToGrid", !this.$store.state.snapToGrid);
+      this.$store.commit("setSnapToGrid", !this.snapToGrid);
     },
     toggleShowConnections() {
-      this.$store.commit("setShowConnections", !this.$store.state.showConnections);
+      this.$store.commit("setShowConnections", !this.showConnections);
     }
   },
   computed: {
@@ -27,7 +27,7 @@ export default {
       return this.$store.state.snapToGrid;
     },
     showConnections: function() {
-      return this.$store.state.showConnections;
+      return this.$store.state.connections.showConnections;
     }
   }
 };

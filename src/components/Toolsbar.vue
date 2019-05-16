@@ -24,6 +24,8 @@
     <button v-on:click="addPlane">Add Plane</button>
     <button v-on:click="addObject">Add .obj</button>
     <button v-on:click="addAnimation">Add Animation (D)</button>
+    <button v-on:click="connect" v-bind:class="{ active: activeTool == 'connect' }">Connect</button>
+    <button v-on:click="disconnect" v-bind:class="{ active: activeTool == 'disconnect' }">Disconnect</button>
   </div>
 </template>
 
@@ -72,6 +74,14 @@ export default {
     },
     addAnimation: function() {
       this.$store.commit("addAnimation");
+    },
+    connect: function() {
+      this.setActiveTool("connect");
+      this.$store.commit("clearActiveObjects");
+    },
+    disconnect: function() {
+      this.setActiveTool("disconnect");
+      this.$store.commit("clearActiveObjects");
     }
   },
   computed: {

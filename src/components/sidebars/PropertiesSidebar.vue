@@ -1,5 +1,6 @@
 <template>
-  <div class="properties-sidebar">Properties:
+  <div class="properties-sidebar">
+    Properties:
     <br>====
     <br>
     <br>
@@ -32,15 +33,9 @@
     <template v-else-if="this.activeCount > 1">
       <PositionPanel/>
       <RotationPanel/>
-      <div v-if="this.activeLEDs.length > 0">
-        {{ this.activeLEDs.length }} LEDs selected
-      </div>
-      <div v-if="this.activeObjects.length > 0">
-        {{ this.activeObjects.length }} Objects selected
-      </div>
-      <div v-if="this.activeGroups.length > 0">
-        {{ this.activeGroups.length }} Groups selected
-      </div>
+      <div v-if="this.activeLEDs.length > 0">{{ this.activeLEDs.length }} LEDs selected</div>
+      <div v-if="this.activeObjects.length > 0">{{ this.activeObjects.length }} Objects selected</div>
+      <div v-if="this.activeGroups.length > 0">{{ this.activeGroups.length }} Groups selected</div>
       <br>
       <template v-if="this.activeLEDs.length == 0 || this.activeObjects.length == 0 ">
         <button v-on:click="group">Group</button>
@@ -54,7 +49,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+import Vue from "vue";
 import NamePanel from "../panels/NamePanel";
 import PositionPanel from "../panels/PositionPanel";
 import RotationPanel from "../panels/RotationPanel";
@@ -91,27 +86,29 @@ export default {
       return Object.keys(this.$store.state.activeObjects).length;
     },
     activeLEDs: function() {
-      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'LED');
+      return this.$store.state.selectionGroup.children.filter(
+        child => child.userData.type == "LED"
+      );
     },
     activeObjects: function() {
-      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'Object');
+      return this.$store.state.selectionGroup.children.filter(
+        child => child.userData.type == "Object"
+      );
     },
     activeGroups: function() {
-      return this.$store.state.selectionGroup.children.filter(child => child.userData.type == 'Group');
-    },
-    canGroup: function() {
-      if (false) {
-        
-      }
+      return this.$store.state.selectionGroup.children.filter(
+        child => child.userData.type == "Group"
+      );
     }
   },
   methods: {
     group: function() {
-      let newGroup = this.$store.state.selectionGroup.clone();
-      let groupType = (this.activeLEDs.length === 0) ? 'Object' : 'LED';
-
-      this.$store.commit("deleteActiveObjects");
-      this.$store.commit("addGroup", {group: newGroup, name: 'Group', groupType: groupType});
+      this.$store.commit("addGroup", {
+        name: "Group",
+        groupType: this.activeLEDs.length === 0 ? "Object" : "LED",
+        children: this.$store.state.selectionGroup.children,
+        position: this.$store.state.selectionGroup.position
+      });
     },
     ungroup: function() {
       let children = this.object.children;
@@ -124,7 +121,7 @@ export default {
         this.object.remove(child);
         this.$store.state.scene.add(child);
 
-        if (child.userData.type == 'LED') {
+        if (child.userData.type == "LED") {
           elements = this.$store.state.LEDs;
         } else {
           elements = this.$store.state.objects;

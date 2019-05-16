@@ -1,5 +1,5 @@
 <template>
-  <div @mousedown="onMouseDown" @mouseup="onMouseUp" id="viewport">
+  <div @mousedown="onMouseDown" @mouseup="onMouseUp" @mousemove="onMouseMove" id="viewport">
     <Toolsbar class="toolsbar" v-if="this.mode == 'design'"/>
     <ViewportTools class="viewport-tools" v-if="this.mode == 'design'"/>
   </div>
@@ -9,6 +9,7 @@
 import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
+import arrowUtil from "../utils/arrow.js";
 const THREE = require("three");
 const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
 const TransformControls = require("../assets/js/TransformControls.js")(THREE);
@@ -27,7 +28,8 @@ export default {
       control: null,
       downPosition: new THREE.Vector2(),
       upPosition: new THREE.Vector2(),
-      highlighter: new THREE.BoxHelper(undefined, 0x00ffff)
+      highlighter: new THREE.BoxHelper(undefined, 0x00ffff),
+      raycaster: new THREE.Raycaster()
     };
   },
   computed: {
@@ -93,20 +95,29 @@ export default {
 
       // Show or hide helpers based on what's selected.
       if (Object.keys(objects).length) {
-        if (this.$store.state.selectionGroup.children[0].userData.type == "Animation") {
-          this.$store.state.scene.remove(this.highlighter);
-          this.$store.state.scene.remove(this.control);
-          this.$store.commit("applyLEDMaterial");
-        } else if (this.activeTool !== "select") {
+        if (
+          this.activeTool == "move" ||
+          this.activeTool == "scale" ||
+          this.activeTool == "rotate"
+        ) {
           this.$store.state.scene.add(this.control);
           this.control.attach(this.$store.state.selectionGroup);
+        } else {
+          this.$store.state.scene.remove(this.highlighter);
+          this.$store.state.scene.remove(this.control);
+          if (
+            this.$store.state.selectionGroup.children[0].userData.type ==
+            "Animation"
+          ) {
+            this.$store.commit("applyLEDMaterial");
+          }
         }
       } else {
         this.$store.state.scene.remove(this.highlighter);
         this.$store.state.scene.remove(this.control);
       }
     },
-    activeTool(tool) {
+    activeTool(tool, oldTool) {
       let selectedObject0 = this.$store.state.selectionGroup.children[0];
 
       if (selectedObject0 && selectedObject0.userData.type !== "Animation") {
@@ -114,7 +125,11 @@ export default {
         this.control.attach(this.$store.state.selectionGroup);
       }
 
-      if (this.activeTool == "select") {
+      if (
+        this.activeTool == "select" ||
+        this.activeTool == "connect" ||
+        this.activeTool == "disconnect"
+      ) {
         this.$store.state.scene.remove(this.control);
       } else if (this.activeTool == "move") {
         this.control.setMode("translate");
@@ -137,6 +152,8 @@ export default {
   methods: {
     init: function() {
       let container = document.getElementById("viewport");
+
+      this.$store.state.scene.background = new THREE.Color(0x191919);
 
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.position.set(100, 100, 100);
@@ -173,35 +190,19 @@ export default {
       this.control.addEventListener("objectChange", this.onObjectChanged);
       this.$store.state.scene.add(this.control);
 
-      // TODO cleanup
-      this.$store.state.lineGeometry.addAttribute(
-        "position",
-        new THREE.BufferAttribute(
-          new Float32Array(this.$store.state.maxConnections * 3),
-          3
-        )
-      );
-      this.$store.state.lineGeometry.setDrawRange(
-        0,
-        this.$store.state.lineConnections.length
-      );
-      this.$store.state.line = new THREE.Line(
-        this.$store.state.lineGeometry,
-        new THREE.LineBasicMaterial({ color: 0xff0000 })
-      );
-      this.$store.state.scene.add(this.$store.state.line);
+      this.raycaster.linePrecision = 10;
 
       this.$store.state.selectionGroup.userData.type = "Group";
       this.$store.state.selectionGroup.userData.groupType = "Selection";
       this.$store.state.scene.add(this.$store.state.selectionGroup);
 
+      this.$store.commit("setSnapToGrid", true);
       this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
         position: [0, -250, 0],
         scale: [1000, 10, 1000]
       });
       this.$store.commit("addLED");
-      this.$store.commit("setSnapToGrid", true);
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
@@ -247,6 +248,43 @@ export default {
         this.$store.state.activePort.write(output);
       }
     },
+    handleConnectClick: function(intersects) {
+      let leds = intersects.filter(e => e.object.userData.type == "LED");
+
+      if (leds.length) {
+        let led = leds[0].object;
+        this.$store.state.connections.toConnect.push(led);
+        this.$store.state.scene.add(this.$store.state.connections.connectArrow);
+        this.$store.dispatch("updateConnectArrow", {
+          led,
+          pointer: this.upPosition
+        });
+      } else {
+        this.$store.state.connections.toConnect = [];
+        this.$store.state.scene.remove(
+          this.$store.state.connections.connectArrow
+        );
+      }
+
+      if (this.$store.state.connections.toConnect.length > 1) {
+        let LED1 = this.$store.state.connections.toConnect[0];
+        let LED2 = this.$store.state.connections.toConnect[1];
+
+        this.$store.dispatch("connectFromTo", { from: LED1, to: LED2 });
+        this.$store.state.connections.toConnect = [];
+        this.$store.state.scene.remove(
+          this.$store.state.connections.connectArrow
+        );
+      }
+    },
+    handleDisconnectClick: function(intersects) {
+      let arrows = intersects.filter(
+        entry => entry.object.parent.userData.type == "Arrow"
+      );
+      if (arrows.length) {
+        this.$store.dispatch("removeConnection", arrows[0].object.parent);
+      }
+    },
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.updateProjectionMatrix();
@@ -258,20 +296,31 @@ export default {
     onMouseUp: function(event) {
       this.upPosition = this.getPointer(event);
 
-      if (this.$store.state.mode !== 'design') return;
+      if (this.$store.state.mode !== "design") return;
       if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
       if (event.target !== this.renderer.domElement) return;
 
-      let raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(this.getPointer(event), this.$store.state.camera);
+      this.raycaster.setFromCamera(this.upPosition, this.$store.state.camera);
 
-      let intersects = raycaster.intersectObjects(
+      let intersects = this.raycaster.intersectObjects(
         this.$store.state.scene.children,
         true
       );
 
+      if (this.$store.state.activeTool == "connect") {
+        this.handleConnectClick(intersects);
+        return;
+      }
+
+      if (this.$store.state.activeTool == "disconnect") {
+        this.handleDisconnectClick(intersects);
+        return;
+      }
+
       intersects = intersects.filter(intersect => {
-        return ["LED", "Object", "Group"].includes(intersect.object.userData.type)
+        return ["LED", "Object", "Group"].includes(
+          intersect.object.userData.type
+        );
       });
 
       if (intersects.length > 0) {
@@ -294,9 +343,32 @@ export default {
         this.$store.commit("clearActiveObjects");
       }
     },
+    onMouseMove: function(event) {
+      if (this.$store.state.activeTool == "connect") {
+        if (this.$store.state.connections.toConnect.length == 1) {
+          let pointer = this.getPointer(event);
+          let led = this.$store.state.connections.toConnect[0];
+          this.$store.dispatch("updateConnectArrow", { led, pointer });
+        }
+      }
+      /*
+      this.raycaster.setFromCamera(
+        this.getPointer(event),
+        this.$store.state.camera
+      );
+      this.intersects = this.raycaster.intersectObject(this.$store.state.line);
+      if (this.intersects.length === 0) {
+        if (this.oldIndex !== -1) this.restoreColor();
+        this.oldIndex = -1;
+      } else {
+        let idx = this.intersects[0].index;
+        if (idx !== this.oldIndex) this.highlightSegment(idx);
+      }
+      */
+    },
     onKeydown: function(event) {
       if (event.target.type == "text") return;
-      if (this.$store.state.mode !== 'design') return;
+      if (this.$store.state.mode !== "design") return;
 
       switch (event.keyCode) {
         case 81: // Q
@@ -339,7 +411,10 @@ export default {
       this.$store.state.orbit.enabled = !event.value;
     },
     onObjectChanged: function(event) {
-      this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
+      this.$store.dispatch(
+        "updateLEDConnections",
+        this.$store.state.selectionGroup.children
+      );
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;

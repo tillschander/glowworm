@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import persistence from './modules/persistence'
+import persistence from './modules/persistence.js';
+import connections from './modules/connections.js';
 
 const THREE = require("three");
 
@@ -18,15 +19,11 @@ export default new Vuex.Store({
     ports: [],
     activePort: null,
     activeTool: 'select',
-    line: null,
-    lineGeometry: new THREE.BufferGeometry(),
-    lineConnections: [],
     maxConnections: 256,
     mode: 'design',
     objects: [],
     animations: [],
     snapToGrid: false,
-    showConnections: true,
     activeLEDMaterial: null,
     bufferRenderer: new THREE.WebGLRenderer(),
     bufferCamera: null,
@@ -46,7 +43,8 @@ export default new Vuex.Store({
     globalOpacity: 1.0
   },
   modules: {
-    persistence
+    persistence,
+    connections
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
@@ -58,23 +56,13 @@ export default new Vuex.Store({
       if (options.uuid) mesh.uuid = options.uuid;
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
+
       state.scene.add(mesh);
       state.LEDs.push({ uuid: mesh.uuid });
-      state.lineConnections.push(mesh.uuid);
-      state.line.geometry.setDrawRange(0, state.lineConnections.length);
 
+      this.dispatch("connectMaybe", mesh);
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", mesh.uuid);
-      this.commit("updateLEDConnections", [mesh]);
-
-      /*
-      if (state.activePort) {
-        let n = Object.keys(state.LEDs).length;
-        state.activePort.write(
-          Buffer.from('count,' + n + '\n', 'utf8')
-        );
-      }
-      */
     },
     addObject: function (state, options = { mesh: null, position: [0, 0, 0], type: 'box' }) {
       let object = {
@@ -137,21 +125,32 @@ export default new Vuex.Store({
       this.commit('addObject', { mesh, position: options.position, name: 'Plane', type: 'plane' });
     },
     addGroup: function (state, options) {
-      let object = {
-        uuid: options.group.uuid
-      };
+      let group = new THREE.Group();
+      let i = options.children.length;
 
-      if (options.name) options.group.name = options.name;
-      options.group.userData.groupType = options.groupType;
-      options.group.userData.type = 'Group';
-      state.scene.add(options.group);
+      while (i--) {
+        let child = options.children[i];
+
+        group.add(child);
+        if (options.groupType == 'LED') {
+          state.LEDs = state.LEDs.filter(led => led.uuid !== child.uuid);
+        } else {
+          state.objects = state.objects.filter(object => object.uuid !== child.uuid);
+        }
+      }
+
+      if (options.position) group.position.copy(options.position);
+      if (options.name) group.name = options.name;
+      group.userData.type = 'Group';
+      group.userData.groupType = options.groupType;
+      state.scene.add(group);
       if (options.groupType == 'LED') {
-        state.LEDs.push(object);
+        state.LEDs.push({ uuid: group.uuid });
       } else {
-        state.objects.push(object);
+        state.objects.push({ uuid: group.uuid });
       }
       this.commit("clearActiveObjects");
-      this.commit("addActiveObject", options.group.uuid);
+      this.commit("addActiveObject", group.uuid);
     },
     addPort: function (state, port) {
       state.ports.push(port);
@@ -160,24 +159,11 @@ export default new Vuex.Store({
       let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
       threeObject.name = updates.name;
     },
-    updateLEDConnections: function (state, objects) {
-      objects.forEach(object => {
-        if (object.userData.type !== 'LED') return;
-
-        let index = state.lineConnections.indexOf(object.uuid);
-        let position = new THREE.Vector3();
-
-        object.getWorldPosition(position);
-        state.line.geometry.attributes.position.array[index * 3] = position.x;
-        state.line.geometry.attributes.position.array[index * 3 + 1] = position.y;
-        state.line.geometry.attributes.position.array[index * 3 + 2] = position.z;
-        state.line.geometry.attributes.position.needsUpdate = true;
-      });
-    },
     deleteObject(state, object) {
       if (object.userData.type == 'LED' || (object.userData.type == "Group" && object.userData.groupType == 'LED')) {
         let index = state.LEDs.findIndex((elem) => elem.uuid == object.uuid);
         state.LEDs.splice(index, 1);
+        this.dispatch("disconnectBoth", object);
       } else if (object.userData.type == 'Animation') {
         let index = state.animations.findIndex((elem) => elem.uuid == object.uuid);
         state.animations.splice(index, 1);
@@ -215,10 +201,6 @@ export default new Vuex.Store({
     },
     setSnapToGrid: function (state, bool) {
       state.snapToGrid = bool;
-    },
-    setShowConnections: function (state, bool) {
-      state.showConnections = bool;
-      state.line.material.visible = bool;
     },
     setLiveAnimation: function (state, options) {
       state[options.side + 'Animation'] = options.uuid;
@@ -319,7 +301,7 @@ export default new Vuex.Store({
           activeAnimation = state.animations.find(
             animation => animation.uuid == state.leftAnimation
           );
-          
+
           activeAnimation.effects.forEach(effect => {
             let uniqueEffect = makeEffectUnique(effect, 'left' + effect.uuid, 'left');
 
@@ -333,7 +315,7 @@ export default new Vuex.Store({
           activeAnimation = state.animations.find(
             animation => animation.uuid == state.rightAnimation
           );
-          
+
           activeAnimation.effects.forEach(effect => {
             let uniqueEffect = makeEffectUnique(effect, 'right' + effect.uuid, 'right');
 

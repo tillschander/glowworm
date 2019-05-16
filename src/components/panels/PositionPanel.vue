@@ -18,7 +18,7 @@ export default {
       },
       set(value) {
         this.$store.state.selectionGroup.position.x = value;
-        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     y: {
@@ -27,7 +27,7 @@ export default {
       },
       set(value) {
         this.$store.state.selectionGroup.position.y = value;
-        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     },
     z: {
@@ -36,7 +36,7 @@ export default {
       },
       set(value) {
         this.$store.state.selectionGroup.position.z = value;
-        this.$store.commit("updateLEDConnections", this.$store.state.selectionGroup.children);
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selectionGroup.children);
       }
     }
   }

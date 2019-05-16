@@ -49,7 +49,7 @@ export default {
       this.$parent.close();
     },
     add() {
-      let group = new THREE.Group();
+      let group = [];
       let line = new THREE.LineCurve3(
         new THREE.Vector3(this.startX, this.startY, this.startZ),
         new THREE.Vector3(this.endX,this.endY,this.endZ)
@@ -69,11 +69,10 @@ export default {
         });
 
         let led = this.$store.state.scene.getObjectByProperty("uuid", uuid);
-        group.add(led);
-        this.$store.commit("deleteObject", led);
+        group.push(led);
       }
 
-      this.$store.commit("addGroup", {group: group, name: 'Line', groupType: 'LED'});
+      this.$store.commit("addGroup", {children: group, name: 'Line', groupType: 'LED'});
       this.$parent.continue();
     }
   }
