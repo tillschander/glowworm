@@ -23,11 +23,6 @@
       v-on:click="setMode('live')"
       v-bind:class="{ active: this.$store.state.mode == 'live' }"
     >Live</div>
-    <div
-      class="tab"
-      v-on:click="setMode('io')"
-      v-bind:class="{ active: this.$store.state.mode == 'io' }"
-    >IO Settings</div>
   </div>
 </template>
 

@@ -32,9 +32,6 @@
 <script>
 export default {
   name: "Toolsbar",
-  data() {
-    return { showModal: false };
-  },
   methods: {
     setActiveTool(tool) {
       this.$store.commit("setActiveTool", tool);

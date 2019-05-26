@@ -16,7 +16,6 @@ export default new Vuex.Store({
     camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
     orbit: null,
     activeObjects: {},
-    ports: [],
     activePort: null,
     activeTool: 'select',
     maxConnections: 256,
@@ -151,9 +150,6 @@ export default new Vuex.Store({
       }
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", group.uuid);
-    },
-    addPort: function (state, port) {
-      state.ports.push(port);
     },
     updateObjectName: function (state, updates) {
       let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);

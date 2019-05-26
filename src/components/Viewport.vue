@@ -118,7 +118,6 @@ export default {
           }
         }
       } else {
-          console.log("removed2");
         this.$store.state.scene.remove(this.highlighter);
         this.$store.state.scene.remove(this.control);
       }

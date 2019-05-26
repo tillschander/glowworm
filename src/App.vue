@@ -5,7 +5,7 @@
       <Sidebar key="sidebar0" ref="sidebar0" v-if="this.mode == 'live'">
         <AnimationsSidebar :side="'left'"/>
       </Sidebar>
-      <Sidebar ref="viewport" v-show="this.mode !== 'io'">
+      <Sidebar ref="viewport">
         <Viewport/>
         <MixerSidebar v-if="this.mode == 'live'"/>
       </Sidebar>
@@ -18,7 +18,6 @@
       <Sidebar key="sidebar3" ref="sidebar3" v-if="this.mode == 'live'">
         <AnimationsSidebar :side="'right'"/>
       </Sidebar>
-      <IO ref="io" v-if="this.mode == 'io'"/>
     </div>
     <Footer class="footer"/>
   </div>
@@ -33,7 +32,6 @@ import SceneSidebar from "./components/sidebars/SceneSidebar";
 import PropertiesSidebar from "./components/sidebars/PropertiesSidebar";
 import AnimationsSidebar from "./components/sidebars/AnimationsSidebar";
 import MixerSidebar from "./components/sidebars/MixerSidebar";
-import IO from "./components/IO";
 import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 
@@ -46,7 +44,6 @@ export default {
     PropertiesSidebar,
     AnimationsSidebar,
     MixerSidebar,
-    IO,
     Footer,
     Sidebar
   },
@@ -108,11 +105,6 @@ export default {
           self.$store.commit("clearActiveObjects");
           self.$store.commit("applyLEDMaterial");
           self.$store.commit("setShowConnections", false);
-        } else if (mode == "io") {
-          self.split = Split([self.$refs.io.$el], {
-            direction: "horizontal",
-            sizes: [100]
-          });
         }
       });
     }

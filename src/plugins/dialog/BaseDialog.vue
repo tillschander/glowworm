@@ -15,6 +15,7 @@ import LedGridDialog from "./LedGridDialog";
 import LedLineDialog from "./LedLineDialog";
 import EffectsDialog from "./EffectsDialog";
 import ObjectDialog from "./ObjectDialog";
+import OutputDialog from "./OutputDialog";
 
 export default {
   name: "BaseDialog",
@@ -23,7 +24,8 @@ export default {
     LedGridDialog,
     LedLineDialog,
     EffectsDialog,
-    ObjectDialog
+    ObjectDialog,
+    OutputDialog
   },
   props: ["type", "callback", "store"],
   computed: {
@@ -43,6 +45,9 @@ export default {
           break;
         case "object":
           return ObjectDialog;
+          break;
+        case "output":
+          return OutputDialog;
           break;
         default:
           return "";
