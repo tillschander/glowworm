@@ -1,0 +1,9 @@
+<svg width="64" height="50" viewBox="0 0 64 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle r="2.52941" transform="matrix(-1 0 0 1 43.4706 14.0056)" stroke="currentColor" stroke-width="2"/>
+<path d="M27 22.8291L21.7059 15.7703" stroke="currentColor"/>
+<circle r="2.52941" transform="matrix(-1 0 0 1 28.7647 24.5938)" stroke="currentColor" stroke-width="2"/>
+<circle r="2.52941" transform="matrix(-1 0 0 1 20.5294 14.0056)" stroke="currentColor" stroke-width="2"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M36.3297 13.5056H41.1177V14.5056H36.3297L35.8297 14.0056L36.3297 13.5056ZM28.2586 14.5056H22.8824V13.5056H28.2586L28.7586 14.0056L28.2586 14.5056Z" fill="currentColor"/>
+<path d="M35.8235 10.4762L28.7647 17.535" stroke="currentColor" stroke-width="2"/>
+<path d="M28.7647 10.4762L35.8235 17.535" stroke="currentColor" stroke-width="2"/>
+</svg>

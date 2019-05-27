@@ -1,49 +1,132 @@
 <template>
   <div class="tools-sidebar">
-    <button
-      v-on:click="setActiveTool('select')"
-      v-bind:class="{ active: activeTool == 'select' }"
-    >Select (Q)</button>
-    <button
-      v-on:click="setActiveTool('move')"
-      v-bind:class="{ active: activeTool == 'move' }"
-    >Move (W)</button>
-    <button
-      v-on:click="setActiveTool('rotate')"
-      v-bind:class="{ active: activeTool == 'rotate' }"
-    >Rotate (E)</button>
-    <button
-      v-on:click="setActiveTool('scale')"
-      v-bind:class="{ active: activeTool == 'scale' }"
-    >Scale (R)</button>
-    <button v-on:click="addLed">Add LED (A)</button>
-    <button v-on:click="addLedRing">Add LED-Ring</button>
-    <button v-on:click="addLedGrid">Add LED-Grid</button>
-    <button v-on:click="addLedLine">Add LED-Line</button>
-    <button v-on:click="addBox">Add Box (S)</button>
-    <button v-on:click="addPlane">Add Plane</button>
-    <button v-on:click="addObject">Add .obj</button>
-    <button v-on:click="addAnimation">Add Animation (D)</button>
-    <button v-on:click="connect" v-bind:class="{ active: activeTool == 'connect' }">Connect</button>
-    <button v-on:click="disconnect" v-bind:class="{ active: activeTool == 'disconnect' }">Disconnect</button>
+    <section>
+      <button
+        v-on:click="setActiveTool('select')"
+        v-bind:class="{ active: activeTool == 'select' }"
+        class="tool"
+        title="Select (Q)"
+      >
+        <div v-html="iconUtil.load('select')"></div>
+        <span class="name">Select</span>
+      </button>
+      <button
+        v-on:click="setActiveTool('move')"
+        v-bind:class="{ active: activeTool == 'move' }"
+        class="tool"
+        title="Move (W)"
+      >
+        <div v-html="iconUtil.load('move')"></div>
+        <span class="name">Move</span>
+      </button>
+      <button
+        v-on:click="setActiveTool('rotate')"
+        v-bind:class="{ active: activeTool == 'rotate' }"
+        class="tool"
+        title="Rotate"
+      >
+        <div v-html="iconUtil.load('rotate')"></div>
+        <span class="name">Rotate</span>
+      </button>
+      <button
+        v-on:click="setActiveTool('scale')"
+        v-bind:class="{ active: activeTool == 'scale' }"
+        class="tool"
+        title="Scale (R)"
+      >
+        <div v-html="iconUtil.load('scale')"></div>
+        <span class="name">Scale</span>
+      </button>
+    </section>
+    <section>
+      <div class="toolgroup">
+        <button v-on:click="addLed" class="tool" title="Add LED (A)">
+          <div v-html="iconUtil.load('add_led')"></div>
+          <span class="name">Add LED</span>
+        </button>
+        <button v-on:click="addLedRing" class="tool" title="Add LED-Ring">
+          <div v-html="iconUtil.load('add_led_ring')"></div>
+          <span class="name">Add LED-Ring</span>
+        </button>
+        <button v-on:click="addLedGrid" class="tool" title="Add LED-Grid">
+          <div v-html="iconUtil.load('add_led_grid')"></div>
+          <span class="name">Add LED-Grid</span>
+        </button>
+        <button v-on:click="addLedLine" class="tool" title="Add LED-Line">
+          <div v-html="iconUtil.load('add_led_line')"></div>
+          <span class="name">Add LED-Line</span>
+        </button>
+      </div>
+      <div class="toolgroup">
+        <button v-on:click="addBox" class="tool" title="Add Box (S)">
+          <div v-html="iconUtil.load('add_box')"></div>
+          <span class="name">Add Box</span>
+        </button>
+        <button v-on:click="addSphere" class="tool" title="Add Sphere">
+          <div v-html="iconUtil.load('add_sphere')"></div>
+          <span class="name">Add Sphere</span>
+        </button>
+        <button v-on:click="addPlane" class="tool" title="Add Plane">
+          <div v-html="iconUtil.load('add_plane')"></div>
+          <span class="name">Add Plane</span>
+        </button>
+        <button v-on:click="addCylinder" class="tool" title="Add Cylinder">
+          <div v-html="iconUtil.load('add_cylinder')"></div>
+          <span class="name">Add Cylinder</span>
+        </button>
+        <button v-on:click="addCone" class="tool" title="Add Cone">
+          <div v-html="iconUtil.load('add_cone')"></div>
+          <span class="name">Add Cone</span>
+        </button>
+        <button v-on:click="addObject" class="tool" title="Add Model">
+          <div v-html="iconUtil.load('add_model')"></div>
+          <span class="name">Add Model</span>
+        </button>
+      </div>
+      <button v-on:click="addAnimation" class="tool" title="Add Animation (D)">
+        <div v-html="iconUtil.load('add_animation')"></div>
+        <span class="name">Add Animation</span>
+      </button>
+    </section>
+    <section>
+      <button
+        v-on:click="connect"
+        v-bind:class="{ active: activeTool == 'connect' }"
+        class="tool"
+        title="Connect"
+      >
+        <div v-html="iconUtil.load('connect')"></div>
+        <span class="name">Connect</span>
+      </button>
+      <button
+        v-on:click="disconnect"
+        v-bind:class="{ active: activeTool == 'disconnect' }"
+        class="tool"
+        title="Disconnect"
+      >
+        <div v-html="iconUtil.load('disconnect')"></div>
+        <span class="name">Disconnect</span>
+      </button>
+    </section>
   </div>
 </template>
 
 <script>
+import iconUtil from "../utils/icon.js";
+
 export default {
   name: "Toolsbar",
+  data() {
+    return {
+      iconUtil: iconUtil
+    };
+  },
   methods: {
     setActiveTool(tool) {
       this.$store.commit("setActiveTool", tool);
     },
     addLed: function() {
       this.$store.commit("addLED");
-    },
-    addBox: function() {
-      this.$store.commit("addBox");
-    },
-    addPlane: function() {
-      this.$store.commit("addPlane");
     },
     addLedRing: function() {
       this.$dialog({
@@ -62,6 +145,21 @@ export default {
         type: "ledLine",
         store: this.$store
       });
+    },
+    addBox: function() {
+      this.$store.commit("addBox");
+    },
+    addSphere: function() {
+      this.$store.commit("addSphere");
+    },
+    addPlane: function() {
+      this.$store.commit("addPlane");
+    },
+    addCylinder: function() {
+      this.$store.commit("addCylinder");
+    },
+    addCone: function() {
+      this.$store.commit("addCone");
     },
     addObject: function() {
       this.$dialog({
@@ -93,12 +191,68 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.tools-sidebar {
+.tools-sidebar,
+section {
   display: flex;
   flex-flow: column;
+  margin: 10px 0 0 10px;
+}
 
-  button {
-    margin-bottom: 5px;
+section {
+  margin: 0 0 9px 0;
+}
+
+.toolgroup {
+  width: 68px;
+  overflow: hidden;
+  height: 51px;
+
+  &:hover {
+    width: auto;
+  }
+}
+
+.tool {
+  width: 68px;
+  height: 50px;
+  margin-bottom: 1px;
+  font-size: 9px;
+  padding: 0;
+  border: 0;
+  background: #424242;
+  color: #ffffff;
+  position: relative;
+
+  &:hover,
+  &:focus,
+  &.active {
+    background: #424242;
+    border: 0;
+    outline: 0;
+  }
+
+  &:focus {
+    color: #ffffff;
+  }
+
+  &:hover {
+    color: #00ffff;
+  }
+
+  &.active {
+    color: #00ffff;
+  }
+
+  svg {
+    fill: currentColor;
+    stroke: currentColor;
+  }
+
+  .name {
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    width: 100%;
   }
 }
 </style>

@@ -1,19 +1,32 @@
 <template>
   <div class="viewport-tools">
     <button
-      v-on:click="toogleSnapToGrid()"
-      v-bind:class="{ active: snapToGrid }"
-    >Snap to Grid</button>
-    <button
       v-on:click="toggleShowConnections()"
       v-bind:class="{ active: showConnections }"
-    >Show Connections</button>
+      title="Show Connections"
+    >
+      <div v-html="iconUtil.load('show_connections')"></div>
+    </button>
+    <button
+      v-on:click="toogleSnapToGrid()"
+      v-bind:class="{ active: snapToGrid }"
+      title="Snap to Grid"
+    >
+      <div v-html="iconUtil.load('snap_to_grid')"></div>
+    </button>
   </div>
 </template>
 
 <script>
+import iconUtil from "../utils/icon.js";
+
 export default {
   name: "ViewportTool",
+  data() {
+    return {
+      iconUtil: iconUtil
+    };
+  },
   methods: {
     toogleSnapToGrid() {
       this.$store.commit("setSnapToGrid", !this.snapToGrid);
@@ -37,9 +50,36 @@ export default {
 .viewport-tools {
   display: flex;
   flex-flow: row;
+  margin: 10px 10px 0 0;
 }
 
 button {
-  margin-left: 5px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  margin-left: 1px;
+  background: #424242;
+  color: #ffffff;
+
+  &:hover,
+  &:focus,
+  &.active {
+    background: #424242;
+    border: 0;
+    outline: 0;
+  }
+
+  &:focus {
+    color: #ffffff;
+  }
+
+  &:hover {
+    color: #00ffff;
+  }
+
+  &.active {
+    color: #00ffff;
+  }
 }
 </style>

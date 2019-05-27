@@ -9,7 +9,6 @@
 import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
-import arrowUtil from "../utils/arrow.js";
 const THREE = require("three");
 const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
 const TransformControls = require("../assets/js/TransformControls.js")(THREE);
@@ -201,7 +200,6 @@ export default {
       this.$store.state.selectionGroup.userData.groupType = "Selection";
       this.$store.state.scene.add(this.$store.state.selectionGroup);
 
-      this.$store.commit("setSnapToGrid", true);
       this.$store.commit("applyLEDMaterial");
       this.$store.commit("addBox", {
         position: [0, -250, 0],
