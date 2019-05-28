@@ -23,9 +23,9 @@
 </template>
 
 <script>
-import SimpleColor from "../../components/panels/effects/SimpleColor";
-import Pulse from "../../components/panels/effects/Pulse";
-import RandomPulses from "../../components/panels/effects/RandomPulses";
+import SimpleColor from "../../components/panels/effects/SimpleColor.js";
+import Pulse from "../../components/panels/effects/Pulse.js";
+import RandomPulses from "../../components/panels/effects/RandomPulses.js";
 
 export default {
   name: "EffectsDialog",
