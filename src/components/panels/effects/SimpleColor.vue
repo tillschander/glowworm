@@ -1,12 +1,13 @@
 <template>
   <div>
-    Color:
-    <br>
-    <input
-      type="color"
-      v-bind:value="color"
-      v-on:input="apply('color', $event.target.value, hexToThreeColor)"
-    >
+    <div class="form-element">
+      <label>Color:</label>
+      <input
+        type="color"
+        v-bind:value="color"
+        v-on:input="apply('color', $event.target.value, hexToThreeColor)"
+      >
+    </div>
   </div>
 </template>
 

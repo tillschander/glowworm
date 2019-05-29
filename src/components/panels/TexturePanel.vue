@@ -1,6 +1,6 @@
 <template>
-  <div>Texture:
-    <br>
+  <div class="form-element full">
+    <label>Texture:</label>
     <input type="file" @change="processFile($event)">
   </div>
 </template>

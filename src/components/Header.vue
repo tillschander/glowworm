@@ -79,6 +79,7 @@ export default {
   padding: 10px 20px;
   margin: 10px 0 5px 0;
   cursor: pointer;
+  font-size: 14px;
 
   &.active {
     border-bottom: 3px solid cyan;

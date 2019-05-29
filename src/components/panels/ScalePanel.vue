@@ -1,10 +1,9 @@
 <template>
-  <div>
-    Scale:
-    <br>
-    <input v-model.number="x" type="number" class="third">
-    <input v-model.number="y" type="number" class="third">
-    <input v-if="type != 'plane'" v-model.number="z" type="number" class="third">
+  <div class="form-element thirds">
+    <label>Scale:</label>
+    <input v-model.number="x" type="number">
+    <input v-model.number="y" type="number">
+    <input v-if="type != 'plane'" v-model.number="z" type="number">
   </div>
 </template>
 

@@ -145,14 +145,40 @@ export default {
   flex-direction: column;
   background: #424242;
   overflow-y: auto;
+}
 
-  input {
-    margin-bottom: 20px;
-    width: 100%;
+.form-element {
+  display: grid;
+  grid-template-columns: 80px auto;
+  grid-column-gap: 10px;
+  margin-bottom: 10px;
+
+  &.full {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+
+    label {
+      text-align: left;
+    }
   }
 
-  .third {
-    width: 33.3333%;
+  &.thirds {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+
+    label {
+      grid-area: 1 / 1 / 2 / 4;
+      text-align: left;
+    }
+  }
+
+  label {
+    align-self: center;
+    text-align: right;
+  }
+
+  input {
+    width: 100%;
   }
 }
 </style>

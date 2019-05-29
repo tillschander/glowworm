@@ -1,6 +1,6 @@
 <template>
-  <div>Name:
-    <br>
+  <div class="form-element full">
+    <label>Name:</label>
     <input v-model="name" type="text">
   </div>
 </template>

@@ -1,21 +1,27 @@
 const THREE = require("three");
+import Default from "./Default.js";
 
-export default function () {
-    this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
-    this.type = "RandomPulses";
-    this.name = "Random Pulses";
-    this.variables = ["ledTime", "timeInt", "timeFract"];
-    this.properties = {
-        speed: new THREE.Uniform(0.8)
-    };
-    this.shaderParameters = [
-        "uniform float speed;",
-    ].join("\n");
-    this.shader = [
-        // based on https://thebookofshaders.com/edit.php#10/ikeda-simple-grid.frag
-        "float ledTime = (time/1000.0)*speed + random(LEDIndex);",
-        "float timeInt = floor(ledTime);",
-        "float timeFract = fract(ledTime);",
-        "vColor.rgb *= random(LEDIndex+timeInt) * (1.0-timeFract);",
-    ].join("\n");
+class RandomPulses extends Default {
+    constructor() {
+        super({
+            variables: ["ledTime", "timeInt", "timeFract"],
+            properties: {
+                speed: new THREE.Uniform(0.8)
+            },
+            shaderParameters: "uniform float speed;",
+            shader:
+                // based on https://thebookofshaders.com/edit.php#10/ikeda-simple-grid.frag
+                `
+                float ledTime = (time/1000.0)*speed + random(LEDIndex);
+                float timeInt = floor(ledTime);
+                float timeFract = fract(ledTime);
+                vec3 effectColor = vec3(random(LEDIndex+timeInt) * (1.0-timeFract));
+                `
+        });
+
+        this.type = "RandomPulses";
+        this.name = "Random Pulses";
+    }
 }
+
+export default RandomPulses;

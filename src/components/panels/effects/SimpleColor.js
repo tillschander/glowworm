@@ -1,19 +1,19 @@
 const THREE = require("three");
+import Default from "./Default.js";
 
-export default function () {
-    this.uuid = THREE.Math.generateUUID().replace(/-/g, "");
-    this.type = "SimpleColor";
-    this.name = "Simple Color";
-    this.variables = [];
-    this.properties = {
-        color: new THREE.Uniform(new THREE.Vector3(Math.random(), Math.random(), Math.random())),
-        opacity: new THREE.Uniform(1.0)
-    };
-    this.shaderParameters = [
-        "uniform vec3 color;",
-        "uniform float opacity;"
-    ].join("\n");
-    this.shader = [
-        "vColor.rgb = vColor.rgb * (1.0 - opacity) + color * opacity;"
-    ].join("\n");
+class SimpleColor extends Default {
+    constructor() {
+        super({
+            properties: {
+                color: new THREE.Uniform(new THREE.Vector3(Math.random(), Math.random(), Math.random()))
+            },
+            shaderParameters: "uniform vec3 color;",
+            shader: "vec3 effectColor = color;",
+        });
+
+        this.type = "SimpleColor";
+        this.name = "Simple Color";
+    }
 }
+
+export default SimpleColor;

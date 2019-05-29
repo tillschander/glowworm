@@ -1,15 +1,16 @@
 <template>
   <div>
-    Speed:
-    <br>
-    <input
-      type="range"
-      v-bind:value="speed"
-      v-on:input="apply('speed', $event.target.value)"
-      min="0"
-      max="3"
-      step="0.01"
-    >
+    <div class="form-element">
+      <label>Speed:</label>
+      <input
+        type="range"
+        v-bind:value="speed"
+        v-on:input="apply('speed', $event.target.value)"
+        min="0"
+        max="3"
+        step="0.01"
+      >
+    </div>
   </div>
 </template>
 

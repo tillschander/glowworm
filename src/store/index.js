@@ -346,9 +346,26 @@ export default new Vuex.Store({
           "attribute vec3 LEDPosition;",
           "attribute float LEDIndex;",
           "varying vec2 vUv;",
+
           // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
           "float random(float n){ return fract(sin(n) * 43758.5453123); }",
           "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
+
+          // https://github.com/jamieowen/glsl-blend
+          "vec3 blendByMode(int mode, float opacity, vec3 base, vec3 blend) {",
+          "  if (mode == 0) {", // normal
+          "    return mix(base, blend, opacity);",
+          "  } else if(mode == 1) {", // darken
+          "    return mix(base, min(blend, base), opacity);",
+          "  } else if(mode == 2) {", // multiply
+          "    return mix(base, base * blend, opacity);",
+          "  } else if(mode == 3) {", // lighten
+          "    return mix(base, max(blend, base), opacity);",
+          "  } else if(mode == 4) {", // screen
+          "    return mix(base, 1.0 - ((1.0 - base) * (1.0 - blend)), opacity);",
+          "  }",
+          "}",
+
           shaderParameters,
           "void main() {",
           "  vUv = uv;",
@@ -388,9 +405,26 @@ export default new Vuex.Store({
           "uniform float width;",
           "uniform float height;",
           "varying vec4 vColor;",
+
           // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
           "float random(float n){ return fract(sin(n) * 43758.5453123); }",
           "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
+
+          // https://github.com/jamieowen/glsl-blend
+          "vec3 blendByMode(int mode, float opacity, vec3 base, vec3 blend) {",
+          "  if (mode == 0) {", // normal
+          "    return mix(base, blend, opacity);",
+          "  } else if(mode == 1) {", // darken
+          "    return mix(base, min(blend, base), opacity);",
+          "  } else if(mode == 2) {", // multiply
+          "    return mix(base, base * blend, opacity);",
+          "  } else if(mode == 3) {", // lighten
+          "    return mix(base, max(blend, base), opacity);",
+          "  } else if(mode == 4) {", // screen
+          "    return mix(base, 1.0 - ((1.0 - base) * (1.0 - blend)), opacity);",
+          "  }",
+          "}",
+
           shaderParameters,
           "void main() {",
           "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",

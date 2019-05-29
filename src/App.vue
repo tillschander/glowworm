@@ -126,7 +126,7 @@ body {
 
   height: 100%;
   font-family: sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   overflow: hidden;
 }
 
