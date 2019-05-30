@@ -87,6 +87,10 @@
         <div v-html="iconUtil.load('add_animation')"></div>
         <span class="name">Add Animation</span>
       </button>
+      <button v-on:click="addMask" class="tool" title="Add Mask">
+        <div v-html="iconUtil.load('add_mask')"></div>
+        <span class="name">Add Mask</span>
+      </button>
     </section>
     <section>
       <button
@@ -169,6 +173,9 @@ export default {
     },
     addAnimation: function() {
       this.$store.commit("addAnimation");
+    },
+    addMask: function() {
+      this.$store.dispatch("addMask", {});
     },
     connect: function() {
       this.setActiveTool("connect");

@@ -6,11 +6,11 @@
     </div>
     <div class="form-element">
       <label>Blend mode:</label>
-      <select v-on:change="$refs.component.apply('blendMode', $event.target.value)">
+      <select v-model="blendMode">
         <option
           v-for="blendMode in blendModes"
-          :key="blendMode.value"
-          :value="blendMode.value"
+          v-bind:key="blendMode.value"
+          v-bind:value="blendMode.value"
         >{{blendMode.text}}</option>
       </select>
     </div>
@@ -22,7 +22,19 @@
         min="0"
         max="1"
         step="0.01"
+        v-bind:value="properties.opacity.value"
       >
+    </div>
+    <div class="form-element">
+      <label>Mask:</label>
+      <select v-model="mask">
+        <option value="undefined">No Mask</option>
+        <option
+          v-for="mask in $store.getters.masks"
+          v-bind:key="mask.uuid"
+          v-bind:value="mask.uuid"
+        >{{mask.name}}</option>
+      </select>
     </div>
     <component
       class="properties"
@@ -51,6 +63,24 @@ export default {
         { text: "Screen", value: 4 }
       ]
     };
+  },
+  computed: {
+    blendMode: {
+      get() {
+        return this.properties.blendMode.value;
+      },
+      set(value) {
+        this.$refs.component.apply('blendMode', value);
+      }
+    },
+    mask: {
+      get() {
+        return this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).mask;
+      },
+      set(value) {
+        this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).mask = value;
+      }
+    }
   },
   methods: {
     deleteEffect: function() {
@@ -88,6 +118,10 @@ export default {
 
   .delete {
     cursor: pointer;
+  }
+
+  select {
+    width: 100%;
   }
 }
 </style>

@@ -1,17 +1,26 @@
 <template>
-  <li
-    v-bind:class="[{ active: isActive }, 'scene-object ']"
-    v-on:click="setActive"
-  >{{ getNameFromUuid(this.uuid) }}</li>
+  <li>
+    <span
+      v-bind:class="[{ active: isActive }, 'scene-object ']"
+      v-on:click="setActive">{{ name }}</span>
+  </li>
 </template>
 
 <script>
+import SceneObject from "./SceneObject";
+
 export default {
   name: "SceneObject",
   props: ["uuid", "type"],
   computed: {
     isActive() {
       return this.$store.state.activeObjects[this.uuid];
+    },
+    threeObject() {
+      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
+    },
+    name() {
+      return this.threeObject.name ? this.threeObject.name : this.threeObject.userData.type;
     }
   },
   methods: {
@@ -25,10 +34,6 @@ export default {
       }
 
       this.$store.commit("addActiveObject", this.uuid);
-    },
-    getNameFromUuid: function(uuid) {
-      let threeObject = this.$store.state.scene.getObjectByProperty("uuid", uuid);
-      return threeObject.name ? threeObject.name : threeObject.userData.type;
     }
   }
 };

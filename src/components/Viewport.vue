@@ -108,13 +108,13 @@ export default {
           if (this.activeTool != "select") {
             this.$store.state.scene.remove(this.highlighter);
           }
+        }
 
-          if (
-            this.$store.state.selectionGroup.children[0].userData.type ==
-            "Animation"
-          ) {
-            this.$store.commit("applyLEDMaterial");
-          }
+        if (
+          this.$store.state.selectionGroup.children[0].userData.type ==
+          "Animation"
+        ) {
+          this.$store.commit("applyLEDMaterial");
         }
       } else {
         this.$store.state.scene.remove(this.highlighter);

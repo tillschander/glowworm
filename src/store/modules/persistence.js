@@ -110,15 +110,15 @@ export default {
         console.log('Error: No save path defined.');
       }
     },
-    load: function ({ rootState }, path) {
+    load: function ({ rootState, rootGetters }, path) {
       let data = JSON.parse(fs.readFileSync(path, 'utf8'));
 
       this.commit('emptySelectionGroup');
-      for (var i = rootState.LEDs.length - 1; i >= 0; i--) {
-        this.commit('deleteObject', rootState.scene.getObjectByProperty("uuid", rootState.LEDs[i].uuid));
+      for (var i = rootGetters.LEDs.length - 1; i >= 0; i--) {
+        this.commit('deleteObject', rootGetters.LEDs[i]);
       };
-      for (var i = rootState.objects.length - 1; i >= 0; i--) {
-        this.commit('deleteObject', rootState.scene.getObjectByProperty("uuid", rootState.objects[i].uuid));
+      for (var i = rootGetters.objects.length - 1; i >= 0; i--) {
+        this.commit('deleteObject', rootGetters.objects[i]);
       };
       for (var i = rootState.animations.length - 1; i >= 0; i--) {
         this.commit('deleteObject', rootState.scene.getObjectByProperty("uuid", rootState.animations[i].uuid));

@@ -2,6 +2,17 @@
   <div class="scene-sidebar">
     <ul class="tree">
       <li class="root">Scene</li>
+      <li>Masks
+        <ul>
+          <SceneObject
+            v-for="mask in this.$store.getters.masks"
+            v-bind:key="mask.uuid"
+            v-bind:uuid="mask.uuid"
+            v-bind:type="'Mask'"
+            class="scene-object"
+          ></SceneObject>
+        </ul>
+      </li>
       <li>Animations
         <ul>
           <SceneObject
@@ -16,7 +27,7 @@
       <li>LEDs
         <ul>
           <SceneObject
-            v-for="LED in this.$store.state.LEDs"
+            v-for="LED in LEDsAndGroups"
             v-bind:key="LED.uuid"
             v-bind:uuid="LED.uuid"
             v-bind:type="'LED'"
@@ -27,7 +38,7 @@
       <li>Objects
         <ul>
           <SceneObject
-            v-for="object in this.$store.state.objects"
+            v-for="object in objectsAndGroups"
             v-bind:key="object.uuid"
             v-bind:uuid="object.uuid"
             v-bind:type="'Object'"
@@ -52,6 +63,26 @@ export default {
   name: "SceneSidebar",
   components: {
     SceneObject
+  },
+  computed: {
+    LEDsAndGroups: function() {
+      let LEDs = [];
+      this.$store.state.scene.traverse(function (child) {
+        if ((child.userData.type === "LED" && child.parent.userData.groupType !== 'LED') || child.userData.groupType === 'LED') {
+          LEDs.push(child);
+        }
+      });
+      return LEDs.sort((a, b) => a.id - b.id);
+    },
+    objectsAndGroups: function() {
+      let objects = [];
+      this.$store.state.scene.traverse(function (child) {
+        if ((child.userData.type === "Object" && child.parent.userData.groupType !== 'Object') || child.userData.groupType === 'Object') {
+          objects.push(child);
+        }
+      });
+      return objects.sort((a, b) => a.id - b.id);
+    }
   }
 };
 </script>

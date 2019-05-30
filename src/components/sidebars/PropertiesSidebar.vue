@@ -5,6 +5,10 @@
     <br>
     <br>
     <template v-if="this.activeCount == 1">
+      <template v-if="this.type == 'Mask'">
+        <NamePanel/>
+        <MaskPanel/>
+      </template>
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
         <AnimationPanel/>
@@ -36,12 +40,14 @@
       <div v-if="this.activeLEDs.length > 0">{{ this.activeLEDs.length }} LEDs selected</div>
       <div v-if="this.activeObjects.length > 0">{{ this.activeObjects.length }} Objects selected</div>
       <div v-if="this.activeGroups.length > 0">{{ this.activeGroups.length }} Groups selected</div>
-      <br>
+        <br>
       <template v-if="this.activeLEDs.length == 0 || this.activeObjects.length == 0 ">
-        <button v-on:click="group">Group</button>
+        <button v-on:click="mask" v-if="this.activeLEDs.length > 0">Create Mask from selection</button>
+        <br>
+        <button v-on:click="group">Group selection</button>
       </template>
       <template v-else>
-        <button disabled>Group</button>
+        Select only LEDs or only Objects to group them
       </template>
     </template>
     <template v-else>Nothing selected</template>
@@ -54,6 +60,7 @@ import NamePanel from "../panels/NamePanel";
 import PositionPanel from "../panels/PositionPanel";
 import RotationPanel from "../panels/RotationPanel";
 import ScalePanel from "../panels/ScalePanel";
+import MaskPanel from "../panels/MaskPanel";
 import AnimationPanel from "../panels/AnimationPanel";
 import CameraPanel from "../panels/CameraPanel";
 import TexturePanel from "../panels/TexturePanel";
@@ -65,6 +72,7 @@ export default {
     PositionPanel,
     RotationPanel,
     ScalePanel,
+    MaskPanel,
     AnimationPanel,
     CameraPanel,
     TexturePanel
@@ -120,19 +128,14 @@ export default {
         child.applyMatrix(this.object.matrixWorld);
         this.object.remove(child);
         this.$store.state.scene.add(child);
-
-        if (child.userData.type == "LED") {
-          elements = this.$store.state.LEDs;
-        } else {
-          elements = this.$store.state.objects;
-        }
-
-        elements.push({ uuid: child.uuid });
       }
 
       this.$store.commit("deleteObject", this.object);
       this.$store.commit("emptySelectionGroup");
       this.$store.commit("clearActiveObjects");
+    },
+    mask: function() {
+      this.$store.dispatch("addMask", {LEDs: this.activeLEDs.map(LED => LED.uuid)});
     }
   }
 };
@@ -179,6 +182,12 @@ export default {
 
   input {
     width: 100%;
+
+    &::-webkit-inner-spin-button, 
+    &::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
   }
 }
 </style>

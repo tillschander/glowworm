@@ -60,8 +60,8 @@ export default {
       rootState.scene.add(arrow);
       state.arrows.push(arrow);
     },
-    connectMaybe: function({ state, rootState }, led) {
-      if (rootState.LEDs.length > 1) {
+    connectMaybe: function({ state, rootState, rootGetters }, led) {
+      if (rootGetters.LEDs.length > 1) {
         let activeUuids = Object.keys(rootState.activeObjects);
         let activeUuid = activeUuids.length ? activeUuids[0] : '';
         let activeObject = rootState.scene.getObjectByProperty('uuid', activeUuid);
@@ -69,7 +69,7 @@ export default {
         if (activeObject && activeObject.userData.type == 'LED') {
           this.dispatch("connectFromTo", { from: activeObject, to: led });
         } else {
-          let previousLED = rootState.scene.getObjectByProperty('uuid', rootState.LEDs[rootState.LEDs.length - 2].uuid);
+          let previousLED = rootState.scene.getObjectByProperty('uuid', rootGetters.LEDs[rootGetters.LEDs.length - 2].uuid);
 
           if (previousLED.userData.type !== 'Group') {
             this.dispatch("connectFromTo", { from: previousLED, to: led });
