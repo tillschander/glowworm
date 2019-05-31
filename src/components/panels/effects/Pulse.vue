@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { default as Default } from "./Default";
+import Default from "./Default.vue";
 
 export default {
   name: "Pulse",

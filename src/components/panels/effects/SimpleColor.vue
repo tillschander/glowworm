@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { default as Default } from "./Default";
+import Default from "./Default.vue";
 const THREE = require("three");
 
 export default {
