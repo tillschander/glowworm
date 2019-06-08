@@ -19,8 +19,20 @@ export default {
       let object = rootState.scene.getObjectByProperty("uuid", uuid);
 
       if (object.userData.type == 'LED') {
-        object.userData.clone = new THREE.Mesh(new THREE.SphereBufferGeometry(3), state.selectionMaterial);
-        object.userData.clone.position.copy(object.position);
+        if (object.parent.userData.type == 'Group') {
+          object.userData.clone = new THREE.Group();
+          object.userData.clone.position.copy(object.parent.position);
+          object.userData.clone.rotation.copy(object.parent.rotation);
+          object.userData.clone.scale.copy(object.parent.scale);
+          object.userData.clone.add(new THREE.Mesh(new THREE.SphereBufferGeometry(3), state.selectionMaterial));
+          object.userData.clone.children[0].position.copy(object.position);
+          if (object.userData.clone.scale.x !== 1) object.userData.clone.children[0].scale.setX(1 / object.userData.clone.scale.x);
+          if (object.userData.clone.scale.y !== 1) object.userData.clone.children[0].scale.setY(1 / object.userData.clone.scale.y);
+          if (object.userData.clone.scale.z !== 1) object.userData.clone.children[0].scale.setZ(1 / object.userData.clone.scale.z);
+        } else {
+          object.userData.clone = new THREE.Mesh(new THREE.SphereBufferGeometry(3), state.selectionMaterial);
+          object.userData.clone.position.copy(object.position);
+        }
       } else if (object.userData.groupType == 'LED') {
         object.userData.clone = new THREE.Group();
         object.userData.clone.position.copy(object.position);
