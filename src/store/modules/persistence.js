@@ -28,7 +28,7 @@ export default {
           case 'bufferObject':
           case 'buffer':
           case 'persistence':
-          case 'shiftPressed':
+          case 'ctrlPressed':
           case 'maxConnections':
           case 'activeLEDMaterial':
           case 'selectionGroup':
@@ -41,7 +41,7 @@ export default {
           case 'camera':
             saveState[key] = {
               position: rootState.camera.position,
-              target: rootState.orbit.target
+              target: rootState.orbitControl.target
             }
             continue;
           case 'LEDs':
@@ -113,7 +113,7 @@ export default {
     load: function ({ rootState, rootGetters }, path) {
       let data = JSON.parse(fs.readFileSync(path, 'utf8'));
 
-      this.commit('emptySelectionGroup');
+      this.dispatch('emptySelectionGroup');
       for (var i = rootGetters.LEDs.length - 1; i >= 0; i--) {
         this.commit('deleteObject', rootGetters.LEDs[i]);
       };
@@ -196,8 +196,8 @@ export default {
             break;
           case 'camera':
             rootState.camera.position.set(data[key].position.x, data[key].position.y, data[key].position.z);
-            rootState.orbit.target.set(data[key].target.x, data[key].target.y, data[key].target.z);
-            rootState.orbit.update();
+            rootState.orbitControl.target.set(data[key].target.x, data[key].target.y, data[key].target.z);
+            rootState.orbitControl.update();
             break;
           default:
             console.log('Unrecognized save data: ' + key);

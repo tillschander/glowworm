@@ -1,4 +1,3 @@
-const THREE = require("three");
 import Default from "./Default.js";
 
 class Pulse extends Default {

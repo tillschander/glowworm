@@ -29,7 +29,7 @@ export default {
         this.$store.commit("clearActiveObjects");
       }
 
-      if (!this.$store.state.shiftPressed) {
+      if (!this.$store.state.ctrlPressed) {
         this.$store.commit("clearActiveObjects");
       }
 

@@ -10,13 +10,13 @@
     <br>
     <input v-model.number="countY" type="number">
     <br>
-    <br>X Gap:
+    <br>X Spacing:
     <br>
-    <input v-model.number="gapX" type="number">
+    <input v-model.number="spacingX" type="number">
     <br>
-    <br>Y Gap:
+    <br>Y Spacing:
     <br>
-    <input v-model.number="gapY" type="number">
+    <input v-model.number="spacingY" type="number">
     <br>
     <br>Order:
     <br>
@@ -34,8 +34,6 @@
 </template>
 
 <script>
-const THREE = require("three");
-
 export default {
   name: "LedGridDialog",
   props: ["$store"],
@@ -43,8 +41,8 @@ export default {
     return {
       countX: 5,
       countY: 5,
-      gapX: 10,
-      gapY: 10,
+      spacingX: 10,
+      spacingY: 10,
       order: "ZigZag"
     };
   },
@@ -57,8 +55,8 @@ export default {
 
       for (let x = 0; x < this.countX; x++) {
         let line = new THREE.LineCurve3(
-          new THREE.Vector3(x*this.gapX, 0, 0),
-          new THREE.Vector3(x*this.gapX, 0, this.countY*this.gapY)
+          new THREE.Vector3(x*this.spacingX, 0, 0),
+          new THREE.Vector3(x*this.spacingX, 0, this.countY*this.spacingY)
         );
           
         for (let y = 0; y < this.countY; y++) {

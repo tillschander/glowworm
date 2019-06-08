@@ -3,8 +3,10 @@ import Vuex from 'vuex';
 import persistence from './modules/persistence.js';
 import connections from './modules/connections.js';
 import masks from './modules/masks.js';
+import selection from './modules/selection.js';
+import transformUtil from "../utils/transform.js";
+import ledMaterialUtil from "../utils/ledMaterial.js";
 
-const THREE = require("three");
 
 Vue.use(Vuex);
 
@@ -12,9 +14,12 @@ export default new Vuex.Store({
   state: {
     maxFps: 61,
     fps: 0,
+    renderer: new THREE.WebGLRenderer(),
     scene: new THREE.Scene(),
     camera: new THREE.PerspectiveCamera(50, 1, 1, 99999),
-    orbit: null,
+    orbitControl: null,
+    transformControl: null,
+    transformDummy: new THREE.Object3D(),
     activeObjects: {},
     activePort: null,
     activeTool: 'select',
@@ -33,17 +38,19 @@ export default new Vuex.Store({
     bufferGeometry: null,
     bufferObject: null,
     buffer: null,
-    shiftPressed: false,
-    selectionGroup: new THREE.Group(),
+    ctrlPressed: false,
     leftAnimation: null,
     rightAnimation: null,
     mixValue: 0.5,
-    globalOpacity: 1.0
+    globalOpacity: 1.0,
+    objectMaterial: new THREE.MeshPhongMaterial({ color: 0xDDDDDD }),
+    planeMaterial: new THREE.MeshPhongMaterial({ color: 0xDDDDDD, side: THREE.DoubleSide })
   },
   modules: {
     persistence,
     connections,
-    masks
+    masks,
+    selection
   },
   getters: {
     LEDs: state => {
@@ -63,7 +70,50 @@ export default new Vuex.Store({
         }
       });
       return objects.sort((a, b) => a.id - b.id);
-    }
+    },
+    activeObject: state => {
+      if (state.selection.selectionGroup.length > 1) {
+        return state.transformDummy;
+      }
+      return state.selection.selectionGroup[0];
+    },
+    canMove: state => {
+      let activeUuids = Object.keys(state.activeObjects);
+
+      if (activeUuids.length == 1) {
+        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
+        let type = object.userData.type;
+
+        if (type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
+      }
+      return true;
+    },
+    canRotate: state => {
+      let activeUuids = Object.keys(state.activeObjects);
+
+      if (activeUuids.length == 1) {
+        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
+        let type = object.userData.type;
+
+        if (type == 'LED' || type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
+      } else if (activeUuids.length > 1) {
+        return false;
+      }
+      return true;
+    },
+    canScale: state => {
+      let activeUuids = Object.keys(state.activeObjects);
+
+      if (activeUuids.length == 1) {
+        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
+        let type = object.userData.type;
+
+        if (type == 'LED' || type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
+      } else if (activeUuids.length > 1) {
+        return false;
+      }
+      return true;
+    },
   },
   mutations: {
     addLED: function (state, options = { position: [0, 0, 0] }) {
@@ -79,20 +129,23 @@ export default new Vuex.Store({
       // Set unique uniforms for each LED
       mesh.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
         var updateList = [];
-        material.userData.activeAnimations.forEach(animation => {
-          let side = '';
-          if (state.mode == 'live' && animation.uuid == state.leftAnimation) side = 'left';
-          if (state.mode == 'live' && animation.uuid == state.rightAnimation) side = 'right';
-          animation.effects.forEach(effect => {
-            let mask = state.scene.getObjectByProperty('uuid', effect.mask);
-            if (mask && mask.userData.LEDs.includes(this.uuid)) {
-              state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = true;
-            } else {
-              state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = false;
-            }
-            updateList.push('masked' + side + effect.uuid);
+
+        if (material.userData.activeAnimations) {
+          material.userData.activeAnimations.forEach(animation => {
+            let side = '';
+            if (state.mode == 'live' && animation.uuid == state.leftAnimation) side = 'left';
+            if (state.mode == 'live' && animation.uuid == state.rightAnimation) side = 'right';
+            animation.effects.forEach(effect => {
+              let mask = state.scene.getObjectByProperty('uuid', effect.mask);
+              if (mask && mask.userData.LEDs.includes(this.uuid)) {
+                state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = true;
+              } else {
+                state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = false;
+              }
+              updateList.push('masked' + side + effect.uuid);
+            });
           });
-        });
+        }
 
         if (updateList.length) {
           var materialProperties = renderer.properties.get(material);
@@ -146,8 +199,7 @@ export default new Vuex.Store({
     },
     addBox: function (state, options = { position: [0, 0, 0], scale: [10, 10, 10] }) {
       let geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-      let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD });
-      let mesh = new THREE.Mesh(geometry, material);
+      let mesh = new THREE.Mesh(geometry, state.objectMaterial);
       let object = {
         mesh,
         name: 'Box',
@@ -161,28 +213,46 @@ export default new Vuex.Store({
       if (options.uuid) mesh.uuid = options.uuid;
       this.commit('addObject', object);
     },
-    addPlane: function (state, options = { size: [30, 30], position: [0, 0, 0] }) {
+    addSphere: function (state, options = { size: 5, position: [0, 0, 0] }) {
+      let geometry = new THREE.SphereBufferGeometry(options.size, 10, 8);
+      let mesh = new THREE.Mesh(geometry, state.objectMaterial);
+
+      this.commit('addObject', { mesh, position: options.position, name: 'Sphere', type: 'sphere' });
+    },
+    addPlane: function (state, options = { size: [10, 10], position: [0, 0, 0] }) {
       let geometry = new THREE.PlaneBufferGeometry(options.size[0], options.size[1]);
-      let material = new THREE.MeshPhongMaterial({ color: 0xDDDDDD, side: THREE.DoubleSide });
-      let mesh = new THREE.Mesh(geometry, material);
+      let mesh = new THREE.Mesh(geometry, state.planeMaterial);
 
       this.commit('addObject', { mesh, position: options.position, name: 'Plane', type: 'plane' });
+    },
+    addCylinder: function (state, options = { size: [5, 10], position: [0, 0, 0] }) {
+      let geometry = new THREE.CylinderBufferGeometry(options.size[0], options.size[0], options.size[1]);
+      let mesh = new THREE.Mesh(geometry, state.objectMaterial);
+
+      this.commit('addObject', { mesh, position: options.position, name: 'Cylinder', type: 'cylinder' });
+    },
+    addCone: function (state, options = { size: [5, 10], position: [0, 0, 0] }) {
+      let geometry = new THREE.ConeBufferGeometry(options.size[0], options.size[1], 12);
+      let mesh = new THREE.Mesh(geometry, state.objectMaterial);
+
+      this.commit('addObject', { mesh, position: options.position, name: 'Cone', type: 'cone' });
     },
     addGroup: function (state, options) {
       let group = new THREE.Group();
       let i = options.children.length;
+      let center = transformUtil.getCenter(options.children);
 
+      group.position.copy(center);
       while (i--) {
-        let child = options.children[i];
-
-        group.add(child);
+        options.children[i].position.sub(center)
+        group.add(options.children[i]);
       }
-
       if (options.position) group.position.copy(options.position);
       if (options.name) group.name = options.name;
       group.userData.type = 'Group';
       group.userData.groupType = options.groupType;
       state.scene.add(group);
+
       this.commit("clearActiveObjects");
       this.commit("addActiveObject", group.uuid);
     },
@@ -191,27 +261,44 @@ export default new Vuex.Store({
       threeObject.name = updates.name;
     },
     deleteObject(state, object) {
-      if (object.userData.type == 'LED' || (object.userData.type == "Group" && object.userData.groupType == 'LED')) {
+      if (object.userData.type == 'LED') {
         this.dispatch("disconnectBoth", object);
+      } else if (object.userData.groupType == 'LED') {
+        object.children.forEach(child => {
+          this.dispatch("disconnectBoth", child);
+        });
       } else if (object.userData.type == 'Animation') {
         let index = state.animations.findIndex((elem) => elem.uuid == object.uuid);
         state.animations.splice(index, 1);
       }
+      state.selection.selectionScene.remove(object.userData.clone);
       object.parent.remove(object);
     },
     setActivePort(state, port) {
       state.activePort = port;
     },
     setActiveTool: function (state, tool) {
-      state.activeTool = tool;
+      if (state.selection.selectionGroup.length > 1) {
+        if (tool == 'rotate' || tool == 'scale') {
+          return state.activeTool = 'select';
+        }
+      }
+      return state.activeTool = tool;
     },
     addActiveObject(state, uuid) {
-      let newActiveObjects = Object.assign({}, state.activeObjects);
-      newActiveObjects[uuid] = true;
-      state.activeObjects = newActiveObjects;
+      Vue.set(state.activeObjects, uuid, true);
+      this.dispatch("addToSelectionGroup", uuid);
     },
     clearActiveObjects(state) {
       state.activeObjects = {};
+      this.dispatch("emptySelectionGroup");
+    },
+    deleteActiveObjects: function (state) {
+      this.dispatch("emptySelectionGroup");
+      for (const uuid in state.activeObjects) {
+        this.commit("deleteObject", state.scene.getObjectByProperty("uuid", uuid));
+      }
+      this.commit("clearActiveObjects");
     },
     setFps: function (state, fps) {
       state.fps = fps;
@@ -222,8 +309,8 @@ export default new Vuex.Store({
     setMode: function (state, mode) {
       state.mode = mode;
     },
-    setShiftPressed: function (state, bool) {
-      state.shiftPressed = bool;
+    setCtrlPressed: function (state, bool) {
+      state.ctrlPressed = bool;
     },
     setSnapToGrid: function (state, bool) {
       state.snapToGrid = bool;
@@ -236,29 +323,6 @@ export default new Vuex.Store({
     },
     setGlobalOpacity: function (state, value) {
       state.globalOpacity = value;
-    },
-    emptySelectionGroup: function (state) {
-      let group = state.selectionGroup.children;
-
-      for (var i = group.length - 1; i >= 0; i--) {
-        let child = group[i];
-
-        child.applyMatrix(state.selectionGroup.matrixWorld);
-        state.selectionGroup.remove(child);
-        state.scene.add(child);
-      }
-
-      state.selectionGroup.position.set(0, 0, 0);
-      state.selectionGroup.rotation.set(0, 0, 0);
-      state.selectionGroup.scale.set(1, 1, 1);
-      state.selectionGroup.updateMatrix();
-    },
-    deleteActiveObjects: function (state) {
-      this.commit("emptySelectionGroup");
-      for (const uuid in state.activeObjects) {
-        this.commit("deleteObject", state.scene.getObjectByProperty("uuid", uuid));
-      }
-      this.commit("clearActiveObjects");
     },
     applyLEDMaterial: function (state) {
       let ledTexture = new THREE.TextureLoader().load(location.origin + '/led.png');
@@ -275,36 +339,6 @@ export default new Vuex.Store({
         globalOpacity: new THREE.Uniform(state.globalOpacity),
       };
 
-      function makeEffectUnique(originalEffect, suffix, side) {
-        let effect = JSON.parse(JSON.stringify(originalEffect));
-
-        for (const key in effect.properties) {
-          let uniqueKey = key + suffix;
-          let regex = new RegExp(key, "g");
-
-          effect.shaderParameters = effect.shaderParameters.replace(
-            regex,
-            uniqueKey
-          );
-          effect.shader = effect.shader.replace(regex, uniqueKey);
-          effect.properties[uniqueKey] = effect.properties[key];
-          delete effect.properties[key];
-        }
-
-        effect.variables.forEach(key => {
-          let uniqueKey = key + suffix;
-          let regex = new RegExp(key, "g");
-
-          effect.shader = effect.shader.replace(regex, uniqueKey);
-        });
-
-        if (side) {
-          effect.shader = effect.shader.replace(new RegExp("vColor", "g"), side + "VColor");
-        }
-
-        return effect;
-      };
-
       if (state.mode == 'design') {
         if (Object.keys(state.activeObjects).length == 1) {
           let activeObjectUuid = Object.keys(state.activeObjects)[0];
@@ -316,7 +350,7 @@ export default new Vuex.Store({
 
         if (activeAnimation) {
           activeAnimation.effects.forEach(effect => {
-            let uniqueEffect = makeEffectUnique(effect, effect.uuid);
+            let uniqueEffect = ledMaterialUtil.makeEffectUnique(effect, effect.uuid);
 
             uniforms = Object.assign(uniforms, uniqueEffect.properties);
             shaderParameters += "\n" + uniqueEffect.shaderParameters;
@@ -331,7 +365,7 @@ export default new Vuex.Store({
           );
 
           activeAnimation.effects.forEach(effect => {
-            let uniqueEffect = makeEffectUnique(effect, 'left' + effect.uuid, 'left');
+            let uniqueEffect = ledMaterialUtil.makeEffectUnique(effect, 'left' + effect.uuid, 'left');
 
             uniforms = Object.assign(uniforms, uniqueEffect.properties);
             shaderParameters += "\n" + uniqueEffect.shaderParameters;
@@ -346,7 +380,7 @@ export default new Vuex.Store({
           );
 
           activeAnimation.effects.forEach(effect => {
-            let uniqueEffect = makeEffectUnique(effect, 'right' + effect.uuid, 'right');
+            let uniqueEffect = ledMaterialUtil.makeEffectUnique(effect, 'right' + effect.uuid, 'right');
 
             uniforms = Object.assign(uniforms, uniqueEffect.properties);
             shaderParameters += "\n" + uniqueEffect.shaderParameters;
@@ -364,141 +398,17 @@ export default new Vuex.Store({
         ].join("\n");
       }
 
-      let material = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        side: THREE.DoubleSide,
-        transparent: true,
-        //blending: THREE.AdditiveBlending,
-        defines: {
-          USE_MAP: true
-        },
-        userData: {
-          activeAnimations
-        },
-        vertexShader: [
-          "uniform float mixValue;",
-          "uniform float globalOpacity;",
-          "uniform float time;",
-          "varying lowp vec4 vColor;",
-          "attribute vec3 LEDPosition;",
-          "attribute float LEDIndex;",
-          "varying vec2 vUv;",
-
-          // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-          "float random(float n){ return fract(sin(n) * 43758.5453123); }",
-          "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
-
-          // https://github.com/jamieowen/glsl-blend
-          "vec3 blendByMode(int mode, float opacity, vec3 base, vec3 blend) {",
-          "  if (mode == 0) {", // normal
-          "    return mix(base, blend, opacity);",
-          "  } else if(mode == 1) {", // darken
-          "    return mix(base, min(blend, base), opacity);",
-          "  } else if(mode == 2) {", // multiply
-          "    return mix(base, base * blend, opacity);",
-          "  } else if(mode == 3) {", // lighten
-          "    return mix(base, max(blend, base), opacity);",
-          "  } else if(mode == 4) {", // screen
-          "    return mix(base, 1.0 - ((1.0 - base) * (1.0 - blend)), opacity);",
-          "  }",
-          "}",
-
-          shaderParameters,
-          "void main() {",
-          "  vUv = uv;",
-          "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",
-          "  gl_Position = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);",
-          "  gl_Position.xy += position.xy;",
-          "  gl_Position = projectionMatrix * gl_Position;",
-          shader,
-          "}",
-        ].join("\n"),
-        fragmentShader: [
-          "varying lowp vec4 vColor;",
-          "uniform sampler2D ledTexture;",
-          "uniform sampler2D shineTexture;",
-          "varying vec2 vUv;",
-          "void main() {",
-          "  float brightness = max(max(vColor.r, vColor.g), vColor.b);",
-          "  vec4 led = texture2D(ledTexture, vUv);",
-          "  vec4 shine = texture2D(shineTexture, vUv);",
-          "  gl_FragColor = led * vColor;",
-          "  gl_FragColor.rgb += brightness * shine.a;",
-          "}"
-        ].join("\n")
+      let bufferUniforms = Object.assign(uniforms, {
+        width: { value: state.bufferWidth },
+        height: { value: state.bufferHeight }
       });
+      let material = ledMaterialUtil.getLEDMaterial(uniforms, {activeAnimations}, shaderParameters, shader);
+      state.bufferMaterial = ledMaterialUtil.getBufferMaterial(bufferUniforms, shaderParameters, shader);
 
-      state.bufferMaterial = new THREE.ShaderMaterial({
-        uniforms: Object.assign(uniforms, {
-          width: { value: state.bufferWidth },
-          height: { value: state.bufferHeight }
-        }),
-        vertexShader: [
-          "uniform float mixValue;",
-          "uniform float globalOpacity;",
-          "attribute vec3 LEDPosition;",
-          "attribute float LEDIndex;",
-          "uniform float time;",
-          "uniform float width;",
-          "uniform float height;",
-          "varying vec4 vColor;",
-
-          // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-          "float random(float n){ return fract(sin(n) * 43758.5453123); }",
-          "float random2(vec2 st){ return fract(sin(dot(st.xy ,vec2(12.9898, 78.233))) * 43758.5453); }",
-
-          // https://github.com/jamieowen/glsl-blend
-          "vec3 blendByMode(int mode, float opacity, vec3 base, vec3 blend) {",
-          "  if (mode == 0) {", // normal
-          "    return mix(base, blend, opacity);",
-          "  } else if(mode == 1) {", // darken
-          "    return mix(base, min(blend, base), opacity);",
-          "  } else if(mode == 2) {", // multiply
-          "    return mix(base, base * blend, opacity);",
-          "  } else if(mode == 3) {", // lighten
-          "    return mix(base, max(blend, base), opacity);",
-          "  } else if(mode == 4) {", // screen
-          "    return mix(base, 1.0 - ((1.0 - base) * (1.0 - blend)), opacity);",
-          "  }",
-          "}",
-
-          shaderParameters,
-          "void main() {",
-          "  vColor = vec4(0.0, 0.0, 0.0, 1.0);",
-          "  vec2 pos = vec2(mod(LEDIndex, width) / width, floor(LEDIndex / width) / height) * 2.0 - 1.0;",
-          "  pos += 1.0 / width;",
-          "  gl_PointSize = 1.0;",
-          "  gl_Position = vec4(pos, 0.0, 1.0);",
-          shader,
-          "}",
-        ].join("\n"),
-        fragmentShader: [
-          "varying vec4 vColor;",
-          "void main() {",
-          "  gl_FragColor = vColor;",
-          "}",
-        ].join("\n")
-      });
-
-      function applyAttributes(object, index) {
-        let LEDPosition = Float32Array.from(object.geometry.attributes.position.array);
-        let length = object.geometry.attributes.position.array.length / 3;
-        let LEDIndex = Float32Array.from({ length: length }, () => index);
-
-        for (var i = 0; i < LEDPosition.length; i += 3) {
-          LEDPosition[i] = object.position.x;
-          LEDPosition[i + 1] = object.position.y;
-          LEDPosition[i + 2] = object.position.z;
-        }
-        object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
-        object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3] = object.position.x;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = object.position.y;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = object.position.z;
-      }
+      
 
       for (let i = 0; i < this.getters.LEDs.length; i++) {
-        applyAttributes(this.getters.LEDs[i], i);
+        ledMaterialUtil.applyAttributes(state, this.getters.LEDs[i], i);
         this.getters.LEDs[i].material = material;
         this.getters.LEDs[i].needsUpdate = true;
       }

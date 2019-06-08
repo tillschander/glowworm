@@ -42,6 +42,12 @@ export default {
         }
       });
     }
+  },
+  mounted: function() {
+    this.$store.commit("applyLEDMaterial");
+  },
+  beforeDestroy: function() {
+    this.$store.commit("applyLEDMaterial");
   }
 };
 </script>

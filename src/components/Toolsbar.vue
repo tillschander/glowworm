@@ -13,6 +13,7 @@
       <button
         v-on:click="setActiveTool('move')"
         v-bind:class="{ active: activeTool == 'move' }"
+        v-bind:disabled="!$store.getters.canMove"
         class="tool"
         title="Move (W)"
       >
@@ -22,6 +23,7 @@
       <button
         v-on:click="setActiveTool('rotate')"
         v-bind:class="{ active: activeTool == 'rotate' }"
+        v-bind:disabled="!$store.getters.canRotate"
         class="tool"
         title="Rotate"
       >
@@ -31,6 +33,7 @@
       <button
         v-on:click="setActiveTool('scale')"
         v-bind:class="{ active: activeTool == 'scale' }"
+        v-bind:disabled="!$store.getters.canScale"
         class="tool"
         title="Scale (R)"
       >
@@ -248,6 +251,10 @@ section {
 
   &.active {
     color: #00ffff;
+  }
+
+  &:disabled {
+    color: #888888;
   }
 
   svg {

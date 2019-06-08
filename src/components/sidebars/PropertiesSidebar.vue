@@ -11,7 +11,7 @@
       </template>
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
-        <AnimationPanel/>
+        <AnimationPanel v-bind:key="uuid"/>
       </template>
       <template v-if="this.type == 'LED'">
         <NamePanel/>
@@ -22,7 +22,7 @@
         <PositionPanel/>
         <RotationPanel/>
         <ScalePanel/>
-        <TexturePanel v-if="this.threeType == 'PlaneBufferGeometry'"/>
+        <!--<TexturePanel v-if="this.objectType == 'plane'"/>-->
       </template>
       <template v-if="this.type == 'Camera'">
         <CameraPanel/>
@@ -31,23 +31,26 @@
         <NamePanel/>
         <PositionPanel/>
         <RotationPanel/>
+        <ScalePanel/>
+        <br>
+        <button v-on:click="mask">Create mask from group</button>
+        <br>
         <button v-on:click="ungroup">Ungroup</button>
       </template>
     </template>
     <template v-else-if="this.activeCount > 1">
       <PositionPanel/>
-      <RotationPanel/>
       <div v-if="this.activeLEDs.length > 0">{{ this.activeLEDs.length }} LEDs selected</div>
       <div v-if="this.activeObjects.length > 0">{{ this.activeObjects.length }} Objects selected</div>
       <div v-if="this.activeGroups.length > 0">{{ this.activeGroups.length }} Groups selected</div>
         <br>
       <template v-if="this.activeLEDs.length == 0 || this.activeObjects.length == 0 ">
-        <button v-on:click="mask" v-if="this.activeLEDs.length > 0">Create Mask from selection</button>
+        <button v-on:click="mask" v-if="this.activeLEDs.length > 0">Create mask from selection</button>
         <br>
-        <button v-on:click="group">Group selection</button>
+        <button v-on:click="group" v-if="this.activeGroups.length == 0">Group selection</button>
       </template>
       <template v-else>
-        Select only LEDs or only Objects to group them
+        Select only LEDs or only objects to group them
       </template>
     </template>
     <template v-else>Nothing selected</template>
@@ -87,24 +90,31 @@ export default {
     type: function() {
       return this.object.userData.type;
     },
-    threeType: function() {
-      return this.object.geometry.type;
+    objectType: function() {
+      return this.object.userData.objectType;
     },
     activeCount: function() {
       return Object.keys(this.$store.state.activeObjects).length;
     },
     activeLEDs: function() {
-      return this.$store.state.selectionGroup.children.filter(
-        child => child.userData.type == "LED"
-      );
+      let LEDs = [];
+
+      this.$store.state.selection.selectionGroup.forEach(element => {
+        if (element.userData.type == 'LED') LEDs.push(element);
+        if (element.userData.groupType == 'LED') {
+          element.children.forEach(child => LEDs.push(child));
+        }
+      });
+
+      return LEDs;
     },
     activeObjects: function() {
-      return this.$store.state.selectionGroup.children.filter(
+      return this.$store.state.selection.selectionGroup.filter(
         child => child.userData.type == "Object"
       );
     },
     activeGroups: function() {
-      return this.$store.state.selectionGroup.children.filter(
+      return this.$store.state.selection.selectionGroup.filter(
         child => child.userData.type == "Group"
       );
     }
@@ -114,8 +124,7 @@ export default {
       this.$store.commit("addGroup", {
         name: "Group",
         groupType: this.activeLEDs.length === 0 ? "Object" : "LED",
-        children: this.$store.state.selectionGroup.children,
-        position: this.$store.state.selectionGroup.position
+        children: this.$store.state.selection.selectionGroup
       });
     },
     ungroup: function() {
@@ -131,7 +140,6 @@ export default {
       }
 
       this.$store.commit("deleteObject", this.object);
-      this.$store.commit("emptySelectionGroup");
       this.$store.commit("clearActiveObjects");
     },
     mask: function() {

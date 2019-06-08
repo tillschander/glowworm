@@ -33,7 +33,6 @@
 
 <script>
 const fs = require("fs");
-const THREE = require("three");
 
 export default {
   name: "LedRingDialog",

@@ -1,5 +1,3 @@
-const THREE = require("three");
-
 class Default {
     constructor({ variables = [], properties = {}, shaderParameters = "", shader = "" } = {}) {
         this.uuid = THREE.Math.generateUUID().replace(/-/g, "");

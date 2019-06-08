@@ -10,7 +10,7 @@ export default {
   name: "ColorPanel",
   methods: {
     resetCamera: function() {
-      this.$store.state.orbit.reset();
+      this.$store.state.orbitControl.reset();
     }
   }
 };

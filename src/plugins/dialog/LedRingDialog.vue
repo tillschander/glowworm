@@ -3,11 +3,11 @@
     Ring Options:
     <br>====
     <br>
-    <br>LED Count:
+    <br>Count:
     <br>
     <input v-model.number="count" type="number">
     <br>
-    <br>Ring Radius:
+    <br>Radius:
     <br>
     <input v-model.number="radius" type="number">
     <br>
@@ -20,8 +20,6 @@
 </template>
 
 <script>
-const THREE = require("three");
-
 export default {
   name: "LedRingDialog",
   props: ["$store"],

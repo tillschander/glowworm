@@ -12,30 +12,75 @@ export default {
   name: "ScalePanel",
   computed: {
     type: function() {
-      return this.$store.state.selectionGroup.children[0].userData.objectType;
+      return this.$store.getters.activeObject.userData.objectType ||  this.$store.getters.activeObject.userData.groupType;
     },
     x: {
       get() {
-        return this.$store.state.selectionGroup.scale.x;
+        return this.$store.getters.activeObject.scale.x;
       },
       set(value) {
-        this.$store.state.selectionGroup.scale.x = value;
+        if (this.$store.state.selection.selectionGroup.length > 1) {
+          this.$store.state.selection.selectionGroup.forEach(child => {
+            let offset = this.$store.state.transformDummy.scale.x - value;
+
+            if (child.userData.type !== 'LED') {
+              child.scale.x -= offset;
+              child.userData.clone.scale.x -= offset;
+            }
+          });
+          this.$store.state.transformDummy.scale.x = value;
+        } else {
+          this.$store.getters.activeObject.scale.x = value;
+          this.$store.getters.activeObject.userData.clone.scale.x = value;
+          this.$store.state.transformDummy.scale.x = value;
+        }
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
       }
     },
     y: {
       get() {
-        return this.$store.state.selectionGroup.scale.y;
+        return this.$store.getters.activeObject.scale.y;
       },
       set(value) {
-        this.$store.state.selectionGroup.scale.y = value;
+        if (this.$store.state.selection.selectionGroup.length > 1) {
+          this.$store.state.selection.selectionGroup.forEach(child => {
+            let offset = this.$store.state.transformDummy.scale.y - value;
+
+            if (child.userData.type !== 'LED') {
+              child.scale.y -= offset;
+              child.userData.clone.scale.y -= offset;
+            }
+          });
+          this.$store.state.transformDummy.scale.y = value;
+        } else {
+          this.$store.getters.activeObject.scale.y = value;
+          this.$store.getters.activeObject.userData.clone.scale.y = value;
+          this.$store.state.transformDummy.scale.y = value;
+        }
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
       }
     },
     z: {
       get() {
-        return this.$store.state.selectionGroup.scale.z;
+        return this.$store.getters.activeObject.scale.z;
       },
       set(value) {
-        this.$store.state.selectionGroup.scale.z = value;
+        if (this.$store.state.selection.selectionGroup.length > 1) {
+          this.$store.state.selection.selectionGroup.forEach(child => {
+            let offset = this.$store.state.transformDummy.scale.z - value;
+
+            if (child.userData.type !== 'LED') {
+              child.scale.z -= offset;
+              child.userData.clone.scale.z -= offset;
+            }
+          });
+          this.$store.state.transformDummy.scale.z = value;
+        } else {
+          this.$store.getters.activeObject.scale.z = value;
+          this.$store.getters.activeObject.userData.clone.scale.z = value;
+          this.$store.state.transformDummy.scale.z = value;
+        }
+        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
       }
     }
   }

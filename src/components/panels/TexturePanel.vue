@@ -6,8 +6,6 @@
 </template>
 
 <script>
-const THREE = require("three");
-
 export default {
   name: "TexturePanel",
   data() {

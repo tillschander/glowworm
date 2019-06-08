@@ -13,10 +13,6 @@
 </template>
 
 <script>
-const THREE = require("three");
-const OBJLoader = require("three-obj-loader");
-OBJLoader(THREE);
-
 export default {
   name: "ObjectDialog",
   props: ["$store"],

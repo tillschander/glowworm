@@ -1,5 +1,3 @@
-const THREE = require("three");
-
 export default {
     headLength: 5,
     headWidth: 2,

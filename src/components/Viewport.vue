@@ -9,9 +9,7 @@
 import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
-const THREE = require("three");
-const OrbitControls = require("../assets/js/OrbitControls.js")(THREE);
-const TransformControls = require("../assets/js/TransformControls.js")(THREE);
+import transformUtil from "../utils/transform.js";
 
 export default {
   name: "Viewport",
@@ -21,14 +19,18 @@ export default {
   },
   data() {
     return {
-      renderer: null,
       light1: null,
       light2: null,
       control: null,
       downPosition: new THREE.Vector2(),
       upPosition: new THREE.Vector2(),
-      highlighter: new THREE.BoxHelper(undefined, 0x00ffff),
-      raycaster: new THREE.Raycaster()
+      raycaster: new THREE.Raycaster(),
+      lastPosition: new THREE.Vector3(),
+      positionDelta: new THREE.Vector3(),
+      lastRotation: new THREE.Vector3(),
+      rotationDelta: new THREE.Vector3(),
+      lastScale: new THREE.Vector3(),
+      scaleDelta: new THREE.Vector3()
     };
   },
   computed: {
@@ -65,33 +67,6 @@ export default {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
     activeObjects(objects, oldObjects) {
-      // Clear the selection group...
-      this.$store.commit("emptySelectionGroup");
-
-      // ...and refill it.
-      Object.keys(objects).forEach(uuid => {
-        this.$store.state.selectionGroup.add(
-          this.$store.state.scene.getObjectByProperty("uuid", uuid)
-        );
-      });
-
-      // Move the selection group and its children so that
-      // the origin of the selection group is it's center.
-      // We do this so that the control helper is positioned correctly.
-      let offset = new THREE.Vector3();
-      this.$store.state.scene.add(this.highlighter);
-      this.highlighter.setFromObject(this.$store.state.selectionGroup);
-      this.highlighter.geometry.computeBoundingBox();
-      this.highlighter.geometry.boundingBox.getCenter(offset);
-      this.$store.state.selectionGroup.applyMatrix(
-        new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z)
-      );
-      this.$store.state.selectionGroup.children.forEach(child => {
-        child.applyMatrix(
-          new THREE.Matrix4().makeTranslation(-offset.x, -offset.y, -offset.z)
-        );
-      });
-
       // Show or hide helpers based on what's selected.
       if (Object.keys(objects).length) {
         if (
@@ -99,57 +74,36 @@ export default {
           this.activeTool == "scale" ||
           this.activeTool == "rotate"
         ) {
-          this.$store.state.scene.add(this.control);
-          this.control.attach(this.$store.state.selectionGroup);
+          this.$store.state.scene.add(this.$store.state.transformControl);
         } else {
-          this.$store.state.scene.remove(this.control);
-
-
-          if (this.activeTool != "select") {
-            this.$store.state.scene.remove(this.highlighter);
-          }
-        }
-
-        if (
-          this.$store.state.selectionGroup.children[0].userData.type ==
-          "Animation"
-        ) {
-          this.$store.commit("applyLEDMaterial");
+          this.$store.state.scene.remove(this.$store.state.transformControl);
         }
       } else {
-        this.$store.state.scene.remove(this.highlighter);
-        this.$store.state.scene.remove(this.control);
+        this.$store.state.scene.remove(this.$store.state.transformControl);
       }
     },
     activeTool(tool, oldTool) {
-      let selectedObject0 = this.$store.state.selectionGroup.children[0];
-
-      if (selectedObject0 && selectedObject0.userData.type !== "Animation") {
-        this.$store.state.scene.add(this.control);
-        this.control.attach(this.$store.state.selectionGroup);
+      if (this.activeTool == "select" || this.activeTool == "connect" || this.activeTool == "disconnect") {
+        this.$store.state.scene.remove(this.$store.state.transformControl);
+      } else {
+        this.$store.state.scene.add(this.$store.state.transformControl);
       }
-
-      if (
-        this.activeTool == "select" ||
-        this.activeTool == "connect" ||
-        this.activeTool == "disconnect"
-      ) {
-        this.$store.state.scene.remove(this.control);
-      } else if (this.activeTool == "move") {
-        this.control.setMode("translate");
+      
+      if (this.activeTool == "move") {
+        this.$store.state.transformControl.setMode("translate");
       } else if (this.activeTool == "scale") {
-        this.control.setMode("scale");
+        this.$store.state.transformControl.setMode("scale");
       } else if (this.activeTool == "rotate") {
-        this.control.setMode("rotate");
+        this.$store.state.transformControl.setMode("rotate");
       }
     },
     snapToGrid(snapToGrid) {
       if (snapToGrid) {
-        this.control.setTranslationSnap(5);
-        this.control.setRotationSnap(THREE.Math.degToRad(15));
+        this.$store.state.transformControl.setTranslationSnap(5);
+        this.$store.state.transformControl.setRotationSnap(THREE.Math.degToRad(15));
       } else {
-        this.control.setTranslationSnap(null);
-        this.control.setRotationSnap(null);
+        this.$store.state.transformControl.setTranslationSnap(null);
+        this.$store.state.transformControl.setRotationSnap(null);
       }
     }
   },
@@ -165,10 +119,9 @@ export default {
       this.$store.state.camera.userData.type = "Camera";
       this.$store.state.scene.add(this.$store.state.camera);
 
-      this.renderer = new THREE.WebGLRenderer();
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.setSize(this.width, this.height);
-      container.appendChild(this.renderer.domElement);
+      this.$store.state.renderer.setSize(this.width, this.height);
+      container.appendChild(this.$store.state.renderer.domElement);
+      this.$store.state.bufferRenderer.setRenderTarget(this.$store.state.bufferTexture);
       //container.appendChild(this.$store.state.bufferRenderer.domElement);
 
       this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -178,29 +131,29 @@ export default {
       this.light2.position.set(-1.1, -0.4, -0.9);
       this.$store.state.scene.add(this.light2);
 
-      this.$store.state.scene.add(this.highlighter);
-
-      this.$store.state.orbit = new OrbitControls(
+      this.$store.state.orbitControl = new THREE.OrbitControls(
         this.$store.state.camera,
-        this.renderer.domElement
+        this.$store.state.renderer.domElement
       );
-      this.$store.state.orbit.update();
+      this.$store.state.orbitControl.update();
 
-      this.control = new TransformControls(
+      this.$store.state.transformControl = new THREE.TransformControls(
         this.$store.state.camera,
-        this.renderer.domElement
+        this.$store.state.renderer.domElement
       );
-      this.control.addEventListener("dragging-changed", this.onDraggingChanged);
-      this.control.addEventListener("objectChange", this.onObjectChanged);
-      this.$store.state.scene.add(this.control);
+      this.$store.state.transformControl.addEventListener("dragging-changed", this.onDraggingChanged);
+      this.$store.state.transformControl.addEventListener("objectChange", this.onObjectChanged);
+      this.$store.state.transformControl.addEventListener("mouseDown", this.onTransformStart);
+      this.$store.state.scene.add(this.$store.state.transformControl);
+      this.$store.state.scene.add(this.$store.state.transformDummy);
+      this.$store.state.transformControl.attach(this.$store.state.transformDummy);
 
       this.raycaster.linePrecision = 10;
 
-      this.$store.state.selectionGroup.userData.type = "Group";
-      this.$store.state.selectionGroup.userData.groupType = "Selection";
-      this.$store.state.scene.add(this.$store.state.selectionGroup);
+      this.$store.dispatch('initSelection');
 
       this.$store.commit("applyLEDMaterial");
+
       this.$store.commit("addBox", {
         position: [0, -250, 0],
         scale: [1000, 10, 1000]
@@ -209,20 +162,13 @@ export default {
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
-      this.renderer.render(this.$store.state.scene, this.$store.state.camera);
+      this.$store.state.selection.outlineComposer.render();
+      this.$store.state.selection.finalComposer.render();
 
-      this.$store.state.bufferRenderer.render(
-        this.$store.state.bufferScene,
-        this.$store.state.bufferCamera,
-        this.$store.state.bufferTexture,
-        true
-      );
-      /*
       this.$store.state.bufferRenderer.render(
         this.$store.state.bufferScene,
         this.$store.state.bufferCamera
       );
-      */
       this.$store.state.bufferRenderer.readRenderTargetPixels(
         this.$store.state.bufferTexture,
         0,
@@ -291,7 +237,14 @@ export default {
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.width, this.height);
+      this.$store.state.renderer.setSize(this.width, this.height);
+      this.$store.state.selection.outlineComposer.setSize(this.width, this.height);
+      this.$store.state.selection.finalComposer.setSize(this.width, this.height);
+      this.$store.state.selection.outlineTarget.setSize(this.width, this.height);
+      this.$store.state.selection.outlineShaderPass.uniforms.resolution.value = {
+        x: this.width,
+        y: this.height
+      };
     },
     onMouseDown: function(event) {
       this.downPosition = this.getPointer(event);
@@ -301,7 +254,7 @@ export default {
 
       if (this.$store.state.mode !== "design") return;
       if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
-      if (event.target !== this.renderer.domElement) return;
+      if (event.target !== this.$store.state.renderer.domElement) return;
 
       this.raycaster.setFromCamera(this.upPosition, this.$store.state.camera);
 
@@ -335,14 +288,14 @@ export default {
           type = "Group";
         }
 
-        if (!this.$store.state.shiftPressed) {
-          this.$store.commit("emptySelectionGroup");
+        if (!this.$store.state.ctrlPressed) {
+          this.$store.dispatch("emptySelectionGroup");
           this.$store.commit("clearActiveObjects");
         }
 
         this.$store.commit("addActiveObject", object.uuid);
       } else {
-        this.$store.commit("emptySelectionGroup");
+        this.$store.dispatch("emptySelectionGroup");
         this.$store.commit("clearActiveObjects");
       }
     },
@@ -398,30 +351,68 @@ export default {
         case 46: // Delete
           this.$store.commit("deleteActiveObjects");
           break;
-        case 16: // Shift
-          this.$store.commit("setShiftPressed", true);
+        case 17: // Ctrl
+          this.$store.commit("setCtrlPressed", true);
           break;
       }
     },
     onKeyup: function(event) {
       switch (event.keyCode) {
-        case 16: // Shift
-          this.$store.commit("setShiftPressed", false);
+        case 17: // Ctrl
+          this.$store.commit("setCtrlPressed", false);
           break;
       }
     },
     onDraggingChanged: function(event) {
-      this.$store.state.orbit.enabled = !event.value;
+      this.$store.state.orbitControl.enabled = !event.value;
     },
     onObjectChanged: function(event) {
+      if (this.$store.state.activeTool == 'move') {
+        this.positionDelta.subVectors(this.$store.state.transformDummy.position, this.lastPosition);
+        this.$store.state.selection.selectionGroup.forEach(child => {
+          child.position.add(this.positionDelta);
+          child.userData.clone.position.add(this.positionDelta);
+        });
+        this.lastPosition.copy(this.$store.state.transformDummy.position);
+      } else if (this.$store.state.activeTool == 'rotate') {
+        this.rotationDelta.subVectors(this.$store.state.transformDummy.rotation.toVector3(), this.lastRotation);
+        this.$store.state.selection.selectionGroup.forEach(child => {
+          if (child.userData.type !== 'LED') {
+            child.rotation.set(child.rotation.x + this.rotationDelta.x, child.rotation.y + this.rotationDelta.y, child.rotation.z + this.rotationDelta.z);
+            child.userData.clone.rotation.set(child.rotation.x + this.rotationDelta.x, child.rotation.y + this.rotationDelta.y, child.rotation.z + this.rotationDelta.z);
+          }
+        });
+        this.lastRotation.copy(this.$store.state.transformDummy.rotation);
+      } else if (this.$store.state.activeTool == 'scale') {
+        this.scaleDelta.subVectors(this.$store.state.transformDummy.scale, this.lastScale);
+        this.$store.state.selection.selectionGroup.forEach(child => {
+          if (child.userData.type !== 'LED') {
+            child.scale.add(this.scaleDelta);
+            child.userData.clone.scale.add(this.scaleDelta);
+          }
+          if (child.userData.groupType == 'LED') {
+            for (let i = 0; i < child.children.length; i++) {
+              if (child.userData.clone.scale.x !== 1) child.userData.clone.children[i].scale.setX(1/child.userData.clone.scale.x);
+              if (child.userData.clone.scale.y !== 1) child.userData.clone.children[i].scale.setY(1/child.userData.clone.scale.y);
+              if (child.userData.clone.scale.z !== 1) child.userData.clone.children[i].scale.setZ(1/child.userData.clone.scale.z);
+            }
+          }
+        });
+        this.lastScale.copy(this.$store.state.transformDummy.scale);
+      }
       this.$store.dispatch(
         "updateLEDConnections",
-        this.$store.state.selectionGroup.children
+        this.$store.state.selection.selectionGroup
       );
+    },
+    onTransformStart: function(event) {
+      this.lastPosition.copy(this.$store.state.transformDummy.position);
+      this.lastRotation.copy(this.$store.state.transformDummy.rotation);
+      this.lastScale.copy(this.$store.state.transformDummy.scale);
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;
-      let rect = this.renderer.domElement.getBoundingClientRect();
+      let rect = this.$store.state.renderer.domElement.getBoundingClientRect();
 
       return new THREE.Vector2(
         ((pointer.clientX - rect.left) / rect.width) * 2 - 1,
@@ -429,7 +420,6 @@ export default {
       );
     },
     update: function(delta) {
-      this.highlighter.update();
       this.$store.state.activeLEDMaterial.uniforms.time.value += delta;
       this.$store.state.bufferMaterial.uniforms.time.value += delta;
     },

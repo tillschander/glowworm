@@ -13,7 +13,6 @@
 
 <script>
 import Default from "./Default.vue";
-const THREE = require("three");
 
 export default {
   name: "SimpleColor",

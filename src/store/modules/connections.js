@@ -1,5 +1,4 @@
 import arrowUtil from '../../utils/arrow.js';
-const THREE = require("three");
 
 export default {
   state: {

@@ -3,21 +3,14 @@
     Line Options:
     <br>====
     <br>
-    <br>LED Count:
+    <br>Count:
     <br>
     <input v-model.number="count" type="number">
     <br>
-    <br>Start Position:
+    <br>Spacing:
     <br>
-    <input v-model.number="startX" type="number" class="third">
-    <input v-model.number="startY" type="number" class="third">
-    <input v-model.number="startZ" type="number" class="third">
+    <input v-model.number="spacing" type="number">
     <br>
-    <br>End Position:
-    <br>
-    <input v-model.number="endX" type="number" class="third">
-    <input v-model.number="endY" type="number" class="third">
-    <input v-model.number="endZ" type="number" class="third">
     <br>
     <br>
     <div class="buttons">
@@ -28,20 +21,13 @@
 </template>
 
 <script>
-const THREE = require("three");
-
 export default {
   name: "LedLineDialog",
   props: ["$store"],
   data() {
     return {
       count: 10,
-      startX: 0,
-      startY: -50,
-      startZ: 0,
-      endX: 0,
-      endY: 50,
-      endZ: 0
+      spacing: 10
     };
   },
   methods: {
@@ -50,9 +36,10 @@ export default {
     },
     add() {
       let group = [];
+      let length = this.count*this.spacing;
       let line = new THREE.LineCurve3(
-        new THREE.Vector3(this.startX, this.startY, this.startZ),
-        new THREE.Vector3(this.endX,this.endY,this.endZ)
+        new THREE.Vector3(0, -length/2, 0),
+        new THREE.Vector3(0, length/2, 0)
       );
 
       for (let i = 0; i < this.count; i++) {
@@ -83,9 +70,5 @@ export default {
 .buttons {
   display: flex;
   justify-content: space-between;
-}
-
-.third {
-  width: 33.3333%;
 }
 </style>
