@@ -132,17 +132,23 @@ export default new Vuex.Store({
 
         if (material.userData.activeAnimations) {
           material.userData.activeAnimations.forEach(animation => {
-            let side = '';
-            if (state.mode == 'live' && animation.uuid == state.leftAnimation) side = 'left';
-            if (state.mode == 'live' && animation.uuid == state.rightAnimation) side = 'right';
             animation.effects.forEach(effect => {
               let mask = state.scene.getObjectByProperty('uuid', effect.mask);
-              if (mask && mask.userData.LEDs.includes(this.uuid)) {
-                state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = true;
+              let masked = mask && mask.userData.LEDs.includes(this.uuid);
+
+              if (state.mode == 'live') {
+                if (animation.uuid == state.leftAnimation) {
+                  state.activeLEDMaterial.uniforms['maskedleft' + effect.uuid].value = masked;
+                  updateList.push('maskedleft' + effect.uuid);
+                }
+                if (animation.uuid == state.rightAnimation) {
+                  state.activeLEDMaterial.uniforms['maskedright' + effect.uuid].value = masked;
+                  updateList.push('maskedright' + effect.uuid);
+                }
               } else {
-                state.activeLEDMaterial.uniforms['masked' + side + effect.uuid].value = false;
+                state.activeLEDMaterial.uniforms['masked' + effect.uuid].value = masked;
+                updateList.push('masked' + effect.uuid);
               }
-              updateList.push('masked' + side + effect.uuid);
             });
           });
         }
