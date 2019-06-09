@@ -26,7 +26,7 @@ export default {
   data() {
     return {
       count: 10,
-      spacing: 10
+      spacing: 8
     };
   },
   methods: {

@@ -25,7 +25,7 @@
         v-bind:class="{ active: activeTool == 'rotate' }"
         v-bind:disabled="!$store.getters.canRotate"
         class="tool"
-        title="Rotate"
+        title="Rotate (E)"
       >
         <div v-html="iconUtil.load('rotate')"></div>
         <span class="name">Rotate</span>
@@ -90,7 +90,7 @@
         <div v-html="iconUtil.load('add_animation')"></div>
         <span class="name">Add Animation</span>
       </button>
-      <button v-on:click="addMask" class="tool" title="Add Mask">
+      <button v-on:click="addMask" class="tool" title="Add Mask (F)">
         <div v-html="iconUtil.load('add_mask')"></div>
         <span class="name">Add Mask</span>
       </button>
@@ -100,7 +100,7 @@
         v-on:click="connect"
         v-bind:class="{ active: activeTool == 'connect' }"
         class="tool"
-        title="Connect"
+        title="Connect (C)"
       >
         <div v-html="iconUtil.load('connect')"></div>
         <span class="name">Connect</span>
@@ -109,7 +109,7 @@
         v-on:click="disconnect"
         v-bind:class="{ active: activeTool == 'disconnect' }"
         class="tool"
-        title="Disconnect"
+        title="Disconnect (V)"
       >
         <div v-html="iconUtil.load('disconnect')"></div>
         <span class="name">Disconnect</span>
@@ -178,7 +178,7 @@ export default {
       this.$store.dispatch("addAnimation");
     },
     addMask: function() {
-      this.$store.dispatch("addMask", {});
+      this.$store.dispatch("addMask");
     },
     connect: function() {
       this.setActiveTool("connect");

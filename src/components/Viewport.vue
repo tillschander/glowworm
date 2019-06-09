@@ -83,12 +83,16 @@ export default {
       }
     },
     activeTool(tool, oldTool) {
-      if (this.activeTool == "select" || this.activeTool == "connect" || this.activeTool == "disconnect") {
+      if (
+        this.activeTool == "select" ||
+        this.activeTool == "connect" ||
+        this.activeTool == "disconnect"
+      ) {
         this.$store.state.scene.remove(this.$store.state.transformControl);
       } else {
         this.$store.state.scene.add(this.$store.state.transformControl);
       }
-      
+
       if (this.activeTool == "move") {
         this.$store.state.transformControl.setMode("translate");
       } else if (this.activeTool == "scale") {
@@ -100,7 +104,9 @@ export default {
     snapToGrid(snapToGrid) {
       if (snapToGrid) {
         this.$store.state.transformControl.setTranslationSnap(5);
-        this.$store.state.transformControl.setRotationSnap(THREE.Math.degToRad(15));
+        this.$store.state.transformControl.setRotationSnap(
+          THREE.Math.degToRad(15)
+        );
       } else {
         this.$store.state.transformControl.setTranslationSnap(null);
         this.$store.state.transformControl.setRotationSnap(null);
@@ -121,7 +127,9 @@ export default {
 
       this.$store.state.renderer.setSize(this.width, this.height);
       container.appendChild(this.$store.state.renderer.domElement);
-      this.$store.state.bufferRenderer.setRenderTarget(this.$store.state.bufferTexture);
+      this.$store.state.bufferRenderer.setRenderTarget(
+        this.$store.state.bufferTexture
+      );
       //container.appendChild(this.$store.state.bufferRenderer.domElement);
 
       this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -141,17 +149,28 @@ export default {
         this.$store.state.camera,
         this.$store.state.renderer.domElement
       );
-      this.$store.state.transformControl.addEventListener("dragging-changed", this.onDraggingChanged);
-      this.$store.state.transformControl.addEventListener("objectChange", this.onObjectChanged);
-      this.$store.state.transformControl.addEventListener("mouseDown", this.onTransformStart);
+      this.$store.state.transformControl.addEventListener(
+        "dragging-changed",
+        this.onDraggingChanged
+      );
+      this.$store.state.transformControl.addEventListener(
+        "objectChange",
+        this.onObjectChanged
+      );
+      this.$store.state.transformControl.addEventListener(
+        "mouseDown",
+        this.onTransformStart
+      );
       this.$store.state.scene.add(this.$store.state.transformControl);
       this.$store.state.scene.add(this.$store.state.transformDummy);
-      this.$store.state.transformControl.attach(this.$store.state.transformDummy);
+      this.$store.state.transformControl.attach(
+        this.$store.state.transformDummy
+      );
 
       this.raycaster.linePrecision = 10;
 
-      this.$store.dispatch('initSelection');
-      this.$store.dispatch('initConnection');
+      this.$store.dispatch("initSelection");
+      this.$store.dispatch("initConnection");
 
       this.$store.dispatch("applyLEDMaterial");
 
@@ -199,12 +218,19 @@ export default {
       }
     },
     handleConnectClick: function(intersects) {
-      let leds = intersects.filter(e => e.object.userData.type == "LED" || e.object.userData.type == "Origin");
+      let leds = intersects.filter(
+        e =>
+          e.object.userData.type == "LED" || e.object.userData.type == "Origin"
+      );
 
       if (leds.length) {
         let led = leds[0].object;
 
-        if (this.$store.state.connections.toConnect.length == 1 && led.userData.type == 'Origin') return;
+        if (
+          this.$store.state.connections.toConnect.length == 1 &&
+          led.userData.type == "Origin"
+        )
+          return;
         this.$store.state.connections.toConnect.push(led);
         this.$store.state.scene.add(this.$store.state.connections.connectArrow);
         this.$store.dispatch("updateConnectArrow", {
@@ -241,9 +267,18 @@ export default {
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.updateProjectionMatrix();
       this.$store.state.renderer.setSize(this.width, this.height);
-      this.$store.state.selection.outlineComposer.setSize(this.width, this.height);
-      this.$store.state.selection.finalComposer.setSize(this.width, this.height);
-      this.$store.state.selection.outlineTarget.setSize(this.width, this.height);
+      this.$store.state.selection.outlineComposer.setSize(
+        this.width,
+        this.height
+      );
+      this.$store.state.selection.finalComposer.setSize(
+        this.width,
+        this.height
+      );
+      this.$store.state.selection.outlineTarget.setSize(
+        this.width,
+        this.height
+      );
       this.$store.state.selection.outlineShaderPass.uniforms.resolution.value = {
         x: this.width,
         y: this.height
@@ -330,31 +365,42 @@ export default {
       if (this.$store.state.mode !== "design") return;
 
       switch (event.keyCode) {
-        case 81: // Q
+        case 81: // q
           this.$store.commit("setActiveTool", "select");
           break;
-        case 87: // W
+        case 87: // w
           this.$store.commit("setActiveTool", "move");
           break;
-        case 69: // E
+        case 69: // e
           this.$store.commit("setActiveTool", "rotate");
           break;
-        case 82: // R
+        case 82: // r
           this.$store.commit("setActiveTool", "scale");
           break;
-        case 65: // A
+        case 65: // a
           this.$store.dispatch("addLED");
           break;
-        case 83: // S
+        case 83: // s
           this.$store.commit("addBox");
           break;
-        case 68: // D
+        case 68: // d
           this.$store.dispatch("addAnimation");
           break;
-        case 46: // Delete
+        case 70: // f
+          this.$store.dispatch("addMask");
+          break;
+        case 67: // c
+          this.$store.commit("setActiveTool", "connect");
+          this.$store.commit("clearActiveElements");
+          break;
+        case 86: // v
+          this.$store.commit("setActiveTool", "disconnect");
+          this.$store.commit("clearActiveElements");
+          break;
+        case 46: // delete
           this.$store.commit("deleteActiveElements");
           break;
-        case 17: // Ctrl
+        case 17: // ctrl
           this.$store.commit("setCtrlPressed", true);
           break;
       }
@@ -370,34 +416,60 @@ export default {
       this.$store.state.orbitControl.enabled = !event.value;
     },
     onObjectChanged: function(event) {
-      if (this.$store.state.activeTool == 'move') {
-        this.positionDelta.subVectors(this.$store.state.transformDummy.position, this.lastPosition);
+      if (this.$store.state.activeTool == "move") {
+        this.positionDelta.subVectors(
+          this.$store.state.transformDummy.position,
+          this.lastPosition
+        );
         this.$store.state.selection.selectionGroup.forEach(child => {
           child.position.add(this.positionDelta);
           child.userData.clone.position.add(this.positionDelta);
         });
         this.lastPosition.copy(this.$store.state.transformDummy.position);
-      } else if (this.$store.state.activeTool == 'rotate') {
-        this.rotationDelta.subVectors(this.$store.state.transformDummy.rotation.toVector3(), this.lastRotation);
+      } else if (this.$store.state.activeTool == "rotate") {
+        this.rotationDelta.subVectors(
+          this.$store.state.transformDummy.rotation.toVector3(),
+          this.lastRotation
+        );
         this.$store.state.selection.selectionGroup.forEach(child => {
-          if (child.userData.type !== 'LED') {
-            child.rotation.set(child.rotation.x + this.rotationDelta.x, child.rotation.y + this.rotationDelta.y, child.rotation.z + this.rotationDelta.z);
-            child.userData.clone.rotation.set(child.rotation.x + this.rotationDelta.x, child.rotation.y + this.rotationDelta.y, child.rotation.z + this.rotationDelta.z);
+          if (child.userData.type !== "LED") {
+            child.rotation.set(
+              child.rotation.x + this.rotationDelta.x,
+              child.rotation.y + this.rotationDelta.y,
+              child.rotation.z + this.rotationDelta.z
+            );
+            child.userData.clone.rotation.set(
+              child.rotation.x + this.rotationDelta.x,
+              child.rotation.y + this.rotationDelta.y,
+              child.rotation.z + this.rotationDelta.z
+            );
           }
         });
         this.lastRotation.copy(this.$store.state.transformDummy.rotation);
-      } else if (this.$store.state.activeTool == 'scale') {
-        this.scaleDelta.subVectors(this.$store.state.transformDummy.scale, this.lastScale);
+      } else if (this.$store.state.activeTool == "scale") {
+        this.scaleDelta.subVectors(
+          this.$store.state.transformDummy.scale,
+          this.lastScale
+        );
         this.$store.state.selection.selectionGroup.forEach(child => {
-          if (child.userData.type !== 'LED') {
+          if (child.userData.type !== "LED") {
             child.scale.add(this.scaleDelta);
             child.userData.clone.scale.add(this.scaleDelta);
           }
-          if (child.userData.groupType == 'LED') {
+          if (child.userData.groupType == "LED") {
             for (let i = 0; i < child.children.length; i++) {
-              if (child.userData.clone.scale.x !== 1) child.userData.clone.children[i].scale.setX(1/child.userData.clone.scale.x);
-              if (child.userData.clone.scale.y !== 1) child.userData.clone.children[i].scale.setY(1/child.userData.clone.scale.y);
-              if (child.userData.clone.scale.z !== 1) child.userData.clone.children[i].scale.setZ(1/child.userData.clone.scale.z);
+              if (child.userData.clone.scale.x !== 1)
+                child.userData.clone.children[i].scale.setX(
+                  1 / child.userData.clone.scale.x
+                );
+              if (child.userData.clone.scale.y !== 1)
+                child.userData.clone.children[i].scale.setY(
+                  1 / child.userData.clone.scale.y
+                );
+              if (child.userData.clone.scale.z !== 1)
+                child.userData.clone.children[i].scale.setZ(
+                  1 / child.userData.clone.scale.z
+                );
             }
           }
         });

@@ -23,7 +23,7 @@ export default new Vuex.Store({
     transformDummy: new THREE.Object3D(),
     activeElements: {},
     activePort: null,
-    activeTool: 'select',
+    activeTool: 'move',
     maxConnections: 256,
     mode: 'design',
     snapToGrid: false,

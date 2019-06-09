@@ -15,7 +15,7 @@ export default {
         updateMaskLEDs: function ({ rootState }, options) {
             rootState.scene.getObjectByProperty('uuid', options.uuid).userData.LEDs = options.LEDs;
         },
-        addMask: function ({ rootState }, options) {
+        addMask: function ({ rootState }, options = {}) {
             let mask = new THREE.Object3D();
 
             mask.name = options.name || 'Mask';

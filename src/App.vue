@@ -169,7 +169,7 @@ button {
 
 .app {
   height: 100%;
-  background: radial-gradient(#cccccc, #333333);
+  background: #333333;
   color: #ffffff;
 }
 
@@ -201,12 +201,14 @@ button {
   background: no-repeat center center
     url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==");
   cursor: col-resize;
+  opacity: 0.5;
 }
 
 .gutter-vertical {
   background: no-repeat center center
     url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=");
   cursor: row-resize;
+  opacity: 0.5;
 }
 
 body > canvas {
