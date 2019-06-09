@@ -99,7 +99,7 @@ export default {
 <style lang="scss">
 .effect {
   margin-bottom: 1em;
-  background: #333333;
+  background: #292929;
   padding: 0 10px 0.5em 10px;
   left: -10px;
   position: relative;
