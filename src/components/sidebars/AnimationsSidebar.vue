@@ -3,11 +3,11 @@
     <b>Animations</b>
     <br>
     <div
-      v-bind:key="animation.uuid"
-      v-bind:class="{ active: isActive(animation), animation }"
-      v-for="animation in this.$store.state.animations.animations"
-      v-on:click="setAnimation(animation)"
-    >{{ getNameFromUuid(animation.uuid) }}</div>
+      v-bind:key="uuid"
+      v-bind:class="{ active: isActive(uuid), animation: true }"
+      v-for="uuid in animations"
+      v-on:click="setAnimation(uuid)"
+    >{{ getName(uuid) }}</div>
   </div>
 </template>
 
@@ -15,19 +15,24 @@
 export default {
   name: "AnimationsSidebar",
   props: ["side"],
+  data() {
+    return {
+      animations: []
+    };
+  },
   methods: {
-    getNameFromUuid: function(uuid) {
+    getName: function(uuid) {
       let animation = this.$store.state.scene.getObjectByProperty("uuid", uuid);
       return animation.name ? animation.name : animation.userData.type;
     },
-    setAnimation: function(animation) {
-      this.$store.commit("setLiveAnimation", { side: this.side, uuid: animation.uuid });
+    setAnimation: function(uuid) {
+      this.$store.commit("setLiveAnimation", { side: this.side, uuid });
       this.$store.dispatch("applyLEDMaterial");
     },
-    isActive: function(animation) {
+    isActive: function(uuid) {
       return (
         this.$store.state[this.side + "Animation"] &&
-        this.$store.state[this.side + "Animation"] == animation.uuid
+        this.$store.state[this.side + "Animation"] == uuid
       );
     }
   },
@@ -37,6 +42,10 @@ export default {
         this.setAnimation(this.$store.state.animations.animations[0]);
       }
     }
+
+    this.$store.state.animations.animations.forEach(animation => {
+      this.animations.push(animation.uuid);
+    });
   }
 };
 </script>

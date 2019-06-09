@@ -76,7 +76,10 @@ export default {
         return this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).mask;
       },
       set(value) {
+        let threeObject = this.$store.state.scene.getObjectByProperty('uuid', value);
+
         this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).mask = value;
+        this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).maskObject = threeObject;
       }
     }
   },

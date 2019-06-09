@@ -33,8 +33,7 @@ export default {
         if (material.userData.activeAnimations) {
           material.userData.activeAnimations.forEach(animation => {
             animation.effects.forEach(effect => {
-              let mask = rootState.scene.getObjectByProperty('uuid', effect.mask);
-              let masked = mask && mask.userData.LEDs.includes(this.uuid);
+              let masked = effect.maskObject && effect.maskObject.userData.LEDs.includes(this.uuid);
 
               if (rootState.mode == 'live') {
                 if (animation.uuid == rootState.leftAnimation) {
@@ -167,6 +166,9 @@ export default {
         rootState.bufferGeometry.attributes.LEDPosition.needsUpdate = true;
       }
 
+      this.dispatch('setActiveMaterial', material);
+    },
+    setActiveMaterial: function({state, rootState}, material) {
       state.activeMaterial = material;
     }
   }
