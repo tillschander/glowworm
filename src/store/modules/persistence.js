@@ -1,5 +1,23 @@
 const fs = require('fs');
 
+function saveToGroup(saveState, groupType, element) {
+  let index = saveState.groups.findIndex(group => group.uuid == element.parent.uuid);
+
+  if (index === -1) {
+    saveState.groups.push({
+      type: groupType,
+      uuid: element.parent.uuid,
+      name: element.parent.name,
+      position: element.parent.position,
+      rotation: element.parent.rotation,
+      scale: element.parent.scale,
+      children: [element.uuid]
+    });
+  } else {
+    saveState.groups[index].children.push(element.uuid);
+  }
+}
+
 export default {
   state: {
     savePath: null
@@ -11,7 +29,9 @@ export default {
   },
   actions: {
     save: function ({ state, rootState, rootGetters }) {
-      let saveState = {};
+      let saveState = {
+        groups: []
+      };
 
       for (const key in rootState) {
         switch (key) {
@@ -45,6 +65,8 @@ export default {
             continue;
           case 'leds':
             saveState[key] = rootGetters.LEDs.map(LED => {
+              if (LED.parent.userData.type == 'Group') saveToGroup(saveState, 'LED', LED);
+
               return {
                 uuid: LED.uuid,
                 name: LED.name,
@@ -63,6 +85,8 @@ export default {
                 rotation: object.rotation,
                 scale: object.scale,
               };
+
+              if (object.parent.userData.type == 'Group') saveToGroup(saveState, 'Object', object);
               if (object.userData.path) data.path = object.userData.path;
               return data;
             });
@@ -107,7 +131,6 @@ export default {
       if (state.savePath) {
         fs.writeFile(state.savePath, JSON.stringify(saveState, null, 2), (error) => {
           if (error) console.log(error);
-          // TODO: Maybe add animation to show that the save was successfull
         });
       } else {
         // TODO: Ask for save path
@@ -119,17 +142,12 @@ export default {
       let data = JSON.parse(fs.readFileSync(path, 'utf8'));
 
       this.dispatch('emptySelectionGroup');
-      for (var i = rootGetters.LEDs.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootGetters.LEDs[i]);
-      };
-      for (var i = rootGetters.objects.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootGetters.objects[i]);
-      };
-      for (var i = rootState.animations.animations.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootState.scene.getObjectByProperty("uuid", rootState.animations.animations[i].uuid));
-      };
-      for (var i = rootGetters.masks.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootGetters.masks[i]);
+      for (var i = rootState.scene.children.length - 1; i >= 0; i--) {
+        let toDelete = ['LED', 'Object', 'Group', 'Animation', 'Mask'];
+
+        if (toDelete.indexOf(rootState.scene.children[i].userData.type) > -1) {
+          this.commit('deleteElement', rootState.scene.children[i]);
+        }
       };
 
       for (const key in data) {
@@ -216,6 +234,7 @@ export default {
             break;
           case 'origin':
           case 'activeElements':
+          case 'groups':
             // skip and handle later
             break;
           default:
@@ -223,6 +242,21 @@ export default {
             break;
         }
       }
+
+      // Handle groups
+      data.groups.forEach(group => {
+        let children = group.children.map(child => rootState.scene.getObjectByProperty('uuid', child));
+
+        this.commit("addGroup", {
+          groupType: group.type,
+          uuid: group.uuid,
+          name: group.name,
+          position: group.position,
+          rotation: group.rotation,
+          scale: group.scale,
+          children,
+        });
+      });
 
       // Handle masks of effects
       rootState.animations.animations.map(animation => {

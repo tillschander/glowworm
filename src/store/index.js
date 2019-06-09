@@ -80,12 +80,16 @@ export default new Vuex.Store({
         options.children[i].position.sub(center)
         group.add(options.children[i]);
       }
-      if (options.position) group.position.copy(options.position);
       if (options.name) group.name = options.name;
+      if (options.uuid) group.uuid = options.uuid;
+      if (options.position) group.position.copy(options.position);
+      if (options.rotation) group.rotation.copy(options.rotation);
+      if (options.scale) group.scale.copy(options.scale);
       group.userData.type = 'Group';
       group.userData.groupType = options.groupType;
       state.scene.add(group);
 
+      setTimeout(() => this.dispatch('updateLEDConnections', options.children), 1);
       this.commit("clearActiveElements");
       this.commit("addActiveElement", group.uuid);
     },

@@ -44,9 +44,7 @@
         <ScalePanel/>
         <br>
         <button v-on:click="mask">Create mask from group</button>
-        <br><br>
         <button v-on:click="ungroup">Ungroup</button>
-        <br><br>
         <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
       </template>
     </template>
@@ -58,12 +56,11 @@
       <br>
       <template v-if="this.activeLEDs.length == 0 || this.activeElements.length == 0 ">
         <button v-on:click="mask" v-if="this.activeLEDs.length > 0">Create mask from selection</button>
-        <br><br>
         <button v-on:click="group" v-if="this.activeGroups.length == 0">Group selection</button>
       </template>
       <template v-else>
         <div>Select just LEDs or just objects to group them.</div>
-        <br><br>
+        <br>
       </template>
       <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
     </template>
@@ -171,6 +168,7 @@ export default {
 
   button {
     width: 100%;
+    margin-bottom: 1em;
   }
 }
 
