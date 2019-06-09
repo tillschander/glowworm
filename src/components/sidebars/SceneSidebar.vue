@@ -2,6 +2,7 @@
   <div class="scene-sidebar">
     <b>Outline</b>
     <br>
+    <br>
     <ul class="tree">
       <li class="root">Scene</li>
       <li>Masks
@@ -98,9 +99,6 @@ export default {
 <style lang="scss">
 .scene-sidebar {
   padding: 10px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
   background: #424242;
 
   ul {

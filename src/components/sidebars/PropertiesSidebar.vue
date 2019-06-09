@@ -2,6 +2,7 @@
   <div class="properties-sidebar">
     <b>Properties</b>
     <br>
+    <br>
     <template v-if="this.activeCount == 1">
       <template v-if="this.type == 'Mask'">
         <NamePanel/>
@@ -165,10 +166,12 @@ export default {
 <style lang="scss">
 .properties-sidebar {
   padding: 10px;
-  display: flex;
-  flex-direction: column;
   background: #424242;
   overflow-y: auto;
+
+  button {
+    width: 100%;
+  }
 }
 
 .form-element {

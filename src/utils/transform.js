@@ -22,7 +22,7 @@ export default {
         if (translation == 'move' && cantMove.indexOf(type) > -1) return false;
         if (translation == 'rotate' && cantRotate.indexOf(type) > -1) return false;
         if (translation == 'scale' && cantScale.indexOf(type) > -1) return false;
-      } else if (activeUuids.length > 1 && translation == 'move') {
+      } else if (activeUuids.length > 1 && translation !== 'move') {
         return false;
       }
       return true;
