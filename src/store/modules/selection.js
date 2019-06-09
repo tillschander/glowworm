@@ -65,6 +65,13 @@ export default {
         this.commit('setActiveTool', 'select');
       }
     },
+    removeFromSelectionGroup: function ({ state, rootState }, uuid) {
+      let object = rootState.scene.getObjectByProperty("uuid", uuid);
+
+      state.selectionGroup.splice(state.selectionGroup.indexOf(object), 1);
+      state.selectionScene.remove(object.userData.clone);
+      object.userData.clone = null;
+    },
     emptySelectionGroup: function ({ state, rootState }) {
       for (var i = state.selectionGroup.length - 1; i >= 0; i--) {
         let child = state.selectionGroup[i];

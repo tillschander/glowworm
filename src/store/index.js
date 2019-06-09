@@ -267,6 +267,10 @@ export default new Vuex.Store({
       Vue.set(state.activeObjects, uuid, true);
       this.dispatch("addToSelectionGroup", uuid);
     },
+    removeActiveObject(state, uuid) {
+      Vue.delete(state.activeObjects, uuid);
+      this.dispatch("removeFromSelectionGroup", uuid);
+    },
     clearActiveObjects(state) {
       state.activeObjects = {};
       this.dispatch("emptySelectionGroup");

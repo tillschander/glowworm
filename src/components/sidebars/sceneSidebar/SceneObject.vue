@@ -1,8 +1,6 @@
 <template>
   <li>
-    <span
-      v-bind:class="[{ active: isActive }, 'scene-object ']"
-      v-on:click="setActive">{{ name }}</span>
+    <span v-bind:class="[{ active: isActive }, 'scene-object ']" v-on:click="setActive">{{ name }}</span>
   </li>
 </template>
 
@@ -20,19 +18,38 @@ export default {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
     },
     name() {
-      return this.threeObject.name ? this.threeObject.name : this.threeObject.userData.type;
+      return this.threeObject.name
+        ? this.threeObject.name
+        : this.threeObject.userData.type;
     }
   },
   methods: {
     setActive: function() {
-      if (!this.$store.state.ctrlPressed) {
-        this.$store.commit("clearActiveObjects");
-      } else if (this.type !== "LED" && this.type !== "Object") {
-        // TODO check previous object
-        this.$store.commit("clearActiveObjects");
-      }
+      let activeUuids = Object.keys(this.$store.state.activeObjects);
 
-      this.$store.commit("addActiveObject", this.uuid);
+      if (this.$store.state.ctrlPressed && activeUuids.length > 0) {
+        let multiselectTypes = ["LED", "Object", "Group"];
+        let prevObject = this.$store.state.scene.getObjectByProperty(
+          "uuid",
+          activeUuids[0]
+        );
+
+        if (
+          multiselectTypes.indexOf(prevObject.userData.type) == -1 ||
+          multiselectTypes.indexOf(this.type) == -1
+        ) {
+          this.$store.commit("clearActiveObjects");
+        }
+
+        if (this.$store.state.activeObjects[this.uuid]) {
+          this.$store.commit("removeActiveObject", this.uuid);
+        } else {
+          this.$store.commit("addActiveObject", this.uuid);
+        }
+      } else {
+        this.$store.commit("clearActiveObjects");
+        this.$store.commit("addActiveObject", this.uuid);
+      }
     }
   }
 };
