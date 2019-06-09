@@ -1,7 +1,6 @@
 <template>
   <div>
-    Ring Options:
-    <br>====
+    <b>Ring Options</b>
     <br>
     <br>Count:
     <br>
@@ -10,6 +9,7 @@
     <br>Radius:
     <br>
     <input v-model.number="radius" type="number">
+    <br>
     <br>
     <br>
     <div class="buttons">

@@ -1,7 +1,6 @@
 <template>
   <div>
-    Line Options:
-    <br>====
+    <b>Line Options</b>
     <br>
     <br>Count:
     <br>

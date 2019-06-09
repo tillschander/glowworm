@@ -1,8 +1,6 @@
 <template>
   <div class="properties-sidebar">
-    Properties:
-    <br>====
-    <br>
+    <b>Properties</b>
     <br>
     <template v-if="this.activeCount == 1">
       <template v-if="this.type == 'Mask'">

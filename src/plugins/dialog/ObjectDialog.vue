@@ -1,6 +1,7 @@
 <template>
-  <div>Load .obj File:
-    <br>====
+  <div>
+    <b>Load .obj file</b>
+    <br>
     <br>
     <input type="file" @change="processFile($event)">
     <br>

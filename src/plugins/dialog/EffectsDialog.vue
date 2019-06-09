@@ -1,7 +1,6 @@
 <template>
   <div class="dialog">
-    Effects:
-    <br>====
+    <b>Effects</b>
     <br>
     <br>
     <div class="effects">

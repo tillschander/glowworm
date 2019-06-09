@@ -1,7 +1,7 @@
 <template>
   <div class="animations-sidebar">
-    Animations:
-    <br>====
+    <b>Animations</b>
+    <br>
     <div
       v-bind:key="animation.uuid"
       v-bind:class="{ active: isActive(animation), animation }"

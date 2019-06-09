@@ -1,6 +1,6 @@
 <template>
-  <div>Grid Options:
-    <br>====
+  <div>
+    <b>Grid Options</b>
     <br>
     <br>X Count:
     <br>
@@ -24,6 +24,7 @@
       <option>ZigZag</option>
       <option disabled>Snake</option>
     </select>
+    <br>
     <br>
     <br>
     <div class="buttons">
@@ -55,10 +56,10 @@ export default {
 
       for (let x = 0; x < this.countX; x++) {
         let line = new THREE.LineCurve3(
-          new THREE.Vector3(x*this.spacingX, 0, 0),
-          new THREE.Vector3(x*this.spacingX, 0, this.countY*this.spacingY)
+          new THREE.Vector3(x * this.spacingX, 0, 0),
+          new THREE.Vector3(x * this.spacingX, 0, this.countY * this.spacingY)
         );
-          
+
         for (let y = 0; y < this.countY; y++) {
           let uuid = THREE.Math.generateUUID();
           let point = line.getPoint(y / this.countY);
@@ -77,7 +78,11 @@ export default {
         }
       }
 
-      this.$store.commit("addGroup", {children: group, name: 'Grid', groupType: 'LED'});
+      this.$store.commit("addGroup", {
+        children: group,
+        name: "Grid",
+        groupType: "LED"
+      });
       this.$parent.continue();
     }
   }

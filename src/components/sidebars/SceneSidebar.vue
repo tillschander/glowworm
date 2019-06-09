@@ -1,5 +1,7 @@
 <template>
   <div class="scene-sidebar">
+    <b>Outline</b>
+    <br>
     <ul class="tree">
       <li class="root">Scene</li>
       <li>Masks
