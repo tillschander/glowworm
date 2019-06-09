@@ -78,41 +78,13 @@ export default new Vuex.Store({
       return state.selection.selectionGroup[0];
     },
     canMove: state => {
-      let activeUuids = Object.keys(state.activeObjects);
-
-      if (activeUuids.length == 1) {
-        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
-        let type = object.userData.type;
-
-        if (type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
-      }
-      return true;
+      return transformUtil.canActiveObjectTraslate(state, 'move');
     },
     canRotate: state => {
-      let activeUuids = Object.keys(state.activeObjects);
-
-      if (activeUuids.length == 1) {
-        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
-        let type = object.userData.type;
-
-        if (type == 'LED' || type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
-      } else if (activeUuids.length > 1) {
-        return false;
-      }
-      return true;
+      return transformUtil.canActiveObjectTraslate(state, 'rotate');
     },
     canScale: state => {
-      let activeUuids = Object.keys(state.activeObjects);
-
-      if (activeUuids.length == 1) {
-        let object = state.scene.getObjectByProperty("uuid", activeUuids[0]);
-        let type = object.userData.type;
-
-        if (type == 'LED' || type == 'Animation' || type == 'Mask' || type == 'Camera') return false;
-      } else if (activeUuids.length > 1) {
-        return false;
-      }
-      return true;
+      return transformUtil.canActiveObjectTraslate(state, 'scale');
     },
   },
   mutations: {
@@ -302,7 +274,11 @@ export default new Vuex.Store({
     deleteActiveObjects: function (state) {
       this.dispatch("emptySelectionGroup");
       for (const uuid in state.activeObjects) {
-        this.commit("deleteObject", state.scene.getObjectByProperty("uuid", uuid));
+        let object = state.scene.getObjectByProperty("uuid", uuid);
+
+        if (object.userData.type !== 'Camera' && object.userData.type !== 'Origin') {
+          this.commit("deleteObject", object);
+        }
       }
       this.commit("clearActiveObjects");
     },

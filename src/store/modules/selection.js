@@ -18,7 +18,7 @@ export default {
     addToSelectionGroup: function ({ state, rootState }, uuid) {
       let object = rootState.scene.getObjectByProperty("uuid", uuid);
 
-      if (object.userData.type == 'LED') {
+      if (object.userData.type == 'LED' || object.userData.type == 'Origin') {
         if (object.parent.userData.type == 'Group') {
           object.userData.clone = new THREE.Group();
           object.userData.clone.position.copy(object.parent.position);

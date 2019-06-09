@@ -2,6 +2,7 @@ import arrowUtil from '../../utils/arrow.js';
 
 export default {
   state: {
+    origin: new THREE.Mesh(new THREE.OctahedronBufferGeometry(3), new THREE.MeshBasicMaterial({ color: 0x00ffff })),
     toConnect: [],
     showConnections: true,
     arrows: [],
@@ -14,6 +15,7 @@ export default {
         arrow.line.material.visible = state.showConnections;
         arrow.cone.material.visible = state.showConnections;
       });
+      state.origin.visible = state.showConnections;
     },
   },
   actions: {
@@ -26,7 +28,7 @@ export default {
     },
     updateLEDConnections: function ({ state, rootState }, objects) {
       objects.forEach(object => {
-        if (object.userData.type == 'LED') {
+        if (object.userData.type == 'LED' || object.userData.type == 'Origin') {
           this.dispatch("updateSingleLEDConnections", object);
         } else if (object.userData.type == 'Group' && object.userData.groupType == 'LED') {
           object.children.forEach(led => this.dispatch("updateSingleLEDConnections", led));
@@ -74,6 +76,8 @@ export default {
             this.dispatch("connectFromTo", { from: previousLED, to: led });
           }
         }
+      } else {
+        this.dispatch("connectFromTo", { from: state.origin, to: led });
       }
     },
     disconnectBoth: function ({ state, rootState }, led) {
@@ -133,6 +137,11 @@ export default {
     removeConnection: function({ state, rootState }, arrow) {
       this.dispatch("disconnectNext", arrow.userData.from);
       this.dispatch("disconnectPrev", arrow.userData.to);
+    },
+    initConnection: function({ state, rootState }) {
+      state.origin.position.set(0, -20, 0);
+      state.origin.userData.type = 'Origin';
+      rootState.scene.add(state.origin);
     }
   }
 }

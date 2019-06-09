@@ -151,6 +151,16 @@ button {
     padding: 2.5px 5px;
   }
 
+  &.secondary {
+    background: #424242;
+    color: #ddd;
+
+    &:hover {
+      background: #aaaaaa;
+      color: #000000;
+    }
+  }
+
   &[disabled]:hover {
     background: #cccccc;
     cursor: default;

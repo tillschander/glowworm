@@ -8,24 +8,35 @@
       <template v-if="this.type == 'Mask'">
         <NamePanel/>
         <MaskPanel/>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
       </template>
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
         <AnimationPanel v-bind:key="uuid"/>
+        <br>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
       </template>
       <template v-if="this.type == 'LED'">
         <NamePanel/>
         <PositionPanel/>
+        <br>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
       </template>
       <template v-if="this.type == 'Object'">
         <NamePanel/>
         <PositionPanel/>
         <RotationPanel/>
         <ScalePanel/>
+        <br>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
         <!--<TexturePanel v-if="this.objectType == 'plane'"/>-->
       </template>
       <template v-if="this.type == 'Camera'">
         <CameraPanel/>
+      </template>
+      <template v-if="this.type == 'Origin'">
+        <PositionPanel/>
+        <div>Connect the origin to your first LED.</div>
       </template>
       <template v-if="this.type == 'Group'">
         <NamePanel/>
@@ -36,6 +47,8 @@
         <button v-on:click="mask">Create mask from group</button>
         <br>
         <button v-on:click="ungroup">Ungroup</button>
+        <br>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
       </template>
     </template>
     <template v-else-if="this.activeCount > 1">
@@ -50,8 +63,10 @@
         <button v-on:click="group" v-if="this.activeGroups.length == 0">Group selection</button>
       </template>
       <template v-else>
-        Select only LEDs or only objects to group them
+        <div>Select just LEDs or just objects to group them.</div>
       </template>
+      <br>
+      <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
     </template>
     <template v-else>Nothing selected</template>
   </div>

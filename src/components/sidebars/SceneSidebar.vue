@@ -52,6 +52,12 @@
         v-bind:type="'Camera'"
         class="scene-object"
       ></SceneObject>
+      <SceneObject
+        v-if="this.$store.state.connections.origin.parent"
+        v-bind:uuid="this.$store.state.connections.origin.uuid"
+        v-bind:type="'Origin'"
+        class="scene-object"
+      ></SceneObject>
     </ul>
   </div>
 </template>

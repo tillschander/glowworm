@@ -151,6 +151,7 @@ export default {
       this.raycaster.linePrecision = 10;
 
       this.$store.dispatch('initSelection');
+      this.$store.dispatch('initConnection');
 
       this.$store.commit("applyLEDMaterial");
 
@@ -198,10 +199,12 @@ export default {
       }
     },
     handleConnectClick: function(intersects) {
-      let leds = intersects.filter(e => e.object.userData.type == "LED");
+      let leds = intersects.filter(e => e.object.userData.type == "LED" || e.object.userData.type == "Origin");
 
       if (leds.length) {
         let led = leds[0].object;
+
+        if (this.$store.state.connections.toConnect.length == 1 && led.userData.type == 'Origin') return;
         this.$store.state.connections.toConnect.push(led);
         this.$store.state.scene.add(this.$store.state.connections.connectArrow);
         this.$store.dispatch("updateConnectArrow", {
@@ -274,7 +277,7 @@ export default {
       }
 
       intersects = intersects.filter(intersect => {
-        return ["LED", "Object", "Group"].includes(
+        return ["LED", "Object", "Group", "Origin"].includes(
           intersect.object.userData.type
         );
       });

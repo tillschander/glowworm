@@ -25,11 +25,10 @@ export default {
   },
   methods: {
     setActive: function() {
-      if (this.type !== "LED" && this.type !== "Object") {
-        this.$store.commit("clearActiveObjects");
-      }
-
       if (!this.$store.state.ctrlPressed) {
+        this.$store.commit("clearActiveObjects");
+      } else if (this.type !== "LED" && this.type !== "Object") {
+        // TODO check previous object
         this.$store.commit("clearActiveObjects");
       }
 
