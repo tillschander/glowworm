@@ -2,10 +2,12 @@
   <div @mousedown="onMouseDown" @mouseup="onMouseUp" @mousemove="onMouseMove" id="viewport">
     <Toolsbar class="toolsbar" v-if="this.mode == 'design'"/>
     <ViewportTools class="viewport-tools" v-if="this.mode == 'design'"/>
+    <div class="save-indicator" ref="saveIndicator">Saved</div>
   </div>
 </template>
 
 <script>
+const remote = require("electron").remote;
 import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
@@ -366,7 +368,11 @@ export default {
 
       switch (event.keyCode) {
         case 81: // q
-          this.$store.commit("setActiveTool", "select");
+          if (this.$store.state.ctrlPressed) {
+            remote.getCurrentWindow().close();
+          } else {
+            this.$store.commit("setActiveTool", "select");
+          }
           break;
         case 87: // w
           this.$store.commit("setActiveTool", "move");
@@ -381,7 +387,15 @@ export default {
           this.$store.dispatch("addLED");
           break;
         case 83: // s
-          this.$store.commit("addBox");
+          if (this.$store.state.ctrlPressed) {
+            this.$store.dispatch("save");
+            this.$refs.saveIndicator.classList.add('visible');
+            setTimeout(() => {
+              this.$refs.saveIndicator.classList.remove('visible');
+            }, 20);
+          } else {
+            this.$store.commit("addBox");
+          }
           break;
         case 68: // d
           this.$store.dispatch("addAnimation");
@@ -396,6 +410,12 @@ export default {
         case 86: // v
           this.$store.commit("setActiveTool", "disconnect");
           this.$store.commit("clearActiveElements");
+          break;
+        case 76: // l
+          if (this.$store.state.ctrlPressed) this.$store.dispatch('load');
+          break;
+        case 78: // n
+          if (this.$store.state.ctrlPressed) remote.getCurrentWindow().reload();
           break;
         case 46: // delete
           this.$store.commit("deleteActiveElements");
@@ -590,5 +610,25 @@ export default {
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.save-indicator {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 100;
+  font-size: 5em;
+  background: #333;
+  padding: 0.25em;
+  opacity: 0;
+  transform: translate(-50%,-50%) scale(0);
+  pointer-events: none;
+  transition: transform 2s ease, opacity 500ms ease;
+
+  &.visible {
+    transition: all 0s ease;
+    opacity: 1;
+    transform: translate(-50%,-50%) scale(1);
+  }
 }
 </style>

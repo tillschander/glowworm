@@ -7,10 +7,10 @@
         <div></div>
       </div>
       <div class="flyout">
-        <button v-on:click="reload()">New</button>
-        <button v-on:click="save()">Save</button>
-        <button v-on:click="load()">Load</button>
-        <button v-on:click="quit()">Quit</button>
+        <button v-on:click="reload()" title="New (Ctrl+N)">New</button>
+        <button v-on:click="$store.dispatch('save')" title="Save (Ctrl+S)">Save</button>
+        <button v-on:click="$store.dispatch('load')" title="Load (Ctrl+L)">Load</button>
+        <button v-on:click="quit()" title="Quit (Ctrl+Q)">Quit</button>
       </div>
     </div>
     <div
@@ -37,27 +37,6 @@ export default {
   },
   methods: {
     ...mapMutations(["setMode"]),
-    save: function() {
-      let path = remote.dialog.showSaveDialog({
-        filters: [{ name: "Custom File Type", extensions: ["json"] }],
-        defaultPath: "save.json"
-      });
-
-      if (path) {
-        this.$store.commit("setSavePath", path);
-        this.$store.dispatch("save");
-      }
-    },
-    load: function() {
-      let paths = remote.dialog.showOpenDialog({
-        filters: [{ name: "Custom File Type", extensions: ["json"] }],
-        properties: ["openFile"]
-      });
-
-      if (paths && paths.length) {
-        this.$store.dispatch("load", paths[0]);
-      }
-    },
     quit: function() {
       remote.getCurrentWindow().close();
     },

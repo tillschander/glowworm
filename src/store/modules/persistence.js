@@ -1,4 +1,5 @@
 const fs = require('fs');
+const remote = require("electron").remote;
 
 function saveToGroup(saveState, groupType, element) {
   let index = saveState.groups.findIndex(group => group.uuid == element.parent.uuid);
@@ -28,7 +29,32 @@ export default {
     }
   },
   actions: {
-    save: function ({ state, rootState, rootGetters }) {
+    save: function({ state }) {
+      if (state.savePath) {
+        this.dispatch("executeSave");
+      } else {
+        let path = remote.dialog.showSaveDialog({
+          filters: [{ name: "Custom File Type", extensions: ["json"] }],
+          defaultPath: "save.json"
+        });
+  
+        if (path) {
+          this.commit("setSavePath", path);
+          this.dispatch("executeSave");
+        }
+      }
+    },
+    load: function() {
+      let paths = remote.dialog.showOpenDialog({
+        filters: [{ name: "Custom File Type", extensions: ["json"] }],
+        properties: ["openFile"]
+      });
+
+      if (paths && paths.length) {
+        this.dispatch("executeLoad", paths[0]);
+      }
+    },
+    executeSave: function ({ state, rootState, rootGetters }) {
       let saveState = {
         groups: []
       };
@@ -133,12 +159,10 @@ export default {
           if (error) console.log(error);
         });
       } else {
-        // TODO: Ask for save path
-        // TODO: enable ctrl+s
         console.log('Error: No save path defined.');
       }
     },
-    load: function ({ rootState, rootGetters }, path) {
+    executeLoad: function ({ rootState, rootGetters }, path) {
       let data = JSON.parse(fs.readFileSync(path, 'utf8'));
 
       this.dispatch('emptySelectionGroup');
