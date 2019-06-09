@@ -88,7 +88,7 @@ export default {
               sizes: [60, 20, 20]
             }
           );
-          self.$store.commit("applyLEDMaterial");
+          self.$store.dispatch("applyLEDMaterial");
           self.$store.commit("setShowConnections", true);
         } else if (mode == "live") {
           self.split = Split(
@@ -102,8 +102,8 @@ export default {
               sizes: [30, 40, 30]
             }
           );
-          self.$store.commit("clearActiveObjects");
-          self.$store.commit("applyLEDMaterial");
+          self.$store.commit("clearActiveElements");
+          self.$store.dispatch("applyLEDMaterial");
           self.$store.commit("setShowConnections", false);
         }
       });

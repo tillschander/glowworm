@@ -4,9 +4,9 @@ export default {
   props: ["properties", "uuid"],
   computed: {
     activeAnimation: function() {
-      return this.$store.state.animations.find(
+      return this.$store.state.animations.animations.find(
         animation =>
-          animation.uuid == Object.keys(this.$store.state.activeObjects)[0]
+          animation.uuid == Object.keys(this.$store.state.activeElements)[0]
       );
     },
     activeEffect: function() {
@@ -19,7 +19,7 @@ export default {
     apply: function(name, value, converter = v => v) {
       this[name] = value;
       this.activeEffect.properties[name].value = converter(value);
-      this.$store.state.activeLEDMaterial.uniforms[
+      this.$store.state.leds.activeMaterial.uniforms[
         name + this.uuid
       ].value = converter(value);
       this.$store.state.bufferMaterial.uniforms[

@@ -46,7 +46,7 @@ export default {
           z = Math.round(z);
         }
 
-        this.$store.commit("addLED", {
+        this.$store.dispatch("addLED", {
           position: [x, 0, z],
           uuid: uuid
         });

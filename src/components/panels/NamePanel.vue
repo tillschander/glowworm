@@ -10,7 +10,7 @@ export default {
   name: "NamePanel",
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
+      return Object.keys(this.$store.state.activeElements)[0];
     },
     element: function() {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
@@ -25,7 +25,7 @@ export default {
         return name ? name : this.type;
       },
       set(value) {
-        this.$store.commit("updateObjectName", {
+        this.$store.commit("updateElementName", {
           uuid: this.uuid,
           name: value
         });

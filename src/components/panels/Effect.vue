@@ -87,7 +87,7 @@ export default {
       );
 
       this.$parent.animation.effects.splice(index, 1);
-      this.$store.commit("applyLEDMaterial");
+      this.$store.dispatch("applyLEDMaterial");
     }
   }
 };

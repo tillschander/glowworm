@@ -8,19 +8,19 @@
       <template v-if="this.type == 'Mask'">
         <NamePanel/>
         <MaskPanel/>
-        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
       </template>
       <template v-if="this.type == 'Animation'">
         <NamePanel/>
         <AnimationPanel v-bind:key="uuid"/>
         <br>
-        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
       </template>
       <template v-if="this.type == 'LED'">
         <NamePanel/>
         <PositionPanel/>
         <br>
-        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
       </template>
       <template v-if="this.type == 'Object'">
         <NamePanel/>
@@ -28,7 +28,7 @@
         <RotationPanel/>
         <ScalePanel/>
         <br>
-        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
         <!--<TexturePanel v-if="this.objectType == 'plane'"/>-->
       </template>
       <template v-if="this.type == 'Camera'">
@@ -48,16 +48,16 @@
         <br>
         <button v-on:click="ungroup">Ungroup</button>
         <br>
-        <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+        <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
       </template>
     </template>
     <template v-else-if="this.activeCount > 1">
       <PositionPanel/>
       <div v-if="this.activeLEDs.length > 0">{{ this.activeLEDs.length }} LEDs selected</div>
-      <div v-if="this.activeObjects.length > 0">{{ this.activeObjects.length }} Objects selected</div>
+      <div v-if="this.activeElements.length > 0">{{ this.activeElements.length }} Objects selected</div>
       <div v-if="this.activeGroups.length > 0">{{ this.activeGroups.length }} Groups selected</div>
         <br>
-      <template v-if="this.activeLEDs.length == 0 || this.activeObjects.length == 0 ">
+      <template v-if="this.activeLEDs.length == 0 || this.activeElements.length == 0 ">
         <button v-on:click="mask" v-if="this.activeLEDs.length > 0">Create mask from selection</button>
         <br>
         <button v-on:click="group" v-if="this.activeGroups.length == 0">Group selection</button>
@@ -66,7 +66,7 @@
         <div>Select just LEDs or just objects to group them.</div>
       </template>
       <br>
-      <button class="secondary" v-on:click="$store.commit('deleteActiveObjects')">Delete</button>
+      <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
     </template>
     <template v-else>Nothing selected</template>
   </div>
@@ -97,7 +97,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
+      return Object.keys(this.$store.state.activeElements)[0];
     },
     object: function() {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
@@ -109,7 +109,7 @@ export default {
       return this.object.userData.objectType;
     },
     activeCount: function() {
-      return Object.keys(this.$store.state.activeObjects).length;
+      return Object.keys(this.$store.state.activeElements).length;
     },
     activeLEDs: function() {
       let LEDs = [];
@@ -123,7 +123,7 @@ export default {
 
       return LEDs;
     },
-    activeObjects: function() {
+    activeElements: function() {
       return this.$store.state.selection.selectionGroup.filter(
         child => child.userData.type == "Object"
       );
@@ -154,8 +154,8 @@ export default {
         this.$store.state.scene.add(child);
       }
 
-      this.$store.commit("deleteObject", this.object);
-      this.$store.commit("clearActiveObjects");
+      this.$store.commit("deleteElement", this.object);
+      this.$store.commit("clearActiveElements");
     },
     mask: function() {
       this.$store.dispatch("addMask", {LEDs: this.activeLEDs.map(LED => LED.uuid)});

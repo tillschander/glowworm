@@ -24,8 +24,8 @@ export default {
             mask.userData.LEDs = options.LEDs || [];
             rootState.scene.add(mask);
 
-            this.commit("clearActiveObjects");
-            this.commit("addActiveObject", mask.uuid);
+            this.commit("clearActiveElements");
+            this.commit("addActiveElement", mask.uuid);
         }
     }
 }

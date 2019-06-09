@@ -32,7 +32,7 @@ export default {
       loader.load(
         "file://" + this.file.path,
         function(object) {
-          self.$store.commit("addObject", {
+          self.$store.dispatch("addObject", {
             mesh: object,
             position: [0, 0, 0],
             name: self.file.name,

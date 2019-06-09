@@ -81,7 +81,7 @@
           <div v-html="iconUtil.load('add_cone')"></div>
           <span class="name">Add Cone</span>
         </button>
-        <button v-on:click="addObject" class="tool" title="Add Model">
+        <button v-on:click="addModel" class="tool" title="Add Model">
           <div v-html="iconUtil.load('add_model')"></div>
           <span class="name">Add Model</span>
         </button>
@@ -133,7 +133,7 @@ export default {
       this.$store.commit("setActiveTool", tool);
     },
     addLed: function() {
-      this.$store.commit("addLED");
+      this.$store.dispatch("addLED");
     },
     addLedRing: function() {
       this.$dialog({
@@ -168,25 +168,25 @@ export default {
     addCone: function() {
       this.$store.commit("addCone");
     },
-    addObject: function() {
+    addModel: function() {
       this.$dialog({
         type: "object",
         store: this.$store
       });
     },
     addAnimation: function() {
-      this.$store.commit("addAnimation");
+      this.$store.dispatch("addAnimation");
     },
     addMask: function() {
       this.$store.dispatch("addMask", {});
     },
     connect: function() {
       this.setActiveTool("connect");
-      this.$store.commit("clearActiveObjects");
+      this.$store.commit("clearActiveElements");
     },
     disconnect: function() {
       this.setActiveTool("disconnect");
-      this.$store.commit("clearActiveObjects");
+      this.$store.commit("clearActiveElements");
     }
   },
   computed: {

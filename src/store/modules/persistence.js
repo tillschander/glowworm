@@ -30,7 +30,7 @@ export default {
           case 'persistence':
           case 'ctrlPressed':
           case 'maxConnections':
-          case 'activeLEDMaterial':
+          case 'leds.activeMaterial':
           case 'selectionGroup':
           case 'orbit':
           case 'ports':
@@ -84,7 +84,7 @@ export default {
         }
       }
 
-      Object.keys(rootState.activeObjects).forEach(uuid => {
+      Object.keys(rootState.activeElements).forEach(uuid => {
         let threeObject = rootState.scene.getObjectByProperty("uuid", uuid);
         let type = threeObject.userData.type;
         let newPosition = threeObject.position.clone();
@@ -115,20 +115,20 @@ export default {
 
       this.dispatch('emptySelectionGroup');
       for (var i = rootGetters.LEDs.length - 1; i >= 0; i--) {
-        this.commit('deleteObject', rootGetters.LEDs[i]);
+        this.commit('deleteElement', rootGetters.LEDs[i]);
       };
       for (var i = rootGetters.objects.length - 1; i >= 0; i--) {
-        this.commit('deleteObject', rootGetters.objects[i]);
+        this.commit('deleteElement', rootGetters.objects[i]);
       };
       for (var i = rootState.animations.length - 1; i >= 0; i--) {
-        this.commit('deleteObject', rootState.scene.getObjectByProperty("uuid", rootState.animations[i].uuid));
+        this.commit('deleteElement', rootState.scene.getObjectByProperty("uuid", rootState.animations[i].uuid));
       };
 
       for (const key in data) {
         switch (key) {
           case 'LEDs':
             data.LEDs.forEach(LED => {
-              this.commit('addLED', {
+              this.dispatch('addLED', {
                 uuid: LED.uuid,
                 name: LED.name,
                 position: [LED.position.x, LED.position.y, LED.position.z]
@@ -151,13 +151,13 @@ export default {
               } else if (object.type == 'plane') {
                 this.commit('addPlane', properties);
               } else if (object.type == 'model') {
-                this.commit('addObject', properties);
+                this.dispatch('addObject', properties);
               }
             });
             break;
           case 'animations':
             data.animations.forEach(animation => {
-              this.commit('addAnimation', {
+              this.dispatch('addAnimation', {
                 uuid: animation.uuid,
                 name: animation.name,
                 effects: animation.effects
@@ -191,7 +191,7 @@ export default {
           case 'globalOpacity':
             this.commit('setGlobalOpacity', data[key]);
             break;
-          case 'activeObjects':
+          case 'activeElements':
             // skip and handle last so it won't be overridden
             break;
           case 'camera':
@@ -205,9 +205,9 @@ export default {
         }
       }
 
-      this.commit('clearActiveObjects');
-      Object.keys(data.activeObjects).forEach(uuid => {
-        this.commit("addActiveObject", uuid);
+      this.commit('clearActiveElements');
+      Object.keys(data.activeElements).forEach(uuid => {
+        this.commit("addActiveElement", uuid);
       });
 
       console.log(rootState);

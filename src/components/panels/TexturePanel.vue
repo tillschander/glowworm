@@ -15,7 +15,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
+      return Object.keys(this.$store.state.activeElements)[0];
     },
     object: function() {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);

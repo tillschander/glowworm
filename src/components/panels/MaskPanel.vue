@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
+      return Object.keys(this.$store.state.activeElements)[0];
     },
     mask: function() {
       return this.$store.getters.masks.find(mask => mask.uuid == this.uuid);
@@ -56,7 +56,7 @@ export default {
         this.$store.dispatch("emptySelectionGroup");
       } else {
         if (this.maskLEDs.indexOf(LED.uuid) > -1) {
-          LED.material = this.$store.state.activeLEDMaterial;
+          LED.material = this.$store.state.leds.activeMaterial;
         } else {
           LED.material = this.highlightMaterial;
         }
@@ -76,7 +76,7 @@ export default {
     });
   },
   beforeDestroy: function() {
-    this.$store.commit('applyLEDMaterial');
+    this.$store.dispatch('applyLEDMaterial');
   }
 };
 </script>

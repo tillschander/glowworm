@@ -50,7 +50,7 @@ export default {
           point.round();
         }
 
-        this.$store.commit("addLED", {
+        this.$store.dispatch("addLED", {
           position: [point.x, point.y, point.z],
           uuid: uuid
         });

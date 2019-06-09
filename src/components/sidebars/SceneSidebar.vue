@@ -16,7 +16,7 @@
       <li>Animations
         <ul>
           <SceneObject
-            v-for="animation in this.$store.state.animations"
+            v-for="animation in this.$store.state.animations.animations"
             v-bind:key="animation.uuid"
             v-bind:uuid="animation.uuid"
             v-bind:type="'Animation'"

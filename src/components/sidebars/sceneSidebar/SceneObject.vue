@@ -12,7 +12,7 @@ export default {
   props: ["uuid", "type"],
   computed: {
     isActive() {
-      return this.$store.state.activeObjects[this.uuid];
+      return this.$store.state.activeElements[this.uuid];
     },
     threeObject() {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
@@ -25,7 +25,7 @@ export default {
   },
   methods: {
     setActive: function() {
-      let activeUuids = Object.keys(this.$store.state.activeObjects);
+      let activeUuids = Object.keys(this.$store.state.activeElements);
 
       if (this.$store.state.ctrlPressed && activeUuids.length > 0) {
         let multiselectTypes = ["LED", "Object", "Group"];
@@ -38,17 +38,17 @@ export default {
           multiselectTypes.indexOf(prevObject.userData.type) == -1 ||
           multiselectTypes.indexOf(this.type) == -1
         ) {
-          this.$store.commit("clearActiveObjects");
+          this.$store.commit("clearActiveElements");
         }
 
-        if (this.$store.state.activeObjects[this.uuid]) {
-          this.$store.commit("removeActiveObject", this.uuid);
+        if (this.$store.state.activeElements[this.uuid]) {
+          this.$store.commit("removeActiveElement", this.uuid);
         } else {
-          this.$store.commit("addActiveObject", this.uuid);
+          this.$store.commit("addActiveElement", this.uuid);
         }
       } else {
-        this.$store.commit("clearActiveObjects");
-        this.$store.commit("addActiveObject", this.uuid);
+        this.$store.commit("clearActiveElements");
+        this.$store.commit("addActiveElement", this.uuid);
       }
     }
   }

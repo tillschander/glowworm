@@ -49,8 +49,8 @@ export default {
     maxFps: function() {
       return this.$store.state.maxFps;
     },
-    activeObjects: function() {
-      return this.$store.state.activeObjects;
+    activeElements: function() {
+      return this.$store.state.activeElements;
     },
     activeTool: function() {
       return this.$store.state.activeTool;
@@ -66,7 +66,7 @@ export default {
     maxFps(newMaxFps) {
       MainLoop.setMaxAllowedFPS(newMaxFps);
     },
-    activeObjects(objects, oldObjects) {
+    activeElements(objects, oldObjects) {
       // Show or hide helpers based on what's selected.
       if (Object.keys(objects).length) {
         if (
@@ -153,13 +153,13 @@ export default {
       this.$store.dispatch('initSelection');
       this.$store.dispatch('initConnection');
 
-      this.$store.commit("applyLEDMaterial");
+      this.$store.dispatch("applyLEDMaterial");
 
       this.$store.commit("addBox", {
         position: [0, -250, 0],
         scale: [1000, 10, 1000]
       });
-      this.$store.commit("addLED");
+      this.$store.dispatch("addLED");
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
@@ -293,13 +293,13 @@ export default {
 
         if (!this.$store.state.ctrlPressed) {
           this.$store.dispatch("emptySelectionGroup");
-          this.$store.commit("clearActiveObjects");
+          this.$store.commit("clearActiveElements");
         }
 
-        this.$store.commit("addActiveObject", object.uuid);
+        this.$store.commit("addActiveElement", object.uuid);
       } else {
         this.$store.dispatch("emptySelectionGroup");
-        this.$store.commit("clearActiveObjects");
+        this.$store.commit("clearActiveElements");
       }
     },
     onMouseMove: function(event) {
@@ -343,16 +343,16 @@ export default {
           this.$store.commit("setActiveTool", "scale");
           break;
         case 65: // A
-          this.$store.commit("addLED");
+          this.$store.dispatch("addLED");
           break;
         case 83: // S
           this.$store.commit("addBox");
           break;
         case 68: // D
-          this.$store.commit("addAnimation");
+          this.$store.dispatch("addAnimation");
           break;
         case 46: // Delete
-          this.$store.commit("deleteActiveObjects");
+          this.$store.commit("deleteActiveElements");
           break;
         case 17: // Ctrl
           this.$store.commit("setCtrlPressed", true);
@@ -423,7 +423,7 @@ export default {
       );
     },
     update: function(delta) {
-      this.$store.state.activeLEDMaterial.uniforms.time.value += delta;
+      this.$store.state.leds.activeMaterial.uniforms.time.value += delta;
       this.$store.state.bufferMaterial.uniforms.time.value += delta;
     },
     initBuffer: function() {

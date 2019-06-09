@@ -5,7 +5,7 @@
     <div
       v-bind:key="animation.uuid"
       v-bind:class="{ active: isActive(animation), animation }"
-      v-for="animation in this.$store.state.animations"
+      v-for="animation in this.$store.state.animations.animations"
       v-on:click="setAnimation(animation)"
     >{{ getNameFromUuid(animation.uuid) }}</div>
   </div>
@@ -22,7 +22,7 @@ export default {
     },
     setAnimation: function(animation) {
       this.$store.commit("setLiveAnimation", { side: this.side, uuid: animation.uuid });
-      this.$store.commit("applyLEDMaterial");
+      this.$store.dispatch("applyLEDMaterial");
     },
     isActive: function(animation) {
       return (
@@ -33,8 +33,8 @@ export default {
   },
   mounted: function() {
     if (!this.$store.state[this.side + "Animation"]) {
-      if (this.$store.state.animations.length) {
-        this.setAnimation(this.$store.state.animations[0]);
+      if (this.$store.state.animations.animations.length) {
+        this.setAnimation(this.$store.state.animations.animations[0]);
       }
     }
   }

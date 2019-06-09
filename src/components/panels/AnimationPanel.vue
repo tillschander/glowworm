@@ -22,10 +22,10 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeObjects)[0];
+      return Object.keys(this.$store.state.activeElements)[0];
     },
     animation: function() {
-      return this.$store.state.animations.find(
+      return this.$store.state.animations.animations.find(
         animation => animation.uuid == this.uuid
       );
     }
@@ -38,16 +38,16 @@ export default {
         type: "effects",
         callback: function(options) {
           self.animation.effects.push(options.effect);
-          self.$store.commit("applyLEDMaterial");
+          self.$store.dispatch("applyLEDMaterial");
         }
       });
     }
   },
   mounted: function() {
-    this.$store.commit("applyLEDMaterial");
+    this.$store.dispatch("applyLEDMaterial");
   },
   beforeDestroy: function() {
-    this.$store.commit("applyLEDMaterial");
+    this.$store.dispatch("applyLEDMaterial");
   }
 };
 </script>

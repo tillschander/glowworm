@@ -63,7 +63,7 @@ export default {
     },
     connectMaybe: function({ state, rootState, rootGetters }, led) {
       if (rootGetters.LEDs.length > 1) {
-        let activeUuids = Object.keys(rootState.activeObjects);
+        let activeUuids = Object.keys(rootState.activeElements);
         let activeUuid = activeUuids.length ? activeUuids[0] : '';
         let activeObject = rootState.scene.getObjectByProperty('uuid', activeUuid);
 
