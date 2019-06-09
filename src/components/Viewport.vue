@@ -176,7 +176,7 @@ export default {
 
       this.$store.commit("addBox", {
         position: [0, -250, 0],
-        scale: [1000, 10, 1000]
+        scale: [100, 10, 100]
       });
       this.$store.dispatch("addLED");
     },

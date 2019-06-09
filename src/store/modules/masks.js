@@ -22,6 +22,7 @@ export default {
             mask.userData.type = 'Mask';
             mask.visible = false;
             mask.userData.LEDs = options.LEDs || [];
+            if (options.uuid) mask.uuid = options.uuid;
             rootState.scene.add(mask);
 
             this.commit("clearActiveElements");

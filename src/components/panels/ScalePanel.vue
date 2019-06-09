@@ -3,7 +3,7 @@
     <label>Scale:</label>
     <input v-model.number="x" type="number">
     <input v-model.number="y" type="number">
-    <input v-if="type != 'plane'" v-model.number="z" type="number">
+    <input v-if="type != 'Plane'" v-model.number="z" type="number">
   </div>
 </template>
 
@@ -12,7 +12,7 @@ export default {
   name: "ScalePanel",
   computed: {
     type: function() {
-      return this.$store.getters.activeObject.userData.objectType ||  this.$store.getters.activeObject.userData.groupType;
+      return this.$store.getters.activeObject.userData.objectType || this.$store.getters.activeObject.userData.groupType;
     },
     x: {
       get() {

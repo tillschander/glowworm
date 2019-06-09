@@ -27,27 +27,8 @@ export default {
       this.$parent.close();
     },
     add() {
-      var self = this;
-      var loader = new THREE.OBJLoader();
-
-      loader.load(
-        "file://" + this.file.path,
-        function(object) {
-          self.$store.dispatch("addObject", {
-            mesh: object,
-            position: [0, 0, 0],
-            name: self.file.name,
-            type: 'model'
-          });
-
-          self.$parent.continue();
-        },
-        null,
-        function(error) {
-          console.log(error);
-          this.$parent.close();
-        }
-      );
+      this.$store.commit("addModel", { path: this.file.path, name: this.file.name });
+      this.$parent.continue();
     },
     processFile(event) {
       this.file = event.target.files[0];

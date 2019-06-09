@@ -45,7 +45,7 @@ export default {
           if (object.userData.clone.scale.y !== 1) object.userData.clone.children[i].scale.setY(1 / object.userData.clone.scale.y);
           if (object.userData.clone.scale.z !== 1) object.userData.clone.children[i].scale.setZ(1 / object.userData.clone.scale.z);
         }
-      } else if (object.userData.objectType == 'plane') {
+      } else if (object.userData.objectType == 'Plane') {
         object.userData.clone = object.clone();
         object.userData.clone.material = state.planeSelectionMaterial;
       } else {

@@ -27,7 +27,7 @@
         <ScalePanel/>
         <br>
         <button class="secondary" v-on:click="$store.commit('deleteActiveElements')">Delete</button>
-        <!--<TexturePanel v-if="this.objectType == 'plane'"/>-->
+        <!--<TexturePanel v-if="this.objectType == 'Plane'"/>-->
       </template>
       <template v-if="this.type == 'Camera'">
         <CameraPanel/>
