@@ -70,10 +70,15 @@ export default {
           case 'animations':
             saveState[key] = rootState.animations[key].map(animation => {
               let threeObject = rootState.scene.getObjectByProperty("uuid", animation.uuid);
+              let effects = animation.effects.map(effect => {
+                delete effect.maskObject;
+                return effect;
+              });
+
               return {
                 uuid: animation.uuid,
                 name: threeObject.name,
-                effects: animation.effects
+                effects
               };
             });
             break;
@@ -121,10 +126,10 @@ export default {
         this.commit('deleteElement', rootGetters.objects[i]);
       };
       for (var i = rootState.animations.animations.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootState.scene.getObjectByProperty("uuid", rootState.animations[i].uuid));
+        this.commit('deleteElement', rootState.scene.getObjectByProperty("uuid", rootState.animations.animations[i].uuid));
       };
       for (var i = rootGetters.masks.length - 1; i >= 0; i--) {
-        this.commit('deleteElement', rootState.scene.getObjectByProperty("uuid", rootState.animations[i].uuid));
+        this.commit('deleteElement', rootGetters.masks[i]);
       };
 
       for (const key in data) {
@@ -219,11 +224,23 @@ export default {
         }
       }
 
+      // Handle masks of effects
+      rootState.animations.animations.map(animation => {
+        animation.effects.map(effect => {
+          if (effect.mask) {
+            effect.maskObject = rootState.scene.getObjectByProperty('uuid', effect.mask);
+          }
+        })
+      });
+
+      // Handle origin
       rootState.connections.origin.position.copy(data.origin.position);
       if (data.origin.nextLED) {
         let nextLED = rootState.scene.getObjectByProperty('uuid', data.origin.nextLED);
         this.dispatch('connectFromTo', { from: rootState.connections.origin, to: nextLED })
       }
+
+      // Handle active elements
       this.commit('clearActiveElements');
       Object.keys(data.activeElements).forEach(uuid => {
         this.commit("addActiveElement", uuid);
