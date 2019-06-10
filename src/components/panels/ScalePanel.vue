@@ -3,7 +3,7 @@
     <label>Scale:</label>
     <input v-model.number="x" type="number">
     <input v-model.number="y" type="number">
-    <input v-if="type != 'Plane'" v-model.number="z" type="number">
+    <input v-model.number="z" type="number">
   </div>
 </template>
 

@@ -37,15 +37,13 @@ export default {
     }
   },
   mounted: function() {
-    if (!this.$store.state[this.side + "Animation"]) {
-      if (this.$store.state.animations.animations.length) {
-        this.setAnimation(this.$store.state.animations.animations[0]);
-      }
-    }
-
     this.$store.state.animations.animations.forEach(animation => {
       this.animations.push(animation.uuid);
     });
+    
+    if (!this.$store.state[this.side + "Animation"] && this.animations.length) {
+      this.setAnimation(this.animations[0]);
+    }
   }
 };
 </script>

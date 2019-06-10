@@ -124,5 +124,11 @@ export default {
   select {
     width: 100%;
   }
+
+  .properties {
+    border-top: 1px solid #000;
+    margin-bottom: -5px;
+    padding-top: 10px;
+  }
 }
 </style>
