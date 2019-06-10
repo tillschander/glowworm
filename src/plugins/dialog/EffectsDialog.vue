@@ -3,9 +3,9 @@
     <b>Effects</b>
     <br>
     <br>
-    <div class="effects">
+    <div class="effect-buttons">
       <div
-        class="effect"
+        class="effect-button"
         v-for="effect in effects"
         v-bind:key="effect.type"
         v-bind:class="{ active: chosenEffect && chosenEffect.type == effect.type }"
@@ -25,12 +25,13 @@
 import SimpleColor from "../../components/panels/effects/SimpleColor.js";
 import Pulse from "../../components/panels/effects/Pulse.js";
 import RandomPulses from "../../components/panels/effects/RandomPulses.js";
+import Wave from "../../components/panels/effects/Wave.js";
 
 export default {
   name: "EffectsDialog",
   data() {
     return {
-      effects: [new SimpleColor(), new Pulse(), new RandomPulses()],
+      effects: [new SimpleColor(), new Pulse(), new RandomPulses(), new Wave()],
       chosenEffect: undefined
     };
   }
@@ -39,39 +40,40 @@ export default {
 
 <style scoped lang="scss">
 .dialog {
-  width: 350px;
+  width: 320px;
 }
 
-.effects {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
+.effect-buttons {
+  display: grid;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-bottom: 2em;
 }
 
-.effect {
-  width: 100px;
-  height: 60px;
+.effect-button {
+  height: 70px;
   background: #585858;
-  border: 3px solid #585858;
+  border: 0.5em solid #585858;
   cursor: pointer;
-  display: flex;
-  align-items: flex-end;
-  display: inline-block;
 
   span {
-    width: 100%;
-    text-align: center;
-    padding-top: 3px;
     font-weight: bold;
+    display: inline;
+    position: relative;
+    left: 0.5em;
+    top: 0.2em;
+    padding: 0.7em 0;
+    line-height: 1.7em;
   }
 
   &.active,
   &:hover {
-    border: 3px solid cyan;
+    border-color: cyan;
     color: #585858;
 
     span {
       background: cyan;
+      box-shadow: 0.5em 0 0 cyan, -0.5em 0 0 cyan;
     }
   }
 }

@@ -95,17 +95,19 @@ export default {
         let LEDPosition = Float32Array.from(object.geometry.attributes.position.array);
         let length = object.geometry.attributes.position.array.length / 3;
         let LEDIndex = Float32Array.from({ length: length }, () => index);
+        let worldPosition = new THREE.Vector3();
+        object.getWorldPosition(worldPosition);
 
         for (var i = 0; i < LEDPosition.length; i += 3) {
-            LEDPosition[i] = object.position.x;
-            LEDPosition[i + 1] = object.position.y;
-            LEDPosition[i + 2] = object.position.z;
+            LEDPosition[i] = worldPosition.x;
+            LEDPosition[i + 1] = worldPosition.y;
+            LEDPosition[i + 2] = worldPosition.z;
         }
         object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
         object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3] = object.position.x;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = object.position.y;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = object.position.z;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3] = worldPosition.x;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = worldPosition.y;
+        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = worldPosition.z;
     },
     makeEffectUnique: function (originalEffect, suffix, side) {
         let effect = JSON.parse(JSON.stringify(originalEffect));

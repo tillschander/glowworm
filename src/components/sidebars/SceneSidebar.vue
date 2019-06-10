@@ -100,6 +100,7 @@ export default {
 .scene-sidebar {
   padding: 10px;
   background: #424242;
+  overflow-y: auto;
 
   ul {
     list-style: none;
