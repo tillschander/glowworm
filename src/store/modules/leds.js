@@ -146,11 +146,11 @@ export default {
       }
 
       let bufferUniforms = Object.assign(uniforms, {
-        width: { value: rootState.bufferWidth },
-        height: { value: rootState.bufferHeight }
+        width: { value: rootState.buffer.width },
+        height: { value: rootState.buffer.height }
       });
       let material = ledMaterialUtil.getLEDMaterial(uniforms, { activeAnimations }, shaderParameters, shader);
-      rootState.bufferMaterial = ledMaterialUtil.getBufferMaterial(bufferUniforms, shaderParameters, shader);
+      rootState.buffer.material = ledMaterialUtil.getBufferMaterial(bufferUniforms, shaderParameters, shader);
 
 
 
@@ -160,10 +160,10 @@ export default {
         this.getters.LEDs[i].needsUpdate = true;
       }
 
-      if (rootState.bufferObject) {
-        rootState.bufferObject.material = rootState.bufferMaterial;
-        rootState.bufferObject.needsUpdate = true;
-        rootState.bufferGeometry.attributes.LEDPosition.needsUpdate = true;
+      if (rootState.buffer.object) {
+        rootState.buffer.object.material = rootState.buffer.material;
+        rootState.buffer.object.needsUpdate = true;
+        rootState.buffer.geometry.attributes.LEDPosition.needsUpdate = true;
       }
 
       this.dispatch('setActiveMaterial', material);

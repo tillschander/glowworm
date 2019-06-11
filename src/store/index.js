@@ -8,6 +8,7 @@ import objects from './modules/objects.js';
 import leds from './modules/leds.js';
 import animations from './modules/animations';
 import output from './modules/output';
+import buffer from './modules/buffer';
 import transformUtil from "../utils/transform.js";
 
 Vue.use(Vuex);
@@ -26,16 +27,6 @@ export default new Vuex.Store({
     activeTool: 'move',
     mode: 'design',
     snapToGrid: false,
-    bufferRenderer: new THREE.WebGLRenderer(),
-    bufferCamera: null,
-    bufferScene: new THREE.Scene(),
-    bufferTexture: null,
-    bufferWidth: 8,
-    bufferHeight: 8,
-    bufferMaterial: null,
-    bufferGeometry: null,
-    bufferObject: null,
-    buffer: null,
     ctrlPressed: false,
     leftAnimation: null,
     rightAnimation: null,
@@ -50,7 +41,8 @@ export default new Vuex.Store({
     objects,
     animations,
     leds,
-    output
+    output,
+    buffer
   },
   getters: {
     activeObject: state => {

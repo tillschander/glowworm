@@ -129,7 +129,7 @@ export default {
 
       this.$store.state.renderer.setSize(this.width, this.height);
       container.appendChild(this.$store.state.renderer.domElement);
-      container.appendChild(this.$store.state.bufferRenderer.domElement);
+      container.appendChild(this.$store.state.buffer.renderer.domElement);
 
       this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
       this.light1.position.set(1.2, 1.5, 1.0);
@@ -184,40 +184,45 @@ export default {
       this.$store.state.selection.outlineComposer.render();
       this.$store.state.selection.finalComposer.render();
 
-      this.$store.state.bufferRenderer.setRenderTarget(
-        this.$store.state.bufferTexture
+      this.$store.state.buffer.renderer.setRenderTarget(
+        this.$store.state.buffer.texture
       );
-      this.$store.state.bufferRenderer.render(
-        this.$store.state.bufferScene,
-        this.$store.state.bufferCamera
+      this.$store.state.buffer.renderer.render(
+        this.$store.state.buffer.scene,
+        this.$store.state.buffer.camera
       );
-      this.$store.state.bufferRenderer.setRenderTarget(null);
-      this.$store.state.bufferRenderer.render(
-        this.$store.state.bufferScene,
-        this.$store.state.bufferCamera
+      this.$store.state.buffer.renderer.setRenderTarget(null);
+      this.$store.state.buffer.renderer.render(
+        this.$store.state.buffer.scene,
+        this.$store.state.buffer.camera
       );
-      this.$store.state.bufferRenderer.readRenderTargetPixels(
-        this.$store.state.bufferTexture,
+      this.$store.state.buffer.renderer.readRenderTargetPixels(
+        this.$store.state.buffer.texture,
         0,
         0,
-        this.$store.state.bufferWidth,
-        this.$store.state.bufferHeight,
-        this.$store.state.buffer
+        this.$store.state.buffer.width,
+        this.$store.state.buffer.height,
+        this.$store.state.buffer.data
       );
 
-      let buffer = this.$store.state.buffer;
       let output = new Array(
-        this.$store.state.bufferWidth * this.$store.state.bufferHeight * 3
+        this.$store.state.buffer.width * this.$store.state.buffer.height * 3
       );
       let index = 0;
 
-      for (let i = 0; i < buffer.length; i += 4) {
-        output[index * 3 + 0] = Math.round(buffer[i + 2] * 255); // GREEN
-        output[index * 3 + 1] = Math.round(buffer[i + 1] * 255); // BLUE
-        output[index * 3 + 2] = Math.round(buffer[i + 0] * 255); // RED
+      for (let i = 0; i < this.$store.state.buffer.data.length; i += 4) {
+        output[index * 3 + 0] = Math.round(
+          this.$store.state.buffer.data[i + 2] * 255
+        ); // GREEN
+        output[index * 3 + 1] = Math.round(
+          this.$store.state.buffer.data[i + 1] * 255
+        ); // BLUE
+        output[index * 3 + 2] = Math.round(
+          this.$store.state.buffer.data[i + 0] * 255
+        ); // RED
         index++;
       }
-      output = [1].concat(buffer.length, output); // First byte of each message has to be 1
+      output = [1].concat(this.$store.state.buffer.data.length, output); // First byte of each message has to be 1
 
       if (this.$store.state.output.activePort) {
         this.$store.state.output.activePort.write(output);
@@ -393,9 +398,9 @@ export default {
         case 83: // s
           if (this.$store.state.ctrlPressed) {
             this.$store.dispatch("save");
-            this.$refs.saveIndicator.classList.add('visible');
+            this.$refs.saveIndicator.classList.add("visible");
             setTimeout(() => {
-              this.$refs.saveIndicator.classList.remove('visible');
+              this.$refs.saveIndicator.classList.remove("visible");
             }, 20);
           } else {
             this.$store.commit("addBox");
@@ -416,7 +421,7 @@ export default {
           this.$store.commit("clearActiveElements");
           break;
         case 76: // l
-          if (this.$store.state.ctrlPressed) this.$store.dispatch('load');
+          if (this.$store.state.ctrlPressed) this.$store.dispatch("load");
           break;
         case 78: // n
           if (this.$store.state.ctrlPressed) remote.getCurrentWindow().reload();
@@ -520,61 +525,7 @@ export default {
     },
     update: function(delta) {
       this.$store.state.leds.activeMaterial.uniforms.time.value += delta;
-      this.$store.state.bufferMaterial.uniforms.time.value += delta;
-    },
-    initBuffer: function() {
-      this.$store.state.bufferCamera = new THREE.OrthographicCamera(
-        this.$store.state.bufferWidth / -2,
-        this.$store.state.bufferWidth / 2,
-        this.$store.state.bufferHeight / 2,
-        this.$store.state.bufferHeight / -2,
-        -1,
-        1
-      );
-
-      this.$store.state.bufferRenderer.setSize(128, 128);
-      document
-        .querySelector("body")
-        .appendChild(this.$store.state.bufferRenderer.domElement);
-
-      this.$store.state.bufferTexture = new THREE.WebGLRenderTarget(
-        this.$store.state.bufferWidth,
-        this.$store.state.bufferHeight,
-        {
-          minFilter: THREE.LinearFilter,
-          magFilter: THREE.NearestFilter,
-          format: THREE.RGBAFormat,
-          type: THREE.FloatType
-        }
-      );
-
-      var bufferLength =
-        this.$store.state.bufferWidth * this.$store.state.bufferHeight;
-      var indices = Float32Array.from({ length: bufferLength }, (v, k) => k);
-      var positions = new Float32Array(bufferLength * 3);
-
-      this.$store.state.buffer = new Float32Array(4 * bufferLength);
-
-      this.$store.state.bufferGeometry = new THREE.PlaneBufferGeometry(
-        this.$store.state.bufferWidth - 1,
-        this.$store.state.bufferHeight - 1,
-        this.$store.state.bufferWidth - 1,
-        this.$store.state.bufferHeight - 1
-      );
-      this.$store.state.bufferGeometry.addAttribute(
-        "LEDIndex",
-        new THREE.BufferAttribute(indices, 1)
-      );
-      this.$store.state.bufferGeometry.addAttribute(
-        "LEDPosition",
-        new THREE.BufferAttribute(positions, 3)
-      );
-
-      this.$store.state.bufferObject = new THREE.Points(
-        this.$store.state.bufferGeometry,
-        this.$store.state.bufferMaterial
-      );
-      this.$store.state.bufferScene.add(this.$store.state.bufferObject);
+      this.$store.state.buffer.material.uniforms.time.value += delta;
     }
   },
   mounted() {
@@ -585,7 +536,7 @@ export default {
     window.addEventListener("keyup", this.onKeyup);
 
     this.init();
-    this.initBuffer();
+    this.$store.commit("initBuffer");
     MainLoop.setUpdate(this.update);
     MainLoop.setDraw(this.render).start();
   },
@@ -625,14 +576,14 @@ export default {
   background: #333;
   padding: 0.25em;
   opacity: 0;
-  transform: translate(-50%,-50%) scale(0);
+  transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
   transition: transform 2s ease, opacity 500ms ease;
 
   &.visible {
     transition: all 0s ease;
     opacity: 1;
-    transform: translate(-50%,-50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 </style>

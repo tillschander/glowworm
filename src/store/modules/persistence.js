@@ -69,19 +69,11 @@ export default {
           case 'transformDummy':
           case 'activePort':
           case 'maxConnections':
-          case 'bufferRenderer':
-          case 'bufferCamera':
-          case 'bufferScene':
-          case 'bufferTexture':
-          case 'bufferWidth':
-          case 'bufferHeight':
-          case 'bufferMaterial':
-          case 'bufferGeometry':
-          case 'bufferObject':
-          case 'buffer':
           case 'ctrlPressed':
           case 'persistence':
           case 'selection':
+          case 'output':
+          case 'buffer':
             continue;
           case 'camera':
             saveState[key] = {

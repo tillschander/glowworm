@@ -19,7 +19,7 @@ export default {
       set(value) {
         this.$store.commit("setMixValue", parseFloat(value));
         this.$store.state.leds.activeMaterial.uniforms.mixValue.value = parseFloat(value);
-        this.$store.state.bufferMaterial.uniforms.mixValue.value = parseFloat(value);
+        this.$store.state.buffer.material.uniforms.mixValue.value = parseFloat(value);
       }
     },
     opacity: {
@@ -29,7 +29,7 @@ export default {
       set(value) {
         this.$store.commit("setGlobalOpacity", parseFloat(value));
         this.$store.state.leds.activeMaterial.uniforms.globalOpacity.value = parseFloat(value);
-        this.$store.state.bufferMaterial.uniforms.globalOpacity.value = parseFloat(value);
+        this.$store.state.buffer.material.uniforms.globalOpacity.value = parseFloat(value);
       }
     }
   }

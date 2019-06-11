@@ -105,9 +105,9 @@ export default {
         }
         object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
         object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3] = worldPosition.x;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 1] = worldPosition.y;
-        state.bufferGeometry.attributes.LEDPosition.array[index * 3 + 2] = worldPosition.z;
+        state.buffer.geometry.attributes.LEDPosition.array[index * 3] = worldPosition.x;
+        state.buffer.geometry.attributes.LEDPosition.array[index * 3 + 1] = worldPosition.y;
+        state.buffer.geometry.attributes.LEDPosition.array[index * 3 + 2] = worldPosition.z;
     },
     makeEffectUnique: function (originalEffect, suffix, side) {
         let effect = JSON.parse(JSON.stringify(originalEffect));

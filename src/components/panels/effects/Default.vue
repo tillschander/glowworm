@@ -22,7 +22,7 @@ export default {
       this.$store.state.leds.activeMaterial.uniforms[
         name + this.uuid
       ].value = converter(value);
-      this.$store.state.bufferMaterial.uniforms[
+      this.$store.state.buffer.material.uniforms[
         name + this.uuid
       ].value = converter(value);
     }
