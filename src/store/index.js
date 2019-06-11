@@ -7,6 +7,7 @@ import selection from './modules/selection.js';
 import objects from './modules/objects.js';
 import leds from './modules/leds.js';
 import animations from './modules/animations';
+import output from './modules/output';
 import transformUtil from "../utils/transform.js";
 
 Vue.use(Vuex);
@@ -22,17 +23,15 @@ export default new Vuex.Store({
     transformControl: null,
     transformDummy: new THREE.Object3D(),
     activeElements: {},
-    activePort: null,
     activeTool: 'move',
-    maxConnections: 256,
     mode: 'design',
     snapToGrid: false,
     bufferRenderer: new THREE.WebGLRenderer(),
     bufferCamera: null,
     bufferScene: new THREE.Scene(),
     bufferTexture: null,
-    bufferWidth: 16,
-    bufferHeight: 16,
+    bufferWidth: 8,
+    bufferHeight: 8,
     bufferMaterial: null,
     bufferGeometry: null,
     bufferObject: null,
@@ -50,7 +49,8 @@ export default new Vuex.Store({
     selection,
     objects,
     animations,
-    leds
+    leds,
+    output
   },
   getters: {
     activeObject: state => {
@@ -133,9 +133,6 @@ export default new Vuex.Store({
         }
       }
       this.commit("clearActiveElements");
-    },
-    setActivePort(state, port) {
-      state.activePort = port;
     },
     setActiveTool: function (state, tool) {
       if (state.selection.selectionGroup.length > 1) {

@@ -129,10 +129,7 @@ export default {
 
       this.$store.state.renderer.setSize(this.width, this.height);
       container.appendChild(this.$store.state.renderer.domElement);
-      this.$store.state.bufferRenderer.setRenderTarget(
-        this.$store.state.bufferTexture
-      );
-      //container.appendChild(this.$store.state.bufferRenderer.domElement);
+      container.appendChild(this.$store.state.bufferRenderer.domElement);
 
       this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
       this.light1.position.set(1.2, 1.5, 1.0);
@@ -187,6 +184,14 @@ export default {
       this.$store.state.selection.outlineComposer.render();
       this.$store.state.selection.finalComposer.render();
 
+      this.$store.state.bufferRenderer.setRenderTarget(
+        this.$store.state.bufferTexture
+      );
+      this.$store.state.bufferRenderer.render(
+        this.$store.state.bufferScene,
+        this.$store.state.bufferCamera
+      );
+      this.$store.state.bufferRenderer.setRenderTarget(null);
       this.$store.state.bufferRenderer.render(
         this.$store.state.bufferScene,
         this.$store.state.bufferCamera
@@ -207,16 +212,15 @@ export default {
       let index = 0;
 
       for (let i = 0; i < buffer.length; i += 4) {
-        // Glediator output is GRB
-        output[index * 3] = Math.round(buffer[i + 1] * 255);
-        output[index * 3 + 1] = Math.round(buffer[i] * 255);
-        output[index * 3 + 2] = Math.round(buffer[i + 2] * 255);
+        output[index * 3 + 0] = Math.round(buffer[i + 2] * 255); // GREEN
+        output[index * 3 + 1] = Math.round(buffer[i + 1] * 255); // BLUE
+        output[index * 3 + 2] = Math.round(buffer[i + 0] * 255); // RED
         index++;
       }
-      output = [1].concat(output);
+      output = [1].concat(buffer.length, output); // First byte of each message has to be 1
 
-      if (this.$store.state.activePort) {
-        this.$store.state.activePort.write(output);
+      if (this.$store.state.output.activePort) {
+        this.$store.state.output.activePort.write(output);
       }
     },
     handleConnectClick: function(intersects) {

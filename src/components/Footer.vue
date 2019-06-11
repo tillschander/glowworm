@@ -9,14 +9,19 @@
 </template>
 
 <script>
-import { watch } from 'fs';
+import { watch } from "fs";
 export default {
   name: "Footer",
   computed: {
     deviceName: function() {
-      return this.$store.state.activePort ? this.$store.state.activePort.path : 'Nothing connected';
+      return this.$store.state.output.activePort
+        ? this.$store.state.output.activePort.path
+        : "Nothing connected";
     }
   },
+  mounted() {
+    this.$store.commit("setPorts", { autoSetActivePort: true });
+  }
 };
 </script>
 

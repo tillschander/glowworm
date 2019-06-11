@@ -2,6 +2,7 @@ import arrowUtil from '../../utils/arrow.js';
 
 export default {
   state: {
+    maxConnections: 256,
     origin: new THREE.Mesh(new THREE.OctahedronBufferGeometry(3), new THREE.MeshBasicMaterial({ color: 0x00ffff })),
     toConnect: [],
     showConnections: true,
