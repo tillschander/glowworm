@@ -12,6 +12,7 @@ import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
 import transformUtil from "../utils/transform.js";
+import { mapState } from "vuex";
 
 export default {
   name: "Viewport",
@@ -46,24 +47,32 @@ export default {
     },
     mode: function() {
       return this.$store.state.mode;
-    }
+    },
+    ...mapState([
+      "buffer",
+      "selection",
+      "scene",
+      "renderer",
+      "transformControl",
+      "transformDummy"
+    ])
   },
   watch: {
     activeTool(tool, oldTool) {
       if (["select", "connect", "disconnect"].indexOf(this.activeTool) > -1) {
-        this.$store.state.scene.remove(this.$store.state.transformControl);
+        this.scene.remove(this.transformControl);
       } else {
         if (this.$store.getters.activeElementsUuids.length) {
-          this.$store.state.scene.add(this.$store.state.transformControl);
+          this.scene.add(this.transformControl);
         }
       }
 
       if (this.activeTool == "move") {
-        this.$store.state.transformControl.setMode("translate");
+        this.transformControl.setMode("translate");
       } else if (this.activeTool == "scale") {
-        this.$store.state.transformControl.setMode("scale");
+        this.transformControl.setMode("scale");
       } else if (this.activeTool == "rotate") {
-        this.$store.state.transformControl.setMode("rotate");
+        this.transformControl.setMode("rotate");
       }
     }
   },
@@ -82,60 +91,42 @@ export default {
       });
       this.$store.dispatch("addLED");
 
-      this.$store.state.scene.background = new THREE.Color(0x191919);
+      this.scene.background = new THREE.Color(0x191919);
       this.raycaster.linePrecision = 10;
-      document
-        .getElementById("viewport")
-        .appendChild(this.$store.state.renderer.domElement);
+      document.getElementById("viewport").appendChild(this.renderer.domElement);
     },
     update: function(delta) {
       this.$store.state.leds.activeMaterial.uniforms.time.value += delta;
-      this.$store.state.buffer.material.uniforms.time.value += delta;
+      this.buffer.material.uniforms.time.value += delta;
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
-      this.$store.state.selection.outlineComposer.render();
-      this.$store.state.selection.finalComposer.render();
+      this.selection.outlineComposer.render();
+      this.selection.finalComposer.render();
 
-      this.$store.state.buffer.renderer.setRenderTarget(
-        this.$store.state.buffer.texture
-      );
-      this.$store.state.buffer.renderer.render(
-        this.$store.state.buffer.scene,
-        this.$store.state.buffer.camera
-      );
-      this.$store.state.buffer.renderer.setRenderTarget(null);
-      this.$store.state.buffer.renderer.render(
-        this.$store.state.buffer.scene,
-        this.$store.state.buffer.camera
-      );
-      this.$store.state.buffer.renderer.readRenderTargetPixels(
-        this.$store.state.buffer.texture,
+      this.buffer.renderer.setRenderTarget(this.buffer.texture);
+      this.buffer.renderer.render(this.buffer.scene, this.buffer.camera);
+      this.buffer.renderer.setRenderTarget(null);
+      this.buffer.renderer.render(this.buffer.scene, this.buffer.camera);
+      this.buffer.renderer.readRenderTargetPixels(
+        this.buffer.texture,
         0,
         0,
-        this.$store.state.buffer.width,
-        this.$store.state.buffer.height,
-        this.$store.state.buffer.data
+        this.buffer.width,
+        this.buffer.height,
+        this.buffer.data
       );
 
-      let output = new Array(
-        this.$store.state.buffer.width * this.$store.state.buffer.height * 3
-      );
+      let output = new Array(this.buffer.width * this.buffer.height * 3);
       let index = 0;
 
-      for (let i = 0; i < this.$store.state.buffer.data.length; i += 4) {
-        output[index * 3 + 0] = Math.round(
-          this.$store.state.buffer.data[i + 2] * 255
-        ); // GREEN
-        output[index * 3 + 1] = Math.round(
-          this.$store.state.buffer.data[i + 1] * 255
-        ); // BLUE
-        output[index * 3 + 2] = Math.round(
-          this.$store.state.buffer.data[i + 0] * 255
-        ); // RED
+      for (let i = 0; i < this.buffer.data.length; i += 4) {
+        output[index * 3 + 0] = Math.round(this.buffer.data[i + 2] * 255); // GREEN
+        output[index * 3 + 1] = Math.round(this.buffer.data[i + 1] * 255); // BLUE
+        output[index * 3 + 2] = Math.round(this.buffer.data[i + 0] * 255); // RED
         index++;
       }
-      output = [1].concat(this.$store.state.buffer.data.length, output); // First byte of each message has to be 1
+      output = [1].concat(this.buffer.data.length, output); // First byte of each message has to be 1
 
       if (this.$store.state.output.activePort) {
         this.$store.state.output.activePort.write(output);
@@ -144,20 +135,11 @@ export default {
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.updateProjectionMatrix();
-      this.$store.state.renderer.setSize(this.width, this.height);
-      this.$store.state.selection.outlineComposer.setSize(
-        this.width,
-        this.height
-      );
-      this.$store.state.selection.finalComposer.setSize(
-        this.width,
-        this.height
-      );
-      this.$store.state.selection.outlineTarget.setSize(
-        this.width,
-        this.height
-      );
-      this.$store.state.selection.outlineShaderPass.uniforms.resolution.value = {
+      this.renderer.setSize(this.width, this.height);
+      this.selection.outlineComposer.setSize(this.width, this.height);
+      this.selection.finalComposer.setSize(this.width, this.height);
+      this.selection.outlineTarget.setSize(this.width, this.height);
+      this.selection.outlineShaderPass.uniforms.resolution.value = {
         x: this.width,
         y: this.height
       };
@@ -170,12 +152,12 @@ export default {
 
       if (this.$store.state.mode !== "design") return;
       if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
-      if (event.target !== this.$store.state.renderer.domElement) return;
+      if (event.target !== this.renderer.domElement) return;
 
       this.raycaster.setFromCamera(this.upPosition, this.$store.state.camera);
 
       let intersects = this.raycaster.intersectObjects(
-        this.$store.state.scene.children,
+        this.scene.children,
         true
       );
 
@@ -303,20 +285,20 @@ export default {
     onObjectChanged: function(event) {
       if (this.$store.state.activeTool == "move") {
         this.positionDelta.subVectors(
-          this.$store.state.transformDummy.position,
+          this.transformDummy.position,
           this.lastPosition
         );
-        this.$store.state.selection.selectionGroup.forEach(child => {
+        this.selection.selectionGroup.forEach(child => {
           child.position.add(this.positionDelta);
           child.userData.clone.position.add(this.positionDelta);
         });
-        this.lastPosition.copy(this.$store.state.transformDummy.position);
+        this.lastPosition.copy(this.transformDummy.position);
       } else if (this.$store.state.activeTool == "rotate") {
         this.rotationDelta.subVectors(
-          this.$store.state.transformDummy.rotation.toVector3(),
+          this.transformDummy.rotation.toVector3(),
           this.lastRotation
         );
-        this.$store.state.selection.selectionGroup.forEach(child => {
+        this.selection.selectionGroup.forEach(child => {
           if (child.userData.type !== "LED") {
             child.rotation.set(
               child.rotation.x + this.rotationDelta.x,
@@ -330,13 +312,10 @@ export default {
             );
           }
         });
-        this.lastRotation.copy(this.$store.state.transformDummy.rotation);
+        this.lastRotation.copy(this.transformDummy.rotation);
       } else if (this.$store.state.activeTool == "scale") {
-        this.scaleDelta.subVectors(
-          this.$store.state.transformDummy.scale,
-          this.lastScale
-        );
-        this.$store.state.selection.selectionGroup.forEach(child => {
+        this.scaleDelta.subVectors(this.transformDummy.scale, this.lastScale);
+        this.selection.selectionGroup.forEach(child => {
           if (child.userData.type !== "LED") {
             child.scale.add(this.scaleDelta);
             child.userData.clone.scale.add(this.scaleDelta);
@@ -358,21 +337,21 @@ export default {
             }
           }
         });
-        this.lastScale.copy(this.$store.state.transformDummy.scale);
+        this.lastScale.copy(this.transformDummy.scale);
       }
       this.$store.dispatch(
         "updateLEDConnections",
-        this.$store.state.selection.selectionGroup
+        this.selection.selectionGroup
       );
     },
     onTransformStart: function(event) {
-      this.lastPosition.copy(this.$store.state.transformDummy.position);
-      this.lastRotation.copy(this.$store.state.transformDummy.rotation);
-      this.lastScale.copy(this.$store.state.transformDummy.scale);
+      this.lastPosition.copy(this.transformDummy.position);
+      this.lastRotation.copy(this.transformDummy.rotation);
+      this.lastScale.copy(this.transformDummy.scale);
     },
     getPointer: function(event) {
       let pointer = event.changedTouches ? event.changedTouches[0] : event;
-      let rect = this.$store.state.renderer.domElement.getBoundingClientRect();
+      let rect = this.renderer.domElement.getBoundingClientRect();
 
       return new THREE.Vector2(
         ((pointer.clientX - rect.left) / rect.width) * 2 - 1,
@@ -380,15 +359,12 @@ export default {
       );
     },
     attachEventHandlers: function() {
-      let control = this.$store.state.transformControl;
-      let resizeObserver = new ResizeObserver(this.onResize);
-
-      resizeObserver.observe(document.getElementById("viewport"));
+      new ResizeObserver(this.onResize).observe(document.getElementById("viewport"));
       window.addEventListener("keydown", this.onKeydown);
       window.addEventListener("keyup", this.onKeyup);
-      control.addEventListener("dragging-changed", this.onDraggingChanged);
-      control.addEventListener("objectChange", this.onObjectChanged);
-      control.addEventListener("mouseDown", this.onTransformStart);
+      this.transformControl.addEventListener("dragging-changed", this.onDraggingChanged);
+      this.transformControl.addEventListener("objectChange", this.onObjectChanged);
+      this.transformControl.addEventListener("mouseDown", this.onTransformStart);
     }
   },
   mounted() {
