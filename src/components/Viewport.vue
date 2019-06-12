@@ -90,6 +90,7 @@ export default {
         scale: [100, 10, 100]
       });
       this.$store.dispatch("addLED");
+      this.$store.commit("setMaxFps", 61);
 
       this.scene.background = new THREE.Color(0x191919);
       this.raycaster.linePrecision = 10;
@@ -116,17 +117,23 @@ export default {
         this.buffer.height,
         this.buffer.data
       );
+    },
+    output: function() {
+      let output = [255]; // First byte of each message has to be 255
+      let nextLED = this.$store.state.connections.origin.userData.nextLED;
+      let outputLength = 0;
 
-      let output = new Array(this.buffer.width * this.buffer.height * 3);
-      let index = 0;
+      while (nextLED) {
+        let index = this.$store.getters.LEDs.indexOf(nextLED);
 
-      for (let i = 0; i < this.buffer.data.length; i += 4) {
-        output[index * 3 + 0] = Math.round(this.buffer.data[i + 2] * 255); // GREEN
-        output[index * 3 + 1] = Math.round(this.buffer.data[i + 1] * 255); // BLUE
-        output[index * 3 + 2] = Math.round(this.buffer.data[i + 0] * 255); // RED
-        index++;
+        output.push(Math.floor(this.buffer.data[index*4 + 0] * 255)); // BLUE
+        output.push(Math.floor(this.buffer.data[index*4 + 2] * 255)); // GREEN
+        output.push(Math.floor(this.buffer.data[index*4 + 1] * 255)); // RED
+        outputLength += 3;
+        nextLED = nextLED.userData.nextLED;
       }
-      output = [1].concat(this.buffer.data.length, output); // First byte of each message has to be 1
+      output.length = this.buffer.width * this.buffer.height * 3; // set output size to buffer size...
+      output.fill(0, outputLength); // ...and fill remaining space with zeros to clear previous colors
 
       if (this.$store.state.output.activePort) {
         this.$store.state.output.activePort.write(output);
@@ -371,7 +378,10 @@ export default {
     this.init();
     this.attachEventHandlers();
     MainLoop.setUpdate(this.update);
-    MainLoop.setDraw(this.render).start();
+    MainLoop.setDraw(() => {
+      this.render();
+      this.output();
+    }).start();
   }
 };
 </script>

@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import MainLoop from "mainloop.js";
 import persistence from './modules/persistence.js';
 import connections from './modules/connections.js';
 import masks from './modules/masks.js';

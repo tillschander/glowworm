@@ -2,7 +2,6 @@ import arrowUtil from '../../utils/arrow.js';
 
 export default {
   state: {
-    maxConnections: 256,
     origin: new THREE.Mesh(new THREE.OctahedronBufferGeometry(3), new THREE.MeshBasicMaterial({ color: 0x00ffff })),
     toConnect: [],
     showConnections: true,
@@ -24,7 +23,7 @@ export default {
       if (leds.length) {
         let led = leds[0].object;
 
-        if (led.userData.type == "LED" || state.toConnect.length == 1) {
+        if (led.userData.type == "LED" || state.toConnect.length == 0) {
           state.toConnect.push(led);
           state.connectArrow.visible = true;
           this.dispatch("updateConnectArrow", { led, pointer: pointer });
@@ -50,8 +49,8 @@ export default {
   },
   actions: {
     updateSingleLEDConnections: function ({ state, rootState }, currentLED) {
-      const previousLED = rootState.scene.getObjectByProperty("uuid", currentLED.userData.previousLED);
-      const nextLED = rootState.scene.getObjectByProperty("uuid", currentLED.userData.nextLED);
+      const previousLED = currentLED.userData.previousLED;
+      const nextLED = currentLED.userData.nextLED;
 
       if (previousLED) arrowUtil.updateArrow(previousLED, currentLED);
       if (nextLED) arrowUtil.updateArrow(currentLED, nextLED);
@@ -76,14 +75,14 @@ export default {
         this.dispatch("disconnectPrev", from);
       }
 
-      if (arrowUtil.wouldBeCircularConnection(from, to, rootState.scene)) {
+      if (arrowUtil.wouldBeCircularConnection(from, to)) {
         this.dispatch("disconnectNext", to);
       }
 
       let arrow = arrowUtil.drawArrow(from, to);
-      to.userData.previousLED = from.uuid;
+      to.userData.previousLED = from;
       to.userData.previousLEDArrow = arrow;
-      from.userData.nextLED = to.uuid;
+      from.userData.nextLED = to;
       from.userData.nextLEDArrow = arrow;
       arrow.line.material.visible = state.showConnections;
       arrow.cone.material.visible = state.showConnections;
@@ -111,7 +110,7 @@ export default {
       this.dispatch("disconnectPrev", led);
     },
     disconnectNext: function ({ state, rootState }, led) {
-      const nextLED = rootState.scene.getObjectByProperty("uuid", led.userData.nextLED);
+      const nextLED = led.userData.nextLED;
 
       rootState.scene.remove(led.userData.nextLEDArrow);
       state.arrows = state.arrows.filter(arrow => arrow !== led.userData.nextLEDArrow);
@@ -125,7 +124,7 @@ export default {
       led.userData.nextLEDArrow = undefined;
     },
     disconnectPrev: function ({ state, rootState }, led) {
-      const previousLED = rootState.scene.getObjectByProperty("uuid", led.userData.previousLED);
+      const previousLED = led.userData.previousLED;
 
       rootState.scene.remove(led.userData.previousLEDArrow);
       state.arrows = state.arrows.filter(arrow => arrow !== led.userData.previousLEDArrow);

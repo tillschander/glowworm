@@ -1,12 +1,12 @@
 export default {
     headLength: 5,
     headWidth: 2,
-    wouldBeCircularConnection: function (from, to, scene) {
-        let nextLED = scene.getObjectByProperty("uuid", to.userData.nextLED);
+    wouldBeCircularConnection: function (from, to) {
+        let nextLED = to.userData.nextLED;
 
         while (nextLED) {
             if (nextLED.uuid == from.uuid) return true;
-            nextLED = scene.getObjectByProperty("uuid", nextLED.userData.nextLED);
+            nextLED = nextLED.userData.nextLED;
         }
 
         return false;

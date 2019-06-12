@@ -68,7 +68,6 @@ export default {
           case 'transformControl':
           case 'transformDummy':
           case 'activePort':
-          case 'maxConnections':
           case 'ctrlPressed':
           case 'persistence':
           case 'selection':
@@ -83,14 +82,16 @@ export default {
             continue;
           case 'leds':
             saveState[key] = rootGetters.LEDs.map(LED => {
-              if (LED.parent.userData.type == 'Group') saveToGroup(saveState, 'LED', LED);
-
-              return {
+              let data = {
                 uuid: LED.uuid,
                 name: LED.name,
-                position: LED.position,
-                nextLED: LED.userData.nextLED
+                position: LED.position
               };
+
+              if (LED.parent.userData.type == 'Group') saveToGroup(saveState, 'LED', LED);
+              data.nextLED = (LED.userData.nextLED) ? LED.userData.nextLED.uuid : undefined;
+
+              return data;
             });
             break;
           case 'objects':
@@ -137,7 +138,7 @@ export default {
             saveState['showConnections'] = rootState.connections.showConnections;
             saveState['origin'] = {
               position: rootState.connections.origin.position,
-              nextLED: rootState.connections.origin.userData.nextLED
+              nextLED: rootState.connections.origin.userData.nextLED.uuid
             };
             break;
           default:
@@ -184,11 +185,11 @@ export default {
             rootGetters.LEDs.forEach(LED => {
               this.dispatch('disconnectBoth', LED);
             });
-            data.leds.forEach(LED => {
-              let ledObject = rootState.scene.getObjectByProperty('uuid', LED.uuid);
-              let nextLedObject = rootState.scene.getObjectByProperty('uuid', LED.nextLED);
+            data.leds.forEach(LEDData => {
+              let LED = rootState.scene.getObjectByProperty('uuid', LEDData.uuid);
+              let nextLED = rootState.scene.getObjectByProperty('uuid', LEDData.nextLED);
 
-              if (nextLedObject) this.dispatch('connectFromTo', { from: ledObject, to: nextLedObject });
+              if (nextLED) this.dispatch('connectFromTo', { from: LED, to: nextLED });
             });
             break;
           case 'objects':
