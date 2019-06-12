@@ -58,7 +58,7 @@ export default {
         group.push(led);
       }
 
-      this.$store.commit("addGroup", {children: group, name: 'Line', groupType: 'LED'});
+      this.$store.dispatch("addGroup", {children: group, name: 'Line', groupType: 'LED'});
       this.$parent.continue();
     }
   }

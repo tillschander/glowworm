@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeElements)[0];
+      return this.$store.getters.activeElementUuid;
     },
     mask: function() {
       return this.$store.getters.masks.find(mask => mask.uuid == this.uuid);

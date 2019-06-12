@@ -9,26 +9,14 @@
 export default {
   name: "NamePanel",
   computed: {
-    uuid: function() {
-      return Object.keys(this.$store.state.activeElements)[0];
-    },
-    element: function() {
-      return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
-    },
-    type: function() {
-      return this.element.userData.type;
-    },
     name: {
       get() {
-        let name = this.element.name;
+        let name = this.$store.getters.activeElement.name;
 
-        return name ? name : this.type;
+        return name ? name : this.$store.getters.activeElement.userData.type;
       },
       set(value) {
-        this.$store.commit("updateElementName", {
-          uuid: this.uuid,
-          name: value
-        });
+        this.$store.getters.activeElement.name = value;
       }
     }
   }

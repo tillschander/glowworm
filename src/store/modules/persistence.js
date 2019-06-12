@@ -162,7 +162,7 @@ export default {
         let toDelete = ['LED', 'Object', 'Group', 'Animation', 'Mask'];
 
         if (toDelete.indexOf(rootState.scene.children[i].userData.type) > -1) {
-          this.commit('deleteElement', rootState.scene.children[i]);
+          this.dispatch('deleteElement', rootState.scene.children[i]);
         }
       };
 
@@ -263,7 +263,7 @@ export default {
       data.groups.forEach(group => {
         let children = group.children.map(child => rootState.scene.getObjectByProperty('uuid', child));
 
-        this.commit("addGroup", {
+        this.dispatch("addGroup", {
           groupType: group.type,
           uuid: group.uuid,
           name: group.name,
@@ -292,7 +292,7 @@ export default {
 
       // Handle active elements
       this.commit('clearActiveElements');
-      Object.keys(data.activeElements).forEach(uuid => {
+      rootGetters.activeElementsUuids.forEach(uuid => {
         this.commit("addActiveElement", uuid);
       });
 

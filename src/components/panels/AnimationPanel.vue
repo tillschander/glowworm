@@ -22,7 +22,7 @@ export default {
   },
   computed: {
     uuid: function() {
-      return Object.keys(this.$store.state.activeElements)[0];
+      return this.$store.getters.activeElementUuid;
     },
     animation: function() {
       return this.$store.state.animations.animations.find(

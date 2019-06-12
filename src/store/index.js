@@ -6,9 +6,10 @@ import masks from './modules/masks.js';
 import selection from './modules/selection.js';
 import objects from './modules/objects.js';
 import leds from './modules/leds.js';
-import animations from './modules/animations';
-import output from './modules/output';
-import buffer from './modules/buffer';
+import animations from './modules/animations.js';
+import output from './modules/output.js';
+import buffer from './modules/buffer.js';
+import elements from './modules/elements.js';
 import transformUtil from "../utils/transform.js";
 
 Vue.use(Vuex);
@@ -23,7 +24,6 @@ export default new Vuex.Store({
     orbitControl: null,
     transformControl: null,
     transformDummy: new THREE.Object3D(),
-    activeElements: {},
     activeTool: 'move',
     mode: 'design',
     snapToGrid: false,
@@ -42,7 +42,8 @@ export default new Vuex.Store({
     animations,
     leds,
     output,
-    buffer
+    buffer,
+    elements
   },
   getters: {
     activeObject: state => {
@@ -62,70 +63,6 @@ export default new Vuex.Store({
     },
   },
   mutations: {
-    addGroup: function (state, options) {
-      let group = new THREE.Group();
-      let i = options.children.length;
-      let center = transformUtil.getCenter(options.children);
-
-      group.position.copy(center);
-      while (i--) {
-        options.children[i].position.sub(center)
-        group.add(options.children[i]);
-      }
-      if (options.name) group.name = options.name;
-      if (options.uuid) group.uuid = options.uuid;
-      if (options.position) group.position.copy(options.position);
-      if (options.rotation) group.rotation.copy(options.rotation);
-      if (options.scale) group.scale.copy(options.scale);
-      group.userData.type = 'Group';
-      group.userData.groupType = options.groupType;
-      state.scene.add(group);
-
-      setTimeout(() => this.dispatch('updateLEDConnections', options.children), 1);
-      this.commit("clearActiveElements");
-      this.commit("addActiveElement", group.uuid);
-    },
-    updateElementName: function (state, updates) {
-      let threeObject = state.scene.getObjectByProperty('uuid', updates.uuid);
-      threeObject.name = updates.name;
-    },
-    deleteElement(state, element) {
-      if (element.userData.type == 'LED') {
-        this.dispatch("disconnectBoth", element);
-      } else if (element.userData.groupType == 'LED') {
-        element.children.forEach(child => {
-          this.dispatch("disconnectBoth", child);
-        });
-      } else if (element.userData.type == 'Animation') {
-        let index = state.animations.animations.findIndex((elem) => elem.uuid == element.uuid);
-        state.animations.animations.splice(index, 1);
-      }
-      state.selection.selectionScene.remove(element.userData.clone);
-      element.parent.remove(element);
-    },
-    addActiveElement(state, uuid) {
-      Vue.set(state.activeElements, uuid, true);
-      this.dispatch("addToSelectionGroup", uuid);
-    },
-    removeActiveElement(state, uuid) {
-      Vue.delete(state.activeElements, uuid);
-      this.dispatch("removeFromSelectionGroup", uuid);
-    },
-    clearActiveElements(state) {
-      state.activeElements = {};
-      this.dispatch("emptySelectionGroup");
-    },
-    deleteActiveElements: function (state) {
-      this.dispatch("emptySelectionGroup");
-      for (const uuid in state.activeElements) {
-        let element = state.scene.getObjectByProperty("uuid", uuid);
-
-        if (element.userData.type !== 'Camera' && element.userData.type !== 'Origin') {
-          this.commit("deleteElement", element);
-        }
-      }
-      this.commit("clearActiveElements");
-    },
     setActiveTool: function (state, tool) {
       if (state.selection.selectionGroup.length > 1) {
         if (tool == 'rotate' || tool == 'scale') {
@@ -139,6 +76,7 @@ export default new Vuex.Store({
     },
     setMaxFps: function (state, maxFps) {
       state.maxFps = maxFps;
+      MainLoop.setMaxAllowedFPS(maxFps);
     },
     setMode: function (state, mode) {
       state.mode = mode;
@@ -148,6 +86,14 @@ export default new Vuex.Store({
     },
     setSnapToGrid: function (state, bool) {
       state.snapToGrid = bool;
+
+      if (bool) {
+        state.transformControl.setTranslationSnap(5);
+        state.transformControl.setRotationSnap(THREE.Math.degToRad(15));
+      } else {
+        state.transformControl.setTranslationSnap(null);
+        state.transformControl.setRotationSnap(null);
+      }
     },
     setLiveAnimation: function (state, options) {
       state[options.side + 'Animation'] = options.uuid;
@@ -157,6 +103,43 @@ export default new Vuex.Store({
     },
     setGlobalOpacity: function (state, value) {
       state.globalOpacity = value;
+    },
+    initCamera: function (state) {
+      state.camera.position.set(100, 100, 100);
+      state.camera.lookAt(0, 200, 0);
+      state.camera.userData.type = "Camera";
+      state.scene.add(state.camera);
+    },
+    initLights: function (state) {
+      let light1 = new THREE.DirectionalLight(0xffffff, 0.7);
+      let light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+
+      light1.position.set(1.2, 1.5, 1.0);
+      light2.position.set(-1.1, -0.4, -0.9);
+      state.scene.add(light1);
+      state.scene.add(light2);
+    },
+    initControls: function(state) {
+      state.orbitControl = new THREE.OrbitControls(state.camera, state.renderer.domElement);
+      state.orbitControl.update();
+
+      state.transformControl = new THREE.TransformControls(state.camera, state.renderer.domElement);
+      state.scene.add(state.transformControl);
+      state.scene.add(state.transformDummy);
+      state.transformControl.attach(state.transformDummy);
+    }
+  },
+  actions: {
+    updateTransformControlVisibility: function({state, rootGetters}, activeElementsUuids) {
+      if (rootGetters.activeElementsUuids.length) {
+        if (["move", "scale", "rotate"].indexOf(state.activeTool) > -1) {
+          state.scene.add(state.transformControl);
+        } else {
+          state.scene.remove(state.transformControl);
+        }
+      } else {
+        state.scene.remove(state.transformControl);
+      }
     }
   }
 })

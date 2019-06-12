@@ -10,7 +10,7 @@ export default {
       return center;
     },
     canActiveObjectTraslate: function(state, translation) {
-      let activeUuids = Object.keys(state.activeElements);
+      let activeUuids = Object.keys(state.elements.activeElements);
       let cantMove = ['Animation', 'Mask', 'Camera'];
       let cantRotate = ['LED', 'Animation', 'Mask', 'Camera', 'Origin'];
       let cantScale = ['LED', 'Animation', 'Mask', 'Camera', 'Origin'];

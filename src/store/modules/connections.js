@@ -18,6 +18,35 @@ export default {
       });
       state.origin.visible = state.showConnections;
     },
+    handleConnectClick: function (state, { intersects, pointer }) {
+      let leds = intersects.filter(e => ["LED", "Origin"].indexOf(e.object.userData.type) > -1);
+
+      if (leds.length) {
+        let led = leds[0].object;
+
+        if (led.userData.type == "LED" || state.toConnect.length == 1) {
+          state.toConnect.push(led);
+          state.connectArrow.visible = true;
+          this.dispatch("updateConnectArrow", { led, pointer: pointer });
+        }
+      } else {
+        state.toConnect = [];
+        state.connectArrow.visible = false;
+      }
+
+      if (state.toConnect.length > 1) {
+        this.dispatch("connectFromTo", { from: state.toConnect[0], to: state.toConnect[1] });
+        state.toConnect = [];
+        state.connectArrow.visible = false;
+      }
+    },
+    handleDisconnectClick: function (state, intersects) {
+      let arrows = intersects.filter(
+        entry => entry.object.parent.userData.type == "Arrow"
+      );
+
+      if (arrows.length) this.dispatch("removeConnection", arrows[0].object.parent);
+    },
   },
   actions: {
     updateSingleLEDConnections: function ({ state, rootState }, currentLED) {
@@ -62,14 +91,10 @@ export default {
       rootState.scene.add(arrow);
       state.arrows.push(arrow);
     },
-    connectMaybe: function({ state, rootState, rootGetters }, led) {
+    connectMaybe: function ({ state, rootState, rootGetters }, led) {
       if (rootGetters.LEDs.length > 1) {
-        let activeUuids = Object.keys(rootState.activeElements);
-        let activeUuid = activeUuids.length ? activeUuids[0] : '';
-        let activeObject = rootState.scene.getObjectByProperty('uuid', activeUuid);
-
-        if (activeObject && activeObject.userData.type == 'LED') {
-          this.dispatch("connectFromTo", { from: activeObject, to: led });
+        if (rootGetters.activeElement && rootGetters.activeElement.userData.type == 'LED') {
+          this.dispatch("connectFromTo", { from: rootGetters.activeElement, to: led });
         } else {
           let previousLED = rootState.scene.getObjectByProperty('uuid', rootGetters.LEDs[rootGetters.LEDs.length - 2].uuid);
 
@@ -135,14 +160,16 @@ export default {
       // state.connectArrow.cone.material.depthTest = false;
       // state.connectArrow.cone.renderOrder = 10;
     },
-    removeConnection: function({ state, rootState }, arrow) {
+    removeConnection: function ({ state, rootState }, arrow) {
       this.dispatch("disconnectNext", arrow.userData.from);
       this.dispatch("disconnectPrev", arrow.userData.to);
     },
-    initConnection: function({ state, rootState }) {
+    initConnection: function ({ state, rootState }) {
       state.origin.position.set(0, -20, 0);
       state.origin.userData.type = 'Origin';
+      state.connectArrow.visible = false;
       rootState.scene.add(state.origin);
+      rootState.scene.add(state.connectArrow);
     }
   }
 }

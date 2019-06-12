@@ -55,7 +55,7 @@ export default {
         group.push(led);
       }
       
-      this.$store.commit("addGroup", {children: group, name: 'Ring', groupType: 'LED'});
+      this.$store.dispatch("addGroup", {children: group, name: 'Ring', groupType: 'LED'});
       this.$parent.continue();
     }
   }

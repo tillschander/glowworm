@@ -78,7 +78,7 @@ export default {
         }
       }
 
-      this.$store.commit("addGroup", {
+      this.$store.dispatch("addGroup", {
         children: group,
         name: "Grid",
         groupType: "LED"

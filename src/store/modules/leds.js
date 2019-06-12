@@ -71,7 +71,7 @@ export default {
       this.commit("clearActiveElements");
       this.commit("addActiveElement", mesh.uuid);
     },
-    applyLEDMaterial: function ({ state, rootState }) {
+    applyLEDMaterial: function ({ state, rootState, rootGetters }) {
       let ledTexture = new THREE.TextureLoader().load(location.origin + '/led.png');
       let shineTexture = new THREE.TextureLoader().load(location.origin + '/shine.png');
       let shaderParameters = "";
@@ -87,11 +87,9 @@ export default {
       };
 
       if (rootState.mode == 'design') {
-        if (Object.keys(rootState.activeElements).length == 1) {
-          let activeObjectUuid = Object.keys(rootState.activeElements)[0];
-
+        if (rootGetters.activeElementsUuids.length == 1) {
           activeAnimation = rootState.animations.animations.find(
-            animation => animation.uuid == activeObjectUuid
+            animation => animation.uuid == rootGetters.activeElementUuid
           );
         }
 

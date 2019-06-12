@@ -21,9 +21,6 @@ export default {
   },
   data() {
     return {
-      light1: null,
-      light2: null,
-      control: null,
       downPosition: new THREE.Vector2(),
       upPosition: new THREE.Vector2(),
       raycaster: new THREE.Raycaster(),
@@ -38,61 +35,27 @@ export default {
   computed: {
     width: {
       cache: false,
-      get: function() {
-        return document.getElementById("viewport").clientWidth;
-      }
+      get: () => document.getElementById("viewport").clientWidth
     },
     height: {
       cache: false,
-      get: function() {
-        return document.getElementById("viewport").clientHeight;
-      }
-    },
-    maxFps: function() {
-      return this.$store.state.maxFps;
-    },
-    activeElements: function() {
-      return this.$store.state.activeElements;
+      get: () => document.getElementById("viewport").clientHeight
     },
     activeTool: function() {
       return this.$store.state.activeTool;
-    },
-    snapToGrid: function() {
-      return this.$store.state.snapToGrid;
     },
     mode: function() {
       return this.$store.state.mode;
     }
   },
   watch: {
-    maxFps(newMaxFps) {
-      MainLoop.setMaxAllowedFPS(newMaxFps);
-    },
-    activeElements(objects, oldObjects) {
-      // Show or hide helpers based on what's selected.
-      if (Object.keys(objects).length) {
-        if (
-          this.activeTool == "move" ||
-          this.activeTool == "scale" ||
-          this.activeTool == "rotate"
-        ) {
-          this.$store.state.scene.add(this.$store.state.transformControl);
-        } else {
-          this.$store.state.scene.remove(this.$store.state.transformControl);
-        }
-      } else {
-        this.$store.state.scene.remove(this.$store.state.transformControl);
-      }
-    },
     activeTool(tool, oldTool) {
-      if (
-        this.activeTool == "select" ||
-        this.activeTool == "connect" ||
-        this.activeTool == "disconnect"
-      ) {
+      if (["select", "connect", "disconnect"].indexOf(this.activeTool) > -1) {
         this.$store.state.scene.remove(this.$store.state.transformControl);
       } else {
-        this.$store.state.scene.add(this.$store.state.transformControl);
+        if (this.$store.getters.activeElementsUuids.length) {
+          this.$store.state.scene.add(this.$store.state.transformControl);
+        }
       }
 
       if (this.activeTool == "move") {
@@ -102,82 +65,32 @@ export default {
       } else if (this.activeTool == "rotate") {
         this.$store.state.transformControl.setMode("rotate");
       }
-    },
-    snapToGrid(snapToGrid) {
-      if (snapToGrid) {
-        this.$store.state.transformControl.setTranslationSnap(5);
-        this.$store.state.transformControl.setRotationSnap(
-          THREE.Math.degToRad(15)
-        );
-      } else {
-        this.$store.state.transformControl.setTranslationSnap(null);
-        this.$store.state.transformControl.setRotationSnap(null);
-      }
     }
   },
   methods: {
     init: function() {
-      let container = document.getElementById("viewport");
-
-      this.$store.state.scene.background = new THREE.Color(0x191919);
-
-      this.$store.state.camera.aspect = this.width / this.height;
-      this.$store.state.camera.position.set(100, 100, 100);
-      this.$store.state.camera.lookAt(0, 200, 0);
-      this.$store.state.camera.userData.type = "Camera";
-      this.$store.state.scene.add(this.$store.state.camera);
-
-      this.$store.state.renderer.setSize(this.width, this.height);
-      container.appendChild(this.$store.state.renderer.domElement);
-      container.appendChild(this.$store.state.buffer.renderer.domElement);
-
-      this.light1 = new THREE.DirectionalLight(0xffffff, 0.7);
-      this.light1.position.set(1.2, 1.5, 1.0);
-      this.$store.state.scene.add(this.light1);
-      this.light2 = new THREE.DirectionalLight(0xffffff, 0.3);
-      this.light2.position.set(-1.1, -0.4, -0.9);
-      this.$store.state.scene.add(this.light2);
-
-      this.$store.state.orbitControl = new THREE.OrbitControls(
-        this.$store.state.camera,
-        this.$store.state.renderer.domElement
-      );
-      this.$store.state.orbitControl.update();
-
-      this.$store.state.transformControl = new THREE.TransformControls(
-        this.$store.state.camera,
-        this.$store.state.renderer.domElement
-      );
-      this.$store.state.transformControl.addEventListener(
-        "dragging-changed",
-        this.onDraggingChanged
-      );
-      this.$store.state.transformControl.addEventListener(
-        "objectChange",
-        this.onObjectChanged
-      );
-      this.$store.state.transformControl.addEventListener(
-        "mouseDown",
-        this.onTransformStart
-      );
-      this.$store.state.scene.add(this.$store.state.transformControl);
-      this.$store.state.scene.add(this.$store.state.transformDummy);
-      this.$store.state.transformControl.attach(
-        this.$store.state.transformDummy
-      );
-
-      this.raycaster.linePrecision = 10;
-
+      this.$store.commit("initLights");
+      this.$store.commit("initCamera");
+      this.$store.commit("initControls");
       this.$store.dispatch("initSelection");
       this.$store.dispatch("initConnection");
-
+      this.$store.commit("initBuffer");
       this.$store.dispatch("applyLEDMaterial");
-
       this.$store.commit("addBox", {
         position: [0, -250, 0],
         scale: [100, 10, 100]
       });
       this.$store.dispatch("addLED");
+
+      this.$store.state.scene.background = new THREE.Color(0x191919);
+      this.raycaster.linePrecision = 10;
+      document
+        .getElementById("viewport")
+        .appendChild(this.$store.state.renderer.domElement);
+    },
+    update: function(delta) {
+      this.$store.state.leds.activeMaterial.uniforms.time.value += delta;
+      this.$store.state.buffer.material.uniforms.time.value += delta;
     },
     render: function() {
       this.$store.commit("setFps", MainLoop.getFPS());
@@ -228,52 +141,6 @@ export default {
         this.$store.state.output.activePort.write(output);
       }
     },
-    handleConnectClick: function(intersects) {
-      let leds = intersects.filter(
-        e =>
-          e.object.userData.type == "LED" || e.object.userData.type == "Origin"
-      );
-
-      if (leds.length) {
-        let led = leds[0].object;
-
-        if (
-          this.$store.state.connections.toConnect.length == 1 &&
-          led.userData.type == "Origin"
-        )
-          return;
-        this.$store.state.connections.toConnect.push(led);
-        this.$store.state.scene.add(this.$store.state.connections.connectArrow);
-        this.$store.dispatch("updateConnectArrow", {
-          led,
-          pointer: this.upPosition
-        });
-      } else {
-        this.$store.state.connections.toConnect = [];
-        this.$store.state.scene.remove(
-          this.$store.state.connections.connectArrow
-        );
-      }
-
-      if (this.$store.state.connections.toConnect.length > 1) {
-        let LED1 = this.$store.state.connections.toConnect[0];
-        let LED2 = this.$store.state.connections.toConnect[1];
-
-        this.$store.dispatch("connectFromTo", { from: LED1, to: LED2 });
-        this.$store.state.connections.toConnect = [];
-        this.$store.state.scene.remove(
-          this.$store.state.connections.connectArrow
-        );
-      }
-    },
-    handleDisconnectClick: function(intersects) {
-      let arrows = intersects.filter(
-        entry => entry.object.parent.userData.type == "Arrow"
-      );
-      if (arrows.length) {
-        this.$store.dispatch("removeConnection", arrows[0].object.parent);
-      }
-    },
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
       this.$store.state.camera.updateProjectionMatrix();
@@ -313,12 +180,15 @@ export default {
       );
 
       if (this.$store.state.activeTool == "connect") {
-        this.handleConnectClick(intersects);
+        this.$store.commit("handleConnectClick", {
+          intersects,
+          pointer: this.upPosition
+        });
         return;
       }
 
       if (this.$store.state.activeTool == "disconnect") {
-        this.handleDisconnectClick(intersects);
+        this.$store.commit("handleDisconnectClick", intersects);
         return;
       }
 
@@ -356,20 +226,6 @@ export default {
           this.$store.dispatch("updateConnectArrow", { led, pointer });
         }
       }
-      /*
-      this.raycaster.setFromCamera(
-        this.getPointer(event),
-        this.$store.state.camera
-      );
-      this.intersects = this.raycaster.intersectObject(this.$store.state.line);
-      if (this.intersects.length === 0) {
-        if (this.oldIndex !== -1) this.restoreColor();
-        this.oldIndex = -1;
-      } else {
-        let idx = this.intersects[0].index;
-        if (idx !== this.oldIndex) this.highlightSegment(idx);
-      }
-      */
     },
     onKeydown: function(event) {
       if (event.target.type == "text") return;
@@ -427,7 +283,7 @@ export default {
           if (this.$store.state.ctrlPressed) remote.getCurrentWindow().reload();
           break;
         case 46: // delete
-          this.$store.commit("deleteActiveElements");
+          this.$store.dispatch("deleteActiveElements");
           break;
         case 17: // ctrl
           this.$store.commit("setCtrlPressed", true);
@@ -523,27 +379,23 @@ export default {
         (-(pointer.clientY - rect.top) / rect.height) * 2 + 1
       );
     },
-    update: function(delta) {
-      this.$store.state.leds.activeMaterial.uniforms.time.value += delta;
-      this.$store.state.buffer.material.uniforms.time.value += delta;
+    attachEventHandlers: function() {
+      let control = this.$store.state.transformControl;
+      let resizeObserver = new ResizeObserver(this.onResize);
+
+      resizeObserver.observe(document.getElementById("viewport"));
+      window.addEventListener("keydown", this.onKeydown);
+      window.addEventListener("keyup", this.onKeyup);
+      control.addEventListener("dragging-changed", this.onDraggingChanged);
+      control.addEventListener("objectChange", this.onObjectChanged);
+      control.addEventListener("mouseDown", this.onTransformStart);
     }
   },
   mounted() {
-    var ro = new ResizeObserver(this.onResize);
-
-    ro.observe(document.getElementById("viewport"));
-    window.addEventListener("keydown", this.onKeydown);
-    window.addEventListener("keyup", this.onKeyup);
-
     this.init();
-    this.$store.commit("initBuffer");
+    this.attachEventHandlers();
     MainLoop.setUpdate(this.update);
     MainLoop.setDraw(this.render).start();
-  },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.onResize);
-    window.removeEventListener("keydown", this.onKeydown);
-    window.removeEventListener("keyup", this.onKeyUp);
   }
 };
 </script>

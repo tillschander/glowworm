@@ -12,7 +12,7 @@ export default {
   props: ["uuid", "type"],
   computed: {
     isActive() {
-      return this.$store.state.activeElements[this.uuid];
+      return this.$store.state.elements.activeElements[this.uuid];
     },
     threeObject() {
       return this.$store.state.scene.getObjectByProperty("uuid", this.uuid);
@@ -25,7 +25,7 @@ export default {
   },
   methods: {
     setActive: function() {
-      let activeUuids = Object.keys(this.$store.state.activeElements);
+      let activeUuids = this.$store.getters.activeElementsUuids;
 
       if (this.$store.state.ctrlPressed && activeUuids.length > 0) {
         let multiselectTypes = ["LED", "Object", "Group"];
@@ -41,7 +41,7 @@ export default {
           this.$store.commit("clearActiveElements");
         }
 
-        if (this.$store.state.activeElements[this.uuid]) {
+        if (this.$store.state.elements.activeElements[this.uuid]) {
           this.$store.commit("removeActiveElement", this.uuid);
         } else {
           this.$store.commit("addActiveElement", this.uuid);
