@@ -26,45 +26,6 @@ export default {
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
 
-      // Set unique uniforms for each LED
-      mesh.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
-        var updateList = [];
-
-        if (material.userData.activeAnimations) {
-          material.userData.activeAnimations.forEach(animation => {
-            animation.effects.forEach(effect => {
-              let masked = effect.maskObject && effect.maskObject.userData.LEDs.includes(this.uuid);
-
-              if (rootState.mode == 'live') {
-                if (animation.uuid == rootState.leftAnimation) {
-                  state.activeMaterial.uniforms['maskedleft' + effect.uuid].value = masked;
-                  updateList.push('maskedleft' + effect.uuid);
-                }
-                if (animation.uuid == rootState.rightAnimation) {
-                  state.activeMaterial.uniforms['maskedright' + effect.uuid].value = masked;
-                  updateList.push('maskedright' + effect.uuid);
-                }
-              } else {
-                state.activeMaterial.uniforms['masked' + effect.uuid].value = masked;
-                updateList.push('masked' + effect.uuid);
-              }
-            });
-          });
-        }
-
-        if (updateList.length) {
-          var materialProperties = renderer.properties.get(material);
-          if (materialProperties.program) {
-            var gl = renderer.getContext();
-            var uniforms = materialProperties.program.getUniforms();
-            gl.useProgram(materialProperties.program.program);
-            updateList.forEach(function (name) {
-              uniforms.setValue(gl, name, state.activeMaterial.uniforms[name].value);
-            });
-          }
-        }
-      }
-
       rootState.scene.add(mesh);
 
       this.dispatch("connectMaybe", mesh);
@@ -151,18 +112,14 @@ export default {
       rootState.buffer.material = ledMaterialUtil.getBufferMaterial(bufferUniforms, shaderParameters, shader);
 
 
-
       for (let i = 0; i < this.getters.LEDs.length; i++) {
         ledMaterialUtil.applyAttributes(rootState, this.getters.LEDs[i], i);
         this.getters.LEDs[i].material = material;
         this.getters.LEDs[i].needsUpdate = true;
       }
 
-      if (rootState.buffer.object) {
-        rootState.buffer.object.material = rootState.buffer.material;
-        rootState.buffer.object.needsUpdate = true;
-        rootState.buffer.geometry.attributes.LEDPosition.needsUpdate = true;
-      }
+      rootState.buffer.object.material = rootState.buffer.material;
+      rootState.buffer.object.needsUpdate = true;
 
       this.dispatch('setActiveMaterial', material);
     },

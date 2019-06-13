@@ -80,6 +80,7 @@ export default {
 
         this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).mask = value;
         this.$parent.animation.effects.find(effect => effect.uuid === this.uuid).maskObject = threeObject;
+        this.$store.dispatch("applyLEDMaterial");
       }
     }
   },

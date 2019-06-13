@@ -105,9 +105,50 @@ export default {
         }
         object.geometry.addAttribute('LEDPosition', new THREE.BufferAttribute(LEDPosition, 3));
         object.geometry.addAttribute('LEDIndex', new THREE.BufferAttribute(LEDIndex, 1));
-        state.buffer.geometry.attributes.LEDPosition.array[index * 3] = worldPosition.x;
-        state.buffer.geometry.attributes.LEDPosition.array[index * 3 + 1] = worldPosition.y;
-        state.buffer.geometry.attributes.LEDPosition.array[index * 3 + 2] = worldPosition.z;
+
+        if (index * 3 < state.buffer.width * state.buffer.height) { // index cant be larger than buffer size
+            state.buffer.geometry.attributes.LEDPosition.set([
+                worldPosition.x, worldPosition.y, worldPosition.z
+            ], index * 3);
+            state.buffer.geometry.attributes.LEDPosition.needsUpdate = true;
+        }
+
+        if (object.material.userData.activeAnimations) {
+            object.material.userData.activeAnimations.forEach(animation => {
+                animation.effects.forEach(effect => {
+                    let masked = (effect.maskObject && effect.maskObject.userData.LEDs.includes(object.uuid)) ? 1 : 0;
+
+                    if (state.mode == 'live') {
+                        if (animation.uuid == state.leftAnimation) {
+                            this.setMaskedAttribute(index, object, state, 'left', effect, masked);
+                        }
+                        if (animation.uuid == state.rightAnimation) {
+                            this.setMaskedAttribute(index, object, state, 'right', effect, masked);
+                        }
+                    } else {
+                        this.setMaskedAttribute(index, object, state, '', effect, masked);
+                    }
+                });
+            });
+        }
+    },
+    setMaskedAttribute: function(index, object, state, side, effect, value) {
+        let key = 'masked' + side + effect.uuid;
+        let length = object.geometry.attributes.position.array.length / 3;
+        let objectArray = Float32Array.from({ length }, () => value);
+
+        object.geometry.addAttribute(key, new THREE.BufferAttribute(objectArray, 1));
+        if (index < state.buffer.width * state.buffer.height) { // index cant be larger than buffer size
+            if (state.buffer.geometry.attributes[key]) {
+                state.buffer.geometry.attributes[key].set([value], index);
+                state.buffer.geometry.attributes[key].needsUpdate = true;
+            } else {
+                let bufferArray = Float32Array.from({ length: state.buffer.width * state.buffer.height }, () => 0);
+
+                bufferArray[index] = value;
+                state.buffer.geometry.addAttribute(key, new THREE.BufferAttribute(bufferArray, 1));
+            }
+        }
     },
     makeEffectUnique: function (originalEffect, suffix, side) {
         let effect = JSON.parse(JSON.stringify(originalEffect));

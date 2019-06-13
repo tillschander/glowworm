@@ -126,9 +126,9 @@ export default {
       while (nextLED) {
         let index = this.$store.getters.LEDs.indexOf(nextLED);
 
-        output.push(Math.floor(this.buffer.data[index*4 + 0] * 255)); // BLUE
-        output.push(Math.floor(this.buffer.data[index*4 + 2] * 255)); // GREEN
-        output.push(Math.floor(this.buffer.data[index*4 + 1] * 255)); // RED
+        output.push(Math.round(this.buffer.data[index*4 + 0] * 254));
+        output.push(Math.round(this.buffer.data[index*4 + 2] * 254));
+        output.push(Math.round(this.buffer.data[index*4 + 1] * 254));
         outputLength += 3;
         nextLED = nextLED.userData.nextLED;
       }

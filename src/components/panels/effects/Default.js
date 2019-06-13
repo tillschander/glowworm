@@ -9,8 +9,8 @@ class Default {
             opacity: new THREE.Uniform(1.0),
             masked: new THREE.Uniform(false),
         }, properties);
-        this.shaderParameters = shaderParameters + "uniform int blendMode; uniform float opacity; uniform bool masked;";
-        this.shader = shader + "if (!masked) { vColor.rgb = blendByMode(blendMode, opacity, vColor.rgb, effectColor); }";
+        this.shaderParameters = shaderParameters + "uniform int blendMode; uniform float opacity; attribute float masked;";
+        this.shader = shader + "if (masked < 0.5) { vColor.rgb = blendByMode(blendMode, opacity, vColor.rgb, effectColor); }";
     }
 }
 
