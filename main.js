@@ -21,7 +21,12 @@ function createWindow() {
         win.webContents.openDevTools();
     }
 
+    win.setMenuBarVisibility(false);
     win.loadURL(url);
+
+    win.webContents.on('before-input-event', (event, input) => {
+        if (input.code == 'F12') win.webContents.openDevTools();
+    });
 
     win.on('closed', () => {
         // Dereference the window object, usually you would store windows

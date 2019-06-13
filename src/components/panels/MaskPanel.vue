@@ -13,6 +13,7 @@
       {{ getName(LED) }}
     </label>
     <br>
+    <button @click="invert()">Invert selection</button>
   </div>
 </template>
 
@@ -23,8 +24,8 @@ export default {
   name: "MaskPanel",
   data() {
     return {
-      highlightMaterial: null,
-    }
+      highlightMaterial: null
+    };
   },
   computed: {
     uuid: function() {
@@ -50,9 +51,9 @@ export default {
       return LED.name ? LED.name : LED.userData.type;
     },
     highlight(LED, eventType) {
-      if (eventType == 'enter') {
+      if (eventType == "enter") {
         this.$store.dispatch("addToSelectionGroup", LED.uuid);
-      } else if (eventType == 'leave') {
+      } else if (eventType == "leave") {
         this.$store.dispatch("emptySelectionGroup");
       } else {
         if (this.maskLEDs.indexOf(LED.uuid) > -1) {
@@ -61,22 +62,43 @@ export default {
           LED.material = this.highlightMaterial;
         }
       }
+    },
+    invert() {
+      this.$store.getters.LEDs.map(LED => {
+        let index = this.maskLEDs.indexOf(LED.uuid);
+
+        if (index === -1) {
+          this.maskLEDs.push(LED.uuid);
+        } else {
+          this.maskLEDs.splice(index, 1);
+        }
+        this.highlight(LED, "change");
+      });
     }
   },
   mounted: function() {
     let shader = "vColor = vec4(0.0, 0.5, 0.5, 1.0);";
     let uniforms = {
-      ledTexture: new THREE.Uniform(new THREE.TextureLoader().load(location.origin + '/led.png')),
-      shineTexture: new THREE.Uniform(new THREE.TextureLoader().load(location.origin + '/shine.png')),
+      ledTexture: new THREE.Uniform(
+        new THREE.TextureLoader().load(location.origin + "/led.png")
+      ),
+      shineTexture: new THREE.Uniform(
+        new THREE.TextureLoader().load(location.origin + "/shine.png")
+      )
     };
 
-    this.highlightMaterial = ledMaterialUtil.getLEDMaterial(uniforms, {}, "", shader);
+    this.highlightMaterial = ledMaterialUtil.getLEDMaterial(
+      uniforms,
+      {},
+      "",
+      shader
+    );
     this.$store.getters.LEDs.forEach(LED => {
-      this.highlight(LED, 'update');
+      this.highlight(LED, "update");
     });
   },
   beforeDestroy: function() {
-    this.$store.dispatch('applyLEDMaterial');
+    this.$store.dispatch("applyLEDMaterial");
   }
 };
 </script>

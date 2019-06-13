@@ -73,6 +73,7 @@ export default {
           case 'selection':
           case 'output':
           case 'buffer':
+          case 'copypaste':
             continue;
           case 'camera':
             saveState[key] = {
@@ -140,6 +141,9 @@ export default {
               position: rootState.connections.origin.position,
               nextLED: rootState.connections.origin.userData.nextLED.uuid
             };
+            break;
+          case 'elements':
+            saveState['activeElements'] = rootState.elements.activeElements;
             break;
           default:
             saveState[key] = rootState[key];
@@ -293,7 +297,7 @@ export default {
 
       // Handle active elements
       this.commit('clearActiveElements');
-      rootGetters.activeElementsUuids.forEach(uuid => {
+      Object.keys(data.activeElements).forEach(uuid => {
         this.commit("addActiveElement", uuid);
       });
 
