@@ -258,12 +258,20 @@ export default {
           this.$store.dispatch("addMask");
           break;
         case 67: // c
-          this.$store.commit("setActiveTool", "connect");
-          this.$store.commit("clearActiveElements");
+          if (this.$store.state.ctrlPressed) {
+            this.$store.dispatch("copy");
+          } else {
+            this.$store.commit("setActiveTool", "connect");
+            this.$store.commit("clearActiveElements");
+          }
           break;
         case 86: // v
-          this.$store.commit("setActiveTool", "disconnect");
-          this.$store.commit("clearActiveElements");
+          if (this.$store.state.ctrlPressed) {
+            this.$store.dispatch("paste");
+          } else {
+            this.$store.commit("setActiveTool", "disconnect");
+            this.$store.commit("clearActiveElements");
+          }
           break;
         case 76: // l
           if (this.$store.state.ctrlPressed) this.$store.dispatch("load");

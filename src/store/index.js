@@ -11,6 +11,7 @@ import animations from './modules/animations.js';
 import output from './modules/output.js';
 import buffer from './modules/buffer.js';
 import elements from './modules/elements.js';
+import copypaste from './modules/copypaste.js';
 import transformUtil from "../utils/transform.js";
 
 Vue.use(Vuex);
@@ -44,7 +45,8 @@ export default new Vuex.Store({
     leds,
     output,
     buffer,
-    elements
+    elements,
+    copypaste
   },
   getters: {
     activeObject: state => {

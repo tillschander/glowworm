@@ -7,6 +7,17 @@
         <div></div>
       </div>
       <div class="flyout">
+        <button
+          v-on:click="$store.dispatch('copy')"
+          title="Copy (Ctrl+C)"
+          v-bind:disabled="!$store.getters.canCopy"
+        >Copy</button>
+        <button
+          v-on:click="$store.dispatch('paste')"
+          title="Paste (Ctrl+V)"
+          v-bind:disabled="!$store.getters.canPaste"
+        >Paste</button>
+        <div class="divider"></div>
         <button v-on:click="reload()" title="New (Ctrl+N)">New</button>
         <button v-on:click="$store.dispatch('save')" title="Save (Ctrl+S)">Save</button>
         <button v-on:click="$store.dispatch('load')" title="Load (Ctrl+L)">Load</button>
@@ -96,6 +107,22 @@ export default {
     height: 3px;
     background-color: #ccc;
     margin: 4px 0;
+  }
+
+  .divider {
+    background: #cccccc;
+    height: 7px;
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      right: 7px;
+      top: 3px;
+      bottom: 3px;
+      background: #333;
+    }
   }
 }
 </style>

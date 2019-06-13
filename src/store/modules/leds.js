@@ -25,7 +25,15 @@ export default {
       if (options.uuid) mesh.uuid = options.uuid;
       mesh.position.set(options.position[0], options.position[1], options.position[2]);
       mesh.userData.type = 'LED';
-
+      mesh.clone = function() {
+        let clone = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), state.activeMaterial);
+        clone.name = mesh.name;
+        clone.position.copy(mesh.position);
+        clone.rotation.copy(mesh.rotation);
+        clone.scale.copy(mesh.scale);
+        clone.userData.type = 'LED';
+        return clone;
+      }
       rootState.scene.add(mesh);
 
       this.dispatch("connectMaybe", mesh);
