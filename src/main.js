@@ -2,7 +2,6 @@ import Vue from 'vue';
 import App from './App.vue';
 import store from './store/index.js';
 import Dialog from './plugins/Dialog.js';
-import './assets/css/dialog.css';
 
 Vue.use(Dialog);
 

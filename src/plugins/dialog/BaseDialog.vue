@@ -68,4 +68,33 @@ export default {
 </script>
 
 <style lang="scss">
+.dialog-backdrop {
+    box-shadow: inset 0 0 200px 20px rgba(0, 0, 0, 0.75);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5000;
+}
+
+.dialog-container {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dialog-content {
+    max-width: 400px;
+    padding: 15px;
+    background-color: #424242;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3), 0 3px 10px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+}
 </style>
