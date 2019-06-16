@@ -11,76 +11,76 @@
 export default {
   name: "ScalePanel",
   computed: {
+    activeObject: function() {
+      return this.$store.getters.activeObject;
+    },
     type: function() {
-      return this.$store.getters.activeObject.userData.objectType || this.$store.getters.activeObject.userData.groupType;
+      return (
+        this.activeObject.userData.objectType ||
+        this.activeObject.userData.groupType
+      );
     },
     x: {
       get() {
-        return this.$store.getters.activeObject.scale.x;
+        return this.activeObject.scale.x;
       },
       set(value) {
-        if (this.$store.state.selection.selectionGroup.length > 1) {
-          this.$store.state.selection.selectionGroup.forEach(child => {
-            let offset = this.$store.state.transformDummy.scale.x - value;
+        this.activeObject.scale.x = value;
+        this.activeObject.userData.clone.scale.x = value;
+        this.$store.state.transformDummy.scale.x = value;
 
-            if (child.userData.type !== 'LED') {
-              child.scale.x -= offset;
-              child.userData.clone.scale.x -= offset;
-            }
+        if (this.activeObject.userData.groupType == "LED") {
+          this.activeObject.userData.clone.children.forEach(child => {
+            child.scale.setX(1 / this.activeObject.scale.x);
           });
-          this.$store.state.transformDummy.scale.x = value;
-        } else {
-          this.$store.getters.activeObject.scale.x = value;
-          this.$store.getters.activeObject.userData.clone.scale.x = value;
-          this.$store.state.transformDummy.scale.x = value;
         }
-        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
+
+        this.$store.dispatch(
+          "updateLEDConnections",
+          this.$store.state.selection.selectionGroup
+        );
       }
     },
     y: {
       get() {
-        return this.$store.getters.activeObject.scale.y;
+        return this.activeObject.scale.y;
       },
       set(value) {
-        if (this.$store.state.selection.selectionGroup.length > 1) {
-          this.$store.state.selection.selectionGroup.forEach(child => {
-            let offset = this.$store.state.transformDummy.scale.y - value;
+        this.activeObject.scale.y = value;
+        this.activeObject.userData.clone.scale.y = value;
+        this.$store.state.transformDummy.scale.y = value;
 
-            if (child.userData.type !== 'LED') {
-              child.scale.y -= offset;
-              child.userData.clone.scale.y -= offset;
-            }
+        if (this.activeObject.userData.groupType == "LED") {
+          this.activeObject.userData.clone.children.forEach(child => {
+            child.scale.setY(1 / this.activeObject.scale.y);
           });
-          this.$store.state.transformDummy.scale.y = value;
-        } else {
-          this.$store.getters.activeObject.scale.y = value;
-          this.$store.getters.activeObject.userData.clone.scale.y = value;
-          this.$store.state.transformDummy.scale.y = value;
         }
-        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
+
+        this.$store.dispatch(
+          "updateLEDConnections",
+          this.$store.state.selection.selectionGroup
+        );
       }
     },
     z: {
       get() {
-        return this.$store.getters.activeObject.scale.z;
+        return this.activeObject.scale.z;
       },
       set(value) {
-        if (this.$store.state.selection.selectionGroup.length > 1) {
-          this.$store.state.selection.selectionGroup.forEach(child => {
-            let offset = this.$store.state.transformDummy.scale.z - value;
+        this.activeObject.scale.z = value;
+        this.activeObject.userData.clone.scale.z = value;
+        this.$store.state.transformDummy.scale.z = value;
 
-            if (child.userData.type !== 'LED') {
-              child.scale.z -= offset;
-              child.userData.clone.scale.z -= offset;
-            }
+        if (this.activeObject.userData.groupType == "LED") {
+          this.activeObject.userData.clone.children.forEach(child => {
+            child.scale.setZ(1 / this.activeObject.scale.z);
           });
-          this.$store.state.transformDummy.scale.z = value;
-        } else {
-          this.$store.getters.activeObject.scale.z = value;
-          this.$store.getters.activeObject.userData.clone.scale.z = value;
-          this.$store.state.transformDummy.scale.z = value;
         }
-        this.$store.dispatch("updateLEDConnections", this.$store.state.selection.selectionGroup);
+
+        this.$store.dispatch(
+          "updateLEDConnections",
+          this.$store.state.selection.selectionGroup
+        );
       }
     }
   }

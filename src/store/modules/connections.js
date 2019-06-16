@@ -60,6 +60,7 @@ export default {
         if (object.userData.type == 'LED' || object.userData.type == 'Origin') {
           this.dispatch("updateSingleLEDConnections", object);
         } else if (object.userData.type == 'Group' && object.userData.groupType == 'LED') {
+          object.updateMatrixWorld();
           object.children.forEach(led => this.dispatch("updateSingleLEDConnections", led));
         }
       });

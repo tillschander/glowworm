@@ -336,20 +336,11 @@ export default {
             child.userData.clone.scale.add(this.scaleDelta);
           }
           if (child.userData.groupType == "LED") {
-            for (let i = 0; i < child.children.length; i++) {
-              if (child.userData.clone.scale.x !== 1)
-                child.userData.clone.children[i].scale.setX(
-                  1 / child.userData.clone.scale.x
-                );
-              if (child.userData.clone.scale.y !== 1)
-                child.userData.clone.children[i].scale.setY(
-                  1 / child.userData.clone.scale.y
-                );
-              if (child.userData.clone.scale.z !== 1)
-                child.userData.clone.children[i].scale.setZ(
-                  1 / child.userData.clone.scale.z
-                );
-            }
+            child.userData.clone.children.forEach(clone => {
+              clone.scale.setX(1 / child.scale.x);
+              clone.scale.setY(1 / child.scale.y);
+              clone.scale.setZ(1 / child.scale.z);
+            });
           }
         });
         this.lastScale.copy(this.transformDummy.scale);
