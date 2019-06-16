@@ -6,7 +6,7 @@ class Wave extends Default {
             variables: ["relativeWidth", "sinewave"],
             properties: {
                 color: new THREE.Uniform(new THREE.Vector3(Math.random(), Math.random(), Math.random())),
-                frequency: new THREE.Uniform(5.0),
+                frequency: new THREE.Uniform(2.0),
                 waveLength: new THREE.Uniform(0.5),
                 length: new THREE.Uniform(50.0)
             },

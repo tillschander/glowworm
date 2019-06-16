@@ -14,6 +14,7 @@ export default {
           lock: false
         });
       } else {
+        if (state.activePort && state.activePort.isOpen) state.activePort.close();
         state.activePort = null;
       }
     },
@@ -24,6 +25,7 @@ export default {
           return;
         }
 
+        state.errorMessage = "";
         state.ports = ports;
         if (options.autoSetActivePort) this.commit("autoSetActivePort");
       });

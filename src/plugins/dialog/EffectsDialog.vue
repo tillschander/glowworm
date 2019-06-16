@@ -26,12 +26,13 @@ import SimpleColor from "../../components/panels/effects/SimpleColor.js";
 import Pulse from "../../components/panels/effects/Pulse.js";
 import RandomPulses from "../../components/panels/effects/RandomPulses.js";
 import Wave from "../../components/panels/effects/Wave.js";
+import RampUp from "../../components/panels/effects/RampUp.js";
 
 export default {
   name: "EffectsDialog",
   data() {
     return {
-      effects: [new SimpleColor(), new Pulse(), new RandomPulses(), new Wave()],
+      effects: [new SimpleColor(), new Pulse(), new RandomPulses(), new Wave(), new RampUp()],
       chosenEffect: undefined
     };
   }

@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "install": "electron-rebuild",
-    "postinstall": "electron-rebuild -f -w serialport",
+    "postinstall": "electron-rebuild -f -w serialport avrgirl-arduino",
     "build": "vue-cli-service build && electron main.js",
     "dev": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron main.js"
   },
   "dependencies": {
+    "avrgirl-arduino": "^3.0.2",
     "electron": "^4.0.1",
     "mainloop.js": "^1.0.4",
     "serialport": "^7.1.1",
