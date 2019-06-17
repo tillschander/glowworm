@@ -1,5 +1,5 @@
 <template>
-  <div @mousedown="onMouseDown" @mouseup="onMouseUp" @mousemove="onMouseMove" id="viewport">
+  <div id="viewport">
     <Toolsbar class="toolsbar" v-if="this.mode == 'design'"/>
     <ViewportTools class="viewport-tools" v-if="this.mode == 'design'"/>
     <div class="save-indicator" ref="saveIndicator">Saved</div>
@@ -157,6 +157,14 @@ export default {
     onMouseUp: function(event) {
       this.upPosition = this.getPointer(event);
 
+      if (event.target.type == "text" || event.target.type == "number") {
+        this.$store.state.orbitControl.enableKeys = false;
+      } else {
+        if (document.activeElement.type == "text" || document.activeElement.type == "number") {
+          document.activeElement.blur();
+        }
+        this.$store.state.orbitControl.enableKeys = true;
+      }
       if (this.$store.state.mode !== "design") return;
       if (this.downPosition.distanceTo(this.upPosition) !== 0) return;
       if (event.target !== this.renderer.domElement) return;
@@ -368,6 +376,9 @@ export default {
       new ResizeObserver(this.onResize).observe(document.getElementById("viewport"));
       window.addEventListener("keydown", this.onKeydown);
       window.addEventListener("keyup", this.onKeyup);
+      window.addEventListener("mousedown", this.onMouseDown);
+      window.addEventListener("mouseup", this.onMouseUp);
+      window.addEventListener("mousemove", this.onMouseMove);
       this.transformControl.addEventListener("dragging-changed", this.onDraggingChanged);
       this.transformControl.addEventListener("objectChange", this.onObjectChanged);
       this.transformControl.addEventListener("mouseDown", this.onTransformStart);

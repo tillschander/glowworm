@@ -1413,7 +1413,7 @@ THREE.TransformControlsGizmo = function () {
 			handle.visible = handle.visible && ( handle.name.indexOf( "X" ) === - 1 || this.showX );
 			handle.visible = handle.visible && ( handle.name.indexOf( "Y" ) === - 1 || this.showY );
 			handle.visible = handle.visible && ( handle.name.indexOf( "Z" ) === - 1 || this.showZ );
-			handle.visible = handle.visible && ( handle.name.indexOf( "E" ) === - 1 || ( this.showX && this.showY && this.showZ ) );
+			handle.visible = handle.visible && ( handle.name.indexOf( "E" ) === - 1 || false );
 
 			// highlight selected axis
 

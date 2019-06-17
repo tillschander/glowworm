@@ -1,18 +1,18 @@
 <template>
   <div>
     LEDs:
-    <br>
-    <label
-      v-for="LED in $store.getters.LEDs"
-      v-bind:key="LED.uuid"
-      @change="highlight(LED, 'change')"
-      @mouseenter="highlight(LED, 'enter')"
-      @mouseleave="highlight(LED, 'leave')"
-    >
-      <input type="checkbox" v-bind:value="LED.uuid" v-model="maskLEDs">
-      {{ getName(LED) }}
-    </label>
-    <br>
+    <div class="led-list">
+      <label
+        v-for="LED in $store.getters.LEDs"
+        v-bind:key="LED.uuid"
+        @change="highlight(LED, 'change')"
+        @mouseenter="highlight(LED, 'enter')"
+        @mouseleave="highlight(LED, 'leave')"
+      >
+        <input type="checkbox" v-bind:value="LED.uuid" v-model="maskLEDs">
+        {{ getName(LED) }}
+      </label>
+    </div>
     <button @click="invert()">Invert selection</button>
   </div>
 </template>
@@ -106,5 +106,11 @@ export default {
 <style scoped lang="scss">
 label {
   display: block;
+}
+
+.led-list {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  margin: 5px 0 15px;
 }
 </style>
