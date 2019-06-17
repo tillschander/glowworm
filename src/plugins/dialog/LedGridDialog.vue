@@ -42,8 +42,8 @@ export default {
     return {
       countX: 5,
       countY: 5,
-      spacingX: 8,
-      spacingY: 8,
+      spacingX: 12,
+      spacingY: 12,
       order: "ZigZag"
     };
   },

@@ -25,8 +25,8 @@ export default {
   props: ["$store"],
   data() {
     return {
-      count: 16,
-      radius: 20
+      count: 8,
+      radius: 16
     };
   },
   methods: {

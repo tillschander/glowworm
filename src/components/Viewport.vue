@@ -159,10 +159,8 @@ export default {
 
       if (event.target.type == "text" || event.target.type == "number") {
         this.$store.state.orbitControl.enableKeys = false;
-      } else {
-        if (document.activeElement.type == "text" || document.activeElement.type == "number") {
-          document.activeElement.blur();
-        }
+      } else if (event.target == this.$store.state.renderer.domElement) {
+        document.activeElement.blur();
         this.$store.state.orbitControl.enableKeys = true;
       }
       if (this.$store.state.mode !== "design") return;
