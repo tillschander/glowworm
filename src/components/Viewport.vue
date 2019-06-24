@@ -12,6 +12,7 @@ import MainLoop from "mainloop.js";
 import Toolsbar from "./Toolsbar";
 import ViewportTools from "./ViewportTools";
 import transformUtil from "../utils/transform.js";
+import outputUtil from "../utils/output.js";
 import { mapState } from "vuex";
 
 export default {
@@ -117,27 +118,6 @@ export default {
         this.buffer.height,
         this.buffer.data
       );
-    },
-    output: function() {
-      let output = [255]; // First byte of each message has to be 255
-      let nextLED = this.$store.state.connections.origin.userData.nextLED;
-      let outputLength = 0;
-
-      while (nextLED) {
-        let index = this.$store.getters.LEDs.indexOf(nextLED);
-
-        output.push(Math.round(this.buffer.data[index*4 + 1] * 254));
-        output.push(Math.round(this.buffer.data[index*4 + 0] * 254));
-        output.push(Math.round(this.buffer.data[index*4 + 2] * 254));
-        outputLength += 3;
-        nextLED = nextLED.userData.nextLED;
-      }
-      output.length = this.buffer.width * this.buffer.height * 3; // set output size to buffer size...
-      output.fill(0, outputLength); // ...and fill remaining space with zeros to clear previous colors
-
-      if (this.$store.state.output.activePort) {
-        this.$store.state.output.activePort.write(output);
-      }
     },
     onResize: function() {
       this.$store.state.camera.aspect = this.width / this.height;
@@ -371,15 +351,26 @@ export default {
       );
     },
     attachEventHandlers: function() {
-      new ResizeObserver(this.onResize).observe(document.getElementById("viewport"));
+      new ResizeObserver(this.onResize).observe(
+        document.getElementById("viewport")
+      );
       window.addEventListener("keydown", this.onKeydown);
       window.addEventListener("keyup", this.onKeyup);
       window.addEventListener("mousedown", this.onMouseDown);
       window.addEventListener("mouseup", this.onMouseUp);
       window.addEventListener("mousemove", this.onMouseMove);
-      this.transformControl.addEventListener("dragging-changed", this.onDraggingChanged);
-      this.transformControl.addEventListener("objectChange", this.onObjectChanged);
-      this.transformControl.addEventListener("mouseDown", this.onTransformStart);
+      this.transformControl.addEventListener(
+        "dragging-changed",
+        this.onDraggingChanged
+      );
+      this.transformControl.addEventListener(
+        "objectChange",
+        this.onObjectChanged
+      );
+      this.transformControl.addEventListener(
+        "mouseDown",
+        this.onTransformStart
+      );
     }
   },
   mounted() {
@@ -388,7 +379,7 @@ export default {
     MainLoop.setUpdate(this.update);
     MainLoop.setDraw(() => {
       this.render();
-      this.output();
+      outputUtil.output(this.$store);
     }).start();
   }
 };
