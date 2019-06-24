@@ -1,16 +1,19 @@
 {
   "name": "app",
   "version": "0.1.0",
+  "author": "Till Schander",
+  "description": "",
+  "main": "public/electron.js",
   "private": true,
   "scripts": {
     "install": "electron-rebuild",
     "postinstall": "electron-rebuild -f -w serialport avrgirl-arduino",
-    "build": "vue-cli-service build && electron main.js",
-    "dev": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron main.js"
+    "dev": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron .",
+    "build": "vue-cli-service build",
+    "dist": "npm run build && build -c.extraMetadata.main=build/electron.js"
   },
   "dependencies": {
     "avrgirl-arduino": "^3.0.2",
-    "electron": "^4.0.1",
     "mainloop.js": "^1.0.4",
     "serialport": "^7.1.1",
     "split.js": "^1.5.10",
@@ -19,6 +22,8 @@
   },
   "devDependencies": {
     "@vue/cli-service": "^3.2.0",
+    "electron": "^4.0.1",
+    "electron-builder": "^20.44.4",
     "electron-rebuild": "^1.8.2",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
@@ -27,6 +32,16 @@
   "postcss": {
     "plugins": {
       "autoprefixer": {}
+    }
+  },
+  "build": {
+    "appId": "com.tillschander.app",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "linux": {
+      "target": "AppImage"
     }
   }
 }

@@ -41,8 +41,9 @@ export default {
       this.commit("addActiveElement", mesh.uuid);
     },
     applyLEDMaterial: function ({ state, rootState, rootGetters }) {
-      let ledTexture = new THREE.TextureLoader().load(location.origin + '/img/led.png');
-      let shineTexture = new THREE.TextureLoader().load(location.origin + '/img/shine.png');
+      let imgPath = (process.env.NODE_ENV === 'DEV') ? `${location.href}img/` : `file://${__dirname}/img/`;
+      let ledTexture = new THREE.TextureLoader().load(imgPath + 'led.png');
+      let shineTexture = new THREE.TextureLoader().load(imgPath + 'shine.png');
       let shaderParameters = "";
       let shader = "";
       let activeAnimation = null;

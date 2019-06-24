@@ -77,14 +77,11 @@ export default {
     }
   },
   mounted: function() {
+    let imgPath = (process.env.NODE_ENV === 'DEV') ? `${location.href}img/` : `file://${__dirname}/img/`;
     let shader = "vColor = vec4(0.0, 0.5, 0.5, 1.0);";
     let uniforms = {
-      ledTexture: new THREE.Uniform(
-        new THREE.TextureLoader().load(location.origin + "/img/led.png")
-      ),
-      shineTexture: new THREE.Uniform(
-        new THREE.TextureLoader().load(location.origin + "/img/shine.png")
-      )
+      ledTexture: new THREE.Uniform(new THREE.TextureLoader().load(imgPath + 'led.png')),
+      shineTexture: new THREE.Uniform(new THREE.TextureLoader().load(imgPath + 'shine.png'))
     };
 
     this.highlightMaterial = ledMaterialUtil.getLEDMaterial(
