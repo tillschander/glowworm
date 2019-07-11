@@ -1,9 +1,14 @@
-.DS_Store
+# Project specific
 node_modules
-dist
 build
 
-# local env files
+# allow executables of the app
+dist/*
+!dist/*.exe
+!dist/*.AppImage
+!dist/*.dmg
+
+# Local env files
 .env.local
 .env.*.local
 
@@ -20,3 +25,6 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+
+# OS files
+.DS_Store

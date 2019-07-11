@@ -8,7 +8,9 @@
   "scripts": {
     "install": "electron-rebuild",
     "postinstall": "electron-rebuild -f -w serialport avrgirl-arduino",
-    "dev": "NODE_ENV=DEV vue-cli-service serve & sleep 5 && NODE_ENV=DEV electron .",
+    "start:vue": "cross-env NODE_ENV=DEV vue-cli-service serve",
+    "start:electron": "cross-env NODE_ENV=DEV electron .",
+    "dev": "npm run start:vue & sleep 5 && npm run start:electron",
     "build": "vue-cli-service build",
     "dist": "npm run build && build -c.extraMetadata.main=build/electron.js"
   },
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@vue/cli-service": "^3.2.0",
+    "cross-env": "^5.2.0",
     "electron": "^4.0.1",
     "electron-builder": "^20.44.4",
     "electron-rebuild": "^1.8.2",
@@ -42,6 +45,12 @@
     ],
     "linux": {
       "target": "AppImage"
+    },
+    "win": {
+      "target": "portable"
+    },
+    "mac": {
+      "target": "dmg"
     }
   }
 }
