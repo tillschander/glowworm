@@ -29,6 +29,7 @@ import Wave from "../../components/panels/effects/Wave.js";
 import RampUp from "../../components/panels/effects/RampUp.js";
 import Alternating from "../../components/panels/effects/Alternating.js";
 import ColorFade from "../../components/panels/effects/ColorFade.js";
+import CustomCode from "../../components/panels/effects/CustomCode.js";
 
 export default {
   name: "EffectsDialog",
@@ -41,7 +42,8 @@ export default {
         new Wave(),
         new RampUp(),
         new Alternating(),
-        new ColorFade()
+        new ColorFade(),
+        new CustomCode()
       ],
       chosenEffect: undefined
     };
