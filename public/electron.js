@@ -14,7 +14,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false
-        }
+        },
+        icon: path.join(__dirname, '/icon.png')
     });
 
     if (process.env.NODE_ENV === 'DEV') {

@@ -1,19 +1,31 @@
-# Pixel Mapper
+# Glowworm
+Glowworm is a 3D LED mapping software.
 
 ## Project setup
+
+### Install required dependencies
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compile and hot-reload for development
+On Linux:
 ```
 npm run dev
 ```
 
-### Compiles and minifies for production
+On Windows:
+```
+npm run start:vue
+npm run start:electron
+```
+
+### Compile and minify for production
 ```
 npm run build
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Build the app into an executable
+```
+npm run dist
+```
