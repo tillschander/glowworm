@@ -1,6 +1,6 @@
 {
   "name": "glowworm",
-  "version": "0.1.1",
+  "version": "1.0.1",
   "author": "Till Schander",
   "description": "Glowworm is a 3D LED mapping software.",
   "main": "public/electron.js",

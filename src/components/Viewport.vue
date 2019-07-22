@@ -203,7 +203,7 @@ export default {
       }
     },
     onKeydown: function(event) {
-      if (event.target.type == "text") return;
+      if (event.target.type == "text" || event.target.type == "textarea" ) return;
       if (this.$store.state.mode !== "design") return;
 
       switch (event.keyCode) {

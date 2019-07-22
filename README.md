@@ -1,7 +1,14 @@
 # Glowworm
 Glowworm is a 3D LED mapping software.
+It runs on Windows, MacOS and Linux.
 
-## Project setup
+
+## Precompiled binaries
+Precompiled binaries for Windows, MacOS and Linux can be found in the dist directory.
+
+
+## Development setup
+First install Node.js and Python 2 (if thy aren't installed already). Then clone the project and open it's folder in your terminal. From there run the following commands:
 
 ### Install required dependencies
 ```
