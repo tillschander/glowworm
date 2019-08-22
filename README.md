@@ -2,9 +2,10 @@
 Glowworm is a 3D LED mapping software.
 It runs on Windows, MacOS and Linux.
 
+[![Glowworm demo video](https://i.vimeocdn.com/video/808213767.jpg)](https://vimeo.com/350381548)
 
 ## Precompiled binaries
-Precompiled binaries for Windows, MacOS and Linux can be found in the dist directory.
+Precompiled binaries for Windows, MacOS and Linux can be found in the [dist](https://github.com/Braunbart/glowworm/tree/master/dist) directory or under the [releases](https://github.com/Braunbart/glowworm/releases) tab.
 
 
 ## Development setup
